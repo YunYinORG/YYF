@@ -1,9 +1,8 @@
 <?php
-
 /**
  * 输入过滤
  * 支持PUT GET POST 和 COOKIE , ENV ,SYSTEM
- * PUT 仅对 PUT 有些
+ * PUT 仅对 REST 路由有效
  */
 class Input
 {
@@ -11,14 +10,16 @@ class Input
 	 * 输入过滤
 	 * @method I
 	 * @param  [string] $param   [输入参数]
-	 * @param  [mixed] &$export [description]
-	 * @param  [mixed] $filter  [过滤条件]
-	 * @param  [type] $default [description]
+	 * @param  [mixed] &$export [变量输出]
+	 * @param  [mixed] $filter  [过滤条件，支持：正则表达式，函数名，回调函数，和filter_var]
+	 * @param  [type] $default [默认值]
+	 * @return bool|null
+	 *         			null表示变量不存在，
+	 *         			false表示格式验证失败，
 	 * @author NewFuture
-	 * @example if(I('post.phone',$phone,'phone')){}//phone()方法验证
-	 * @example if(I('get.id',$uid,'int',1)){}//数字，int函数验证,默认1
+	 * @example I('get.id',$uid,'int',1){}//数字，,默认1
 	 * @example if(I('put.text',$uid,'/^\w{5,50}$/'){}//正则验证
-	 * @example if(I('cookie.token',$uid,'token'){}//使用配置中的regex.token的值进行验证
+	 * @example if(I('cookie.token',$uid,'token'){}//
 	 */
 	public static function I($param, &$export, $filter = null, $default = null)
 	{
@@ -35,23 +36,30 @@ class Input
 			$input = &$_REQUEST;
 			$name  = $param;
 		}
-		return self::filter($input, $name, $export, $filter) || ($export = $default);
+		$r = self::filter($input, $name, $export, $filter) OR ($export = $default);
+		return $r;
 	}
 
-	/*put,get，post等输入过滤*/
+	/*put输入过滤*/
 	public static function put($name, &$export, $filter = null, $default = null)
 	{
-		return self::filter($GLOBALS['_PUT'], $name, $export, $filter) || ($export = $default);
+		isset($GLOBALS['_PUT']) OR parse_str(file_get_contents('php://input'), $GLOBALS['_PUT']);
+		($r = self::filter($GLOBALS['_PUT'], $name, $export, $filter)) OR ($export = $default);
+		return $r;
 	}
 
+	/*get等输入过滤*/
 	public static function get($name, &$export, $filter = null, $default = null)
 	{
-		return self::filter($_GET, $name, $export, $filter) || ($export = $default);
+		($r = self::filter($_GET, $name, $export, $filter)) OR ($export = $default);
+		return $r;
 	}
 
+	/*post等输入过滤*/
 	public static function post($name, &$export, $filter = null, $default = null)
 	{
-		return self::filter($_POST, $name, $export, $filter) || ($export = $default);
+		($r = self::filter($_POST, $name, $export, $filter)) OR ($export = $default);
+		return $r;
 	}
 
 	/**
@@ -69,50 +77,54 @@ class Input
 		if (isset($input[$index]))
 		{
 			$export = $input[$index];
-			if (empty($filter))
+
+			switch (gettype($filter))
 			{
-				/*不用过滤*/
-				return true;
-			}
-			elseif (is_int($filter))
-			{
-				/*使用PHP自带的的过滤器*/
-				return (bool) $export = filter_var($export, $filter);
-			}
-			elseif ($filter[0] == '/')
-			{
-				/*正则表达式验证*/
-				return preg_match($filter, $export);
-			}
-			elseif (method_exists('Parse\Filter', $filter))
-			{
-				/*过滤器过滤*/
-				return (bool) $export = call_user_func_array(array('Parse\Filter', $filter), [$export]);
-			}
-			elseif (method_exists('Validate', $filter))
-			{
-				/*Validate方法验证*/
-				return call_user_func_array(array('Validate', $filter), [$export]);
-			}
-			elseif (function_exists($filter))
-			{
-				/*函数*/
-				return $filter($export);
-			}
-			elseif ($filter = (string) Config::get('regex.' . $filter))
-			{
-				/*尝试配置正则*/
-				return preg_match($filter, $export);
-			}
-			else
-			{
-				throw new Exception('未知过方法' . $filter);
+				case NULL:	//无需过滤
+					return true;
+
+				case 'int':	//整型常量
+				/*系统过滤函数*/
+					return $export = filter_var($export, $filter);
+
+				case 'object':
+				/*匿名回调函数*/
+					$r = $filter($export);
+					return $r ? ($export = $r) : false;
+
+				case 'string':	//字符串
+					if ($filter[0] == '/')
+					{
+					/*正则表达式验证*/
+						return preg_match($filter, $export);
+					}
+					elseif (function_exists($filter))
+					{
+					/*已经定义的函数*/
+						return $export = $filter($export);
+					}
+					elseif ($filterid = filter_id($filter))
+					{
+					/*尝试系统过滤函数*/
+						return $export = filter_var($export, $filterid);
+					}
+					elseif ($regex = (string) Config::get('regex.' . $filter))
+					{
+					/*尝试配置正则*/
+						return preg_match($regex, $export);
+					} //继续往下走
+				default:
+					if (Config::get('isdebug'))
+					{
+						throw new Exception('未知过方法' . $filter);
+					}
+					return false;
 			}
 		}
 		else
 		{
 			/*不存在*/
-			return false;
+			return null;
 		}
 	}
 }

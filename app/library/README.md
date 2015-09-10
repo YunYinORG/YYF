@@ -76,6 +76,22 @@ Input::put($name, &$export, $filter = null, $default = null)
 Input::I($name, &$export, $filter = null, $default = null)
 #其中I包含以上三种方式支持cookie和env，$name未指定方法时读取$_RESUQET
 ```
+实例方法
+```php
+#不过滤
+Input::get('any',$any);
+#正则表达式
+Input::post('name',$name,'/^[\x{4E00}-\x{9FA5}]{2,5}$/u');
+#过滤器支持的字段类型如int,url,email,string等等
+Input::post('id',$id,'int');
+#filter常量
+Input::post('url',$url,FILTER_VALIDATE_URL);
+#回调函数
+Input::post('key',$f,funtion($p){return strtr($p,'=',':');});
+#系统函数
+Input::post('page',$page,'intval',1);
+```
+
 
 Kv
 ------
