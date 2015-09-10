@@ -1,37 +1,6 @@
 <?php
 /**
- * Class and Function List:
- * Function list:
- * - __construct()
- * - find()
- * - select()
- * - save()
- * - update()
- * - add()
- * - insert()
- * - delete()
- * - query()
- * - field()
- * - where()
- * - orWhere()
- * - order()
- * - limit()
- * - count()
- * - __call()
- * - __set()
- * - __get()
- * - __unset()
- * - set()
- * - get()
- * - clear()
- * - parseField()
- * - parseData()
- * - buildSelectSql()
- * - buildFromSql()
- * - buildWhereSql()
- * - buildTailSql()
- * Classes list:
- * - Model
+ *核心模型
  */
 class Model implements JsonSerializable, ArrayAccess
 {
