@@ -121,9 +121,16 @@ Mail
 ```php
 Mail::send($from, $to, $msg) #发送邮件
 Mail::sendVerify($email, $name, $link)#发送验证邮件
-Mail::sendNotify($email, $name, $body)#发送通知邮件
 ```
+实例
 
+```php 
+$from = ['email' => 'sender@test.com', 'name' => '测试','pwd'='123456'];
+$to   = ['email' => 'test@test.com', 'name' => '测试'];
+$msg['title'] = '测试邮件';
+$msg['body']  = '<b>测试</b>';
+Mail::getInstance()->send($from, $to, $msg);#发送邮件
+```
 
 Model
 --------
