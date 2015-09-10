@@ -80,7 +80,8 @@ class Input
 
 			switch (gettype($filter))
 			{
-				case NULL:	//无需过滤
+				case NULL://无需过滤
+				case 'NULL':
 					return true;
 
 				case 'int':	//整型常量

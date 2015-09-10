@@ -4,12 +4,8 @@
  */
 abstract class Rest extends Yaf_Controller_Abstract
 {
-	/*允许的请求*/
-	// protected $request = array('GET', 'POST', 'PUT', 'DELETE');
-
 	private $response_type = 'json'; //返回数据格式
 	protected $response    = false;  //返回数据
-	const AUTH_FAIL        = -1;
 	/**
 	 * 初始化 REST 路由
 	 * 修改操作 和 绑定参数
@@ -18,7 +14,6 @@ abstract class Rest extends Yaf_Controller_Abstract
 	 */
 	protected function init()
 	{
-
 		Yaf_Dispatcher::getInstance()->disableView(); //关闭视图模板引擎
 		$action = $this->_request->getActionName();
 		//数字id映射带info控制器
@@ -27,6 +22,7 @@ abstract class Rest extends Yaf_Controller_Abstract
 			$this->_request->setParam('id', intval($action));
 			$path   = substr(strstr($_SERVER['PATH_INFO'], $action), strlen($action) + 1);
 			$action = $path ? strstr($path . '/', '/', true) : 'info';
+			$this->_request->setActionName($action);
 		}
 		//对应REST_Action
 		$method      = $this->_request->getMethod();
@@ -49,38 +45,9 @@ abstract class Rest extends Yaf_Controller_Abstract
 			);
 			exit;
 		}
-
-		//put请求写入GOLBAL中和post get一样
+		
+		//put请求写入GOLBAL中
 		($method == 'PUT') AND parse_str(file_get_contents('php://input'), $GLOBALS['_PUT']);
-	}
-
-	/**
-	 * 验证用户信息
-	 * 验证用户是否登录或者是否为当前用户
-	 * 如果验证实现，立即返回错误信息并终止执行
-	 * @method auth
-	 * @param  int $user_id [有则验证是否为当前用户，否则只验证是否登录]
-	 * @return [type]           [description]
-	 * @author NewFuture
-	 */
-	protected function auth($user_id = false)
-	{
-		if (!$uid = Auth::id())
-		{
-			/*验证是否有效*/
-			$this->response(self::AUTH_FAIL, '用户信息验证失效，请重新登录！');
-			exit();
-		}
-		elseif ($user_id !== false && $user_id != $uid)
-		{
-			/*资源所有权验证*/
-			$this->response(self::AUTH_FAIL, '账号验证失败无权访问！');
-			exit();
-		}
-		else
-		{
-			return $uid;
-		}
 	}
 
 	/**
@@ -112,14 +79,11 @@ abstract class Rest extends Yaf_Controller_Abstract
 					header('Content-type: application/xml');
 					echo Parse\Xml::encode($this->response);
 					break;
-
 				case 'json':
 				default:
 					header('Content-type: application/json');
 					echo json_encode($this->response, JSON_UNESCAPED_UNICODE); 	//unicode不转码
-					break;
 			}
 		}
 	}
-
 }
