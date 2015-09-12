@@ -28,6 +28,18 @@ class Config
 	}
 
 	/**
+	 * 伪装态设置配置
+	 * @method set
+	 * @param  [type] $key   [description]
+	 * @param  [type] $value [description]
+	 * @author NewFuture
+	 */
+	public static function set($key, $value)
+	{
+		return self::getConfig()->set($key, $value);
+	}
+
+	/**
 	 * 获取私密配置
 	 * @method secret
 	 * @param  [string] $name     [配置名]
@@ -52,7 +64,8 @@ class Config
 	{
 		if (null === self::$_config)
 		{
-			self::$_config = Yaf_Application::app()->getConfig();
+			$config        = Yaf_Application::app()->getConfig()->toArray();
+			self::$_config = new Yaf_Config_Simple($config, false);
 		}
 		return self::$_config;
 	}
