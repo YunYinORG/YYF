@@ -19,8 +19,7 @@ class Log
 	{
 		if ($stream = self::getStream($tag))
 		{
-			$msg = '[' . date('c') . '] ' . $msg . PHP_EOL;
-			return $stream == 'sae' ? sae_debug($tag . $msg) : fwrite($stream, $msg);
+			return $stream == 'sae' ? sae_debug($tag .':'. $msg) : fwrite($stream, '[' . date('c') . '] ' . $msg . PHP_EOL);
 		}
 	}
 
