@@ -91,7 +91,8 @@ class Input
 				case 'object':
 				/*匿名回调函数*/
 					$r = $filter($export);
-					return $r ? ($export = $r) : false;
+					//$r返回值是bool型的true直接返回，不是true认为是过滤，型的进行赋值
+					return $r ? (is_bool($r) OR $export = $r) : $export = $r;
 
 				case 'string':	//字符串
 					if ($filter[0] == '/')
@@ -102,7 +103,9 @@ class Input
 					elseif (function_exists($filter))
 					{
 					/*已经定义的函数*/
-						return $export = $filter($export);
+						$r = $filter($export);
+						//$r返回值是bool型的true直接返回，不是true认为是过滤，型的进行赋值
+						return $r ? (is_bool($r) OR $export = $r) : $export = $r;
 					}
 					elseif ($filterid = filter_id($filter))
 					{

@@ -8,7 +8,10 @@ Yunyin Yaf Framework
 
 借鉴内流行的ThinkPHP框架和国际流行的Laravel框架的使用习惯
 
-在保持Yaf的性能优势
+兼顾程序性能和代码优雅
+
+## [核心库](https://github.com/YunYinORG/YYF/tree/master/app/library)
+
 
 数据库
 -------
@@ -26,20 +29,29 @@ $Info=InfoModel::find(1);//查找id为1的
 $Info->set('time',time())->save();
 ```
 
+(详细使用说明)[https://github.com/YunYinORG/YYF/tree/master/app/models]
 
 REST控制器
 -----
-*对 get,put,post,delete等路由到特定控制器处理
-*绑定ID参数, 如 /user/123/phone 映射到User/phone 绑定参数id=123
-*支持json和xml数据输出
+* 对 get,put,post,delete等路由到特定控制器处理
+* 绑定ID参数,
+* 支持json和xml数据输出
 
+实例
+在controllers下建一个 Test.php
 ```php
 class TestController extends Rest
 {
-function GET_indexAction(){$this->response=['method'=>'get'];}//处理GET 输出json{'metod':'get'}
-function POST_indexAction(){;}//处理POST
+function GET_indexAction(){$this->response=['method'=>'get'];}//处理GET
+function POST_indexAction(){$this->response['data']=$this->_request->getPost();}//处理POST
 }
 ```
+
+GET 请求测试
+`curl -X GET localhost/test/`  响应 `{'metod':'get'}`
+
+POST 请求测试
+`curl -X POST -d "key=value" localhost/test/` 响应 `{"data":{"key":"value"}}` 
 
 数据存取
 ------
@@ -67,12 +79,14 @@ Kv::flush()
 
 常用扩展
 -------
+* 支持YAF的所有接口
 * Input  输入过滤扩展
 * Random 随机数生成库
 * Log    日志管理
 
-
 其他服务
 -----
-Mail
-Debug
+
+* Mail  简单邮件发送
+* Debug PHPConsole调试插件
+* Qiniu 七牛文件管理
