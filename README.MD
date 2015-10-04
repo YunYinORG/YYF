@@ -29,7 +29,7 @@ $Info=InfoModel::find(1);//查找id为1的
 $Info->set('time',time())->save();
 ```
 
-(详细使用说明)[https://github.com/YunYinORG/YYF/tree/master/app/models]
+[详细使用说明](https://github.com/YunYinORG/YYF/tree/master/app/models)
 
 REST控制器
 -----
