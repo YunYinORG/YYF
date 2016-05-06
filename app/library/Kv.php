@@ -84,19 +84,17 @@ class Kv
 	{
 		if (null === self::$_handler)
 		{
-			$config = Config::get('kv');
-			switch ($config['type'])
+			switch (Config::get('kv.type'))
 			{
 				case 'sae':	//sae_memcache
 					self::$_handler = memcache_init();
 					break;
-
 				case 'file':	//文件缓存
-					self::$_handler = new Storage\File($config['dir'], false);
+					self::$_handler = new Storage\File(Config::get('tempdir') . 'kv', false);
 					break;
 
 				default:
-					throw new Exception('未定义方式' . $config['type']);
+					throw new Exception('未定义方式' . Config::get('kv.type'));
 			}
 		}
 		return self::$_handler;

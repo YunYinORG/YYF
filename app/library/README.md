@@ -1,6 +1,7 @@
 YYF核心库
 ========
 
+* Auth.php : 登录信息验证类 (Auth)
 * Cache.php : 缓存管理类(Cache)
 * Config.php : 配置读取类(Config)
 * Cookie.php : 安全Cookie操作类(Cookie)
@@ -12,8 +13,19 @@ YYF核心库
 * Model.php : 核心model类(Model)
 * Random.php : 随机数生成器(Random)
 * Rest.php : REST核心controller类(Rest)
-* Rsa.php : RSA 非对称加解密类(Rsa)
+* Rsa.php : Rsa 加解密类(Rsa)
 * Session.php : session操作管理(Session)
+* Validate.php : 格式验证(Validate)
+
+Auth
+------
+登录验证接口
+```php
+Auth::id()      #获取用户id
+Auth::number()  #获取学号
+Auth::getUser() #获取用户信息
+Auth::token(mixed $user|$id) #生成token
+```
 
 Cache
 ------
@@ -68,7 +80,6 @@ Input
 * 返回true(输入存在且有效)或者false,
 * 输入结果存在$export中
 * $filter为参数格式验证或者过滤方法支持：正则表达式，系统函数，php的filter_var常量,自定义的验证过滤函数
-
 ```php
 Input::post($name, &$export, $filter = null, $default = null)
 Input::get($name, &$export, $filter = null, $default = null)
@@ -76,34 +87,18 @@ Input::put($name, &$export, $filter = null, $default = null)
 Input::I($name, &$export, $filter = null, $default = null)
 #其中I包含以上三种方式支持cookie和env，$name未指定方法时读取$_RESUQET
 ```
-实例方法
-```php
-#不过滤
-Input::get('any',$any);
-#正则表达式
-Input::post('name',$name,'/^[\x{4E00}-\x{9FA5}]{2,5}$/u');
-#过滤器支持的字段类型如int,url,email,string等等
-Input::post('id',$id,'int');
-#filter常量
-Input::post('url',$url,FILTER_VALIDATE_URL);
-#回调函数
-Input::post('key',$f,funtion($p){return strtr($p,'=',':');});
-#系统函数
-Input::post('page',$page,'intval',1);
-```
-
 
 Kv
 ------
 键值对存储类
 本地缓存暂时采用文件存储
 支持字符串
-SAE采用kvdb
+SAE采用memcache
 ```php
-Kv::set($name, $str) #设置
-Kv::get($name)       #读取
-Kv::del($name)       #删除
-Kv::flush()          #清空
+Cache::set($name, $str) #设置
+Cache::get($name)       #读取
+Cache::del($name)       #删除
+Cache::flush()          #清空
 ```
 
 Log
@@ -121,16 +116,9 @@ Mail
 ```php
 Mail::send($from, $to, $msg) #发送邮件
 Mail::sendVerify($email, $name, $link)#发送验证邮件
+Mail::sendNotify($email, $name, $body)#发送通知邮件
 ```
-实例
 
-```php 
-$from = ['email' => 'sender@test.com', 'name' => '测试','pwd'='123456'];
-$to   = ['email' => 'test@test.com', 'name' => '测试'];
-$msg['title'] = '测试邮件';
-$msg['body']  = '<b>测试</b>';
-Mail::getInstance()->send($from, $to, $msg);#发送邮件
-```
 
 Model
 --------
@@ -154,9 +142,9 @@ Random
 -------
 快速随机数生成器
 ```php
-Random::number($n = 4)  #生成随机number[0-9]
-Random::word($n = 8)  #随机word[0-9|a-Z]
-Random::char($n=10)   #生成随机char[a-Z]
+Random::n($n = 4)  #生成随机number[0-9]
+Random::w($n = 8)  #随机word[0-9|a-Z]
+Random::c($n=10)   #生成随机char[a-Z]
 Random::code($n=6) #随机验证码验证码,去除0，1等不易辨识字符
 ```
 
@@ -172,10 +160,9 @@ REST控制器核心基类
 `protected $response `响应的数据
 `protected response(status,info)`快速设置响应方法
 
-
 Rsa
 -------
-RSA 非对称加密库
+Rsa 非对称加密库
 ```
 Rsa::pubKey()   #获取公钥
 Rsa::encode($s) #加密

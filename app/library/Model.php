@@ -1,7 +1,4 @@
 <?php
-/**
- *核心模型
- */
 class Model implements JsonSerializable, ArrayAccess
 {
 	/**
@@ -14,6 +11,7 @@ class Model implements JsonSerializable, ArrayAccess
 	 * @var string
 	 */
 	protected $pk = 'id';
+	// protected $id = ;
 
 	protected $has_tables        = array();
 	protected $belongs_to_tables = array();
@@ -33,8 +31,8 @@ class Model implements JsonSerializable, ArrayAccess
 		$this->pk    = $pk;
 		if (self::$_db == null)
 		{
-			$config    = Config::get('database');
-			$dsn       = $config['driver'] . ':host=' . $config['host'] . ';dbname=' . $config['database'];
+			$config    = Config::getSecret('database');
+			$dsn       = $config['driver'] . ':host=' . $config['host'] . ';port=' . $config['port'] . ';dbname=' . $config['database'];
 			self::$_db = new Service\Db($dsn, $config['username'], $config['password']);
 		}
 	}
@@ -107,7 +105,11 @@ class Model implements JsonSerializable, ArrayAccess
 		$this->limit = 1;
 		$result      = $this->select();
 		$this->data  = isset($result[0]) ? $result[0] : $result;
-		return $this->data ? $this : null;
+		if (is_numeric($id))
+		{
+			$this->data[$this->pk] = $id;
+		}
+		return $result ? $this : null;
 	}
 
 	/**
@@ -152,6 +154,11 @@ class Model implements JsonSerializable, ArrayAccess
 			$data       = $this->data;
 			$this->data = array();
 		}
+		elseif (empty($data))
+		{
+			$data       = $this->data;
+			$this->data = array();
+		}
 		return $this->update($data);
 	}
 
@@ -172,13 +179,15 @@ class Model implements JsonSerializable, ArrayAccess
 			$data   = array_intersect_key($data, $field);
 		}
 
-		if (is_array($data) && !empty($data))
+		if (is_array($data))
 		{
-			$this->param   = array_merge($this->param, $data);
+
 			$update_string = '';
-			foreach (array_keys($data) as $key)
+			foreach ($data as $key => $v)
 			{
-				$update_string .= self::backQoute($key) . '=:' . $key . ',';
+				$param_key = 's_' . $key;
+				$update_string .= self::backQoute($key) . '=:' . $param_key . ',';
+				$this->param[$param_key] = $v;
 			}
 			$update_string = trim($update_string, ',');
 		}
@@ -188,7 +197,7 @@ class Model implements JsonSerializable, ArrayAccess
 		}
 		else
 		{
-			if (Config::get('isdebug'))
+			if (Config::get('debug'))
 			{
 				throw new Exception('未知参数', 1);
 			}
@@ -197,6 +206,12 @@ class Model implements JsonSerializable, ArrayAccess
 
 		$sql = 'UPDATE' . self::backQoute($this->table);
 		$sql .= 'SET' . $update_string;
+
+		if (empty($this->where) && empty($this->data) && isset($data[$this->pk]))
+		{
+			/*默认使用data主键作为更新值*/
+			$this->data[$this->pk] = $data[$this->pk];
+		}
 		$sql .= $this->buildWhereSql();
 
 		return $this->execute($sql, $this->param);
@@ -254,6 +269,35 @@ class Model implements JsonSerializable, ArrayAccess
 	}
 
 	/**
+	 * 批量插入数据
+	 * @method insertAll
+	 * @param  array    $fields       [字段]
+	 * @param  array     $values      [数据，二维数组]
+	 * @return int 插入条数
+	 * @author NewFuture
+	 */
+	public function insertAll($fields, $values = array())
+	{
+		//字段过滤
+		$quote_fields = array_map(array($this, 'backQoute'), $fields);
+
+		//插入数据
+		$sql = 'INSERT INTO' . self::backQoute($this->table);
+		$sql .= '(' . implode(',', $quote_fields) . ')VALUES';
+		$param = [];
+		foreach ($values as $i => $value)
+		{
+			$sql .= '(:' . implode($i . ',:', $fields) . $i . '),';
+			foreach ($fields as $k => $field)
+			{
+				$param[$field . $i] = $value[$k];
+			}
+		}
+		$sql = rtrim($sql, ',');
+		return $this->execute($sql, $param);
+	}
+
+	/**
 	 * 删除数据
 	 * @method delete
 	 * @param  [string] $id [description]
@@ -273,7 +317,7 @@ class Model implements JsonSerializable, ArrayAccess
 				$this->data[$this->pk] = $id;
 			}
 		}
-		$sql = 'DELETE';
+		$sql = 'DELETE ';
 		$sql .= $this->buildFromSql();
 		$where = $this->buildWhereSql();
 		if (!$where)
@@ -371,32 +415,35 @@ class Model implements JsonSerializable, ArrayAccess
 	 * where('id','>',1)
 	 * @author NewFuture
 	 */
-	public function where($key, $exp = null, $value = null, $conidition = 'AND')
+	public function where($key, $exp = null, $value = null)
 	{
-		if ($conidition !== 'OR')
-		{
-			$conidition = 'AND';
-		}
-
+		// if ($conidition !== 'OR')
+		// {
+		// 	$conidition = 'AND';
+		// }
+		$and = isset($this->where['and']) ? $this->where['and'] : [];
 		if (null === $exp) //单个参数，where($array)或者where($sql)
 		{
 			if (is_string($key))
 			{
 				//直接sql条件
 				//TO 安全过滤
-				$where = 'AND(' . $key . ')';
+				$and[] = $key;
 			}
 			elseif (is_array($key))
 			{
 				/*数组形式*/
-				$where = [];
 				foreach ($key as $k => $v)
 				{
-					$name               = $k . '_w_eq';
-					$where[]            = self::backQoute($k) . '=:' . $name;
-					$this->param[$name] = $v;
+					$and[] = array($k, '=', $v);
 				}
-				$where = $conidition . '((' . implode(')AND(', $where) . '))';
+				// foreach ($key as $k => $v)
+				// {
+				// 	$name               = $k . '_w_eq';
+				// 	$where[]            = self::backQoute($k) . '=:' . $name;
+				// 	$this->param[$name] = $v;
+				// }
+				// $where = $conidition . '((' . implode(')AND(', $where) . '))';
 			}
 			else
 			{
@@ -405,19 +452,19 @@ class Model implements JsonSerializable, ArrayAccess
 		}
 		elseif (null === $value) //where($key,$v)等价于where($key,'=',$v);
 		{
-			$name  = $key . '_w_eq';
-			$where = $conidition . '(' . self::backQoute($key) . '=:' . $name . ')';
-
-			$this->param[$name] = $exp;
+			// $name  = $key . '_w_eq';
+			// $where = $conidition . '(' . self::backQoute($key) . '=:' . $name . ')';
+			// $this->param[$name] = $exp;
+			$and[] = [$key, '=', $exp];
 		}
 		else
 		{
-			$name  = $key . '_w_eq';
-			$where = $conidition . '(' . self::backQoute($key) . $exp . ' :' . $name . ')';
-
-			$this->param[$name] = $value;
+			// $name  = $key . '_w_eq';
+			// $where = $conidition . '(' . self::backQoute($key) . $exp . ' :' . $name . ')';
+			// $this->param[$name] = $value;
+			$and[] = [$key, $exp, $value];
 		}
-		$this->where .= $where;
+		$this->where['and'] = $and;
 		return $this;
 	}
 
@@ -432,7 +479,39 @@ class Model implements JsonSerializable, ArrayAccess
 	 */
 	public function orWhere($key, $exp = null, $value = null)
 	{
-		return $this->where($key, $exp, $value, 'OR');
+		$or = isset($this->where['or']) ? $this->where['or'] : [];
+		if (null === $exp) //单个参数，where($array)或者where($sql)
+		{
+			if (is_string($key))
+			{
+				//直接sql条件
+				//TO 安全过滤
+				$or[] = $key;
+			}
+			elseif (is_array($key))
+			{
+				/*数组形式*/
+				foreach ($key as $k => $v)
+				{
+					$or[] = array($k, '=', $v);
+				}
+			}
+			else
+			{
+				throw new Exception('非法where查询:' . json_encode($key));
+			}
+		}
+		elseif (null === $value)
+		{
+			//where($key,$v)等价于where($key,'=',$v);
+			$or[] = [$key, '=', $exp];
+		}
+		else
+		{
+			$or[] = [$key, $exp, $value];
+		}
+		$this->where['or'] = $or;
+		return $this;
 	}
 
 	/**
@@ -750,20 +829,63 @@ class Model implements JsonSerializable, ArrayAccess
 	 */
 	private function buildWhereSql()
 	{
-		$pre     = $this->belongs_to_tables ? self::backQoute($this->table) . '.' : '';
-		$datastr = $this->parseData(')AND(' . $pre);
-		$where   = null;
-		if ($datastr)
-		{
-			$where = '(' . $pre . $datastr . ')' . $this->where;
-		}
-		elseif ($this->where)
-		{
-			//去掉第一个AND或者OR
-			$where = strstr($this->where, '(');
-		}
+		$pre   = $this->belongs_to_tables ? self::backQoute($this->table) . '.' : '';
+		$sql   = empty($this->data) ? '' : '(' . $pre . $this->parseData(')AND(' . $pre) . ')';
+		$where = $this->where;
 
-		return $where ? ' WHERE ' . $where : '';
+		if (!empty($where))
+		{
+			/*AND*/
+			$and = isset($where['and']) ? $where['and'] : [];
+			foreach ($and as $c)
+			{
+				//逐个and条件处理
+				if (is_string($c))
+				{
+					//字符串形式sql
+					$conidition[] = $c;
+				}
+				else
+				{
+					//数组关系式
+					list($key, $exp, $value) = $c;
+					$name                    = 'w_and_' . $key; //字段名带上表前缀
+					$field                   = strpos($key, '.') ? $key . ' ' : $pre . self::backQoute($key);
+					$conidition[]            = $field . $exp . ' :' . $name;
+					$this->param[$name]      = $value;
+				}
+			}
+			if (!empty($conidition))
+			{
+				$and = '(' . implode(')AND(', $conidition) . ')';
+				$sql = $sql ? $sql . 'AND' . $and : $and;
+			}
+
+			/*OR*/
+			$or = isset($where['or']) ? $where['or'] : [];
+			unset($conidition);
+			foreach ($or as $c)
+			{
+				if (is_string($c))
+				{
+					$conidition[] = $c;
+				}
+				else
+				{
+					list($key, $exp, $value) = $c;
+					$name                    = 'w_or_' . $key;
+					$field                   = strpos($key, '.') ? $key . ' ' : $pre . self::backQoute($key);
+					$conidition[]            = $field . $exp . ' :' . $name;
+					$this->param[$name]      = $value;
+				}
+			}
+			if (!empty($conidition))
+			{
+				$or  = '(' . implode(')OR(', $conidition) . ')';
+				$sql = $sql ? $sql . 'OR' . $or : $or;
+			}
+		}
+		return $sql ? ' WHERE ' . $sql : '';
 	}
 
 	/**
@@ -827,22 +949,22 @@ class Model implements JsonSerializable, ArrayAccess
 	/**数组操作接口实现**/
 	public function offsetExists($offset)
 	{
-		return isset($data[$offset]);
+		return isset($this->data[$offset]);
 	}
 
 	public function offsetGet($offset)
 	{
-		return $this->get($offsetSet, false);
+		return $this->get($offset, false);
 	}
 
 	public function offsetSet($offset, $value)
 	{
-		$this->data[$offsetSet] = $value;
+		$this->data[$offset] = $value;
 	}
 
 	public function offsetUnset($offset)
 	{
-		unset($this->data[$offsetSet]);
+		unset($this->data[$offset]);
 	}
 }
 ?>

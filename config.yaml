@@ -1,2 +1,16 @@
+name: YYF
 handle:
-- rewrite: if(!is_dir() && !is_file() && path~"^(.*)$") goto "index.php/$1"
+- rewrite: if(path == "/robots.txt") goto "/public/robots.txt"
+- rewrite: if(path == "/favicon.ico") goto "/public/favicon.ico"
+- rewrite: if(path~"^(.*)$") goto "/public/index.php/$1"
+
+- hostaccess: if(path == "/backup.php") allow "10.0.0.0/8"
+- hostaccess: if (%{REQUEST_URI} ~*"/conf/") allow "0.0"
+- hostaccess: if (%{REQUEST_URI} ~*"/app/")  allow "0.0"
+- hostaccess: if (path ~*"/.htacesss")  allow "0.0"
+
+cron:
+- description: backup
+  url: /backup.php
+  schedule: every day of month 04:32
+  timezone: Beijing

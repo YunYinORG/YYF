@@ -1,10 +1,36 @@
 <?php
 /**
- * 安全cookie
- * 对cookie存取进行加密
+ * Session操作
  */
 class Session
 {
+
+	private static $_id;
+
+	/**
+	 * @method start
+	 * @return string [session id]
+	 * @author NewFuture
+	 */
+	public static function start($id = null)
+	{
+		if (!$sid = self::$_id)
+		{
+			if (($sid = $id) || Input::I('SERVER.HTTP_SESSION_ID', $sid, 'ctype_alnum'))
+			{
+				session_id($sid);
+				session_start();
+			}
+			else
+			{
+				session_start();
+				$sid = session_id();
+			}
+			self::$_id = $sid;
+		}
+		return $sid;
+	}
+
 	/**
 	 * 设置session
 	 * @method set
@@ -13,7 +39,8 @@ class Session
 	 */
 	public static function set($name, $value)
 	{
-		return Yaf_Session::getInstance()->set($name, $value);
+		self::start();
+		return $_SESSION[$name] = $value;
 	}
 
 	/**
@@ -23,7 +50,8 @@ class Session
 	 */
 	public static function get($name)
 	{
-		return Yaf_Session::getInstance()->get($name);
+		self::start();
+		return isset($_SESSION[$name]) ? $_SESSION[$name] : null;
 	}
 
 	/**
@@ -33,13 +61,17 @@ class Session
 	 */
 	public static function del($name)
 	{
-		return Yaf_Session::getInstance()->del($name);
+		self::start();
+		unset($_SESSION[$name]);
 	}
 
 	/*清空session*/
 	public static function flush()
 	{
+		self::start();
+		unset($_SESSION);
 		session_unset();
-		unset($_COOKIE);
+		session_destroy();
+		self::$_id = null;
 	}
 }

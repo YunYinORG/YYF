@@ -41,7 +41,7 @@ class Db
 
 		# Disable emulation of prepared statements, use REAL prepared statements instead.
 		$this->pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-		if ($this->_isdebug = Config::get('isdebug'))
+		if ($this->_isdebug = Config::get('debug'))
 		{
 			$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		}
@@ -102,7 +102,7 @@ class Db
 	{
 		if ($this->_isdebug)
 		{
-			Log::write($sql . json_encode($params), 'SQL');
+			Log::write($sql . json_encode($params,JSON_UNESCAPED_UNICODE), 'SQL');
 			\PC::DB($sql, 'sql');
 			$params and \PC::DB($params, 'params');
 		}
@@ -124,7 +124,7 @@ class Db
 
 		}
 		/*查询失败*/
-		$this->error($sql . PHP_EOL . json_encode($params));
+		$this->error($sql . PHP_EOL . json_encode($params,JSON_UNESCAPED_UNICODE));
 		return false;
 
 	}
@@ -141,7 +141,7 @@ class Db
 	{
 		if ($this->_isdebug)
 		{
-			Log::write($sql . json_encode($params), 'SQL');
+			Log::write($sql . json_encode($params,JSON_UNESCAPED_UNICODE), 'SQL');
 			\PC::DB($sql, 'prepare');
 			$params AND \PC::DB($params, 'params');
 		}
@@ -151,7 +151,7 @@ class Db
 		}
 		elseif (!$this->init($sql, $params))
 		{
-			$this->error($sql . PHP_EOL . json_encode($params));
+			$this->error($sql . PHP_EOL . json_encode($params,JSON_UNESCAPED_UNICODE));
 			return false;
 		}
 		$result = $this->sQuery->rowCount();
@@ -186,7 +186,7 @@ class Db
 		}
 		else
 		{
-			$this->error($sql . PHP_EOL . json_encode($params));
+			$this->error($sql . PHP_EOL . json_encode($params,JSON_UNESCAPED_UNICODE));
 		}
 	}
 
@@ -201,7 +201,7 @@ class Db
 	{
 		if ($this->_isdebug)
 		{
-			Log::write($query . json_encode($params), 'SQL');
+			Log::write($query . json_encode($params,JSON_UNESCAPED_UNICODE), 'SQL');
 			\PC::DB($query, 'prepare');
 			$params AND \PC::DB($params, 'params');
 		}
@@ -222,7 +222,7 @@ class Db
 			return $result;
 		}
 		/*查询出错*/
-		$this->error($query . PHP_EOL . json_encode($params));
+		$this->error($query . PHP_EOL . json_encode($params,JSON_UNESCAPED_UNICODE));
 		return false;
 	}
 

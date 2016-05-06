@@ -70,19 +70,18 @@ class Cache
 	{
 		if (null === self::$_handler)
 		{
-			$config = Config::get('cache');
-			switch ($config['type'])
+			switch (Config::get('cache.type'))
 			{
 				case 'sae':	//sae_memcache
 					self::$_handler = memcache_init();
 					break;
 
 				case 'file':	//文件缓存
-					self::$_handler = new Storage\File($config['dir'], true);
+					self::$_handler = new Storage\File(Config::get('tempdir') . 'cache', true);
 					break;
 
 				default:
-					throw new Exception('未知缓存方式' . $config['type']);
+					throw new Exception('未知缓存方式' . Config::get('cahce.type'));
 			}
 		}
 		return self::$_handler;

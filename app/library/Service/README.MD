@@ -1,7 +1,7 @@
 # 第三服务API接口
 
 ### 文件上传
-Qiniu.php 七牛文件管理接口
+Flie.php 七牛文件管理接口
 ```php
 Qiniu::set($file,$new_file) #文件重命名
 Qiniu::get($name,$param='') #获取下载链接

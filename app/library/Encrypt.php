@@ -29,6 +29,9 @@ class Encrypt
 	//配置，key
 	private static $_config = null;
 
+	//最大混淆ID限制
+	const MAX_ID = 5000;
+
 	/**
 	 * 加密密码
 	 * @method encodePwd
@@ -51,7 +54,7 @@ class Encrypt
 	 */
 	public static function base64Encode($str)
 	{
-		return strtr(base64_encode($str), array('+' => '_', '=' => '.', '/' => '-'));
+		return strtr(base64_encode($str), array('+' => '-', '=' => '_', '/' => '.'));
 	}
 
 	/**
@@ -63,7 +66,7 @@ class Encrypt
 	 */
 	public static function base64Decode($str)
 	{
-		return base64_decode(strtr($str, array('_' => '+', '.' => '=', '-' => '/')));
+		return base64_decode(strtr($str, array('-' => '+', '_' => '=', '.' => '/')));
 	}
 
 	/**
@@ -92,13 +95,17 @@ class Encrypt
 	 */
 	public static function aesDecode($cipher, $key, $safe_view = false)
 	{
-		$cipher = $safe_view ? self::base64Decode($cipher) : trim($cipher);
-		$td     = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_ECB, '');
-		mcrypt_generic_init($td, $key, '0000000000000000');
-		$cipher = mdecrypt_generic($td, $cipher);
-		mcrypt_generic_deinit($td);
-		$cipher = trim($cipher);
-		return $cipher;
+		if ($cipher)
+		{
+			$safe_view AND $cipher = self::base64Decode($cipher);
+
+			$td = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_ECB, '');
+			mcrypt_generic_init($td, $key, '0000000000000000');
+			$cipher = mdecrypt_generic($td, $cipher);
+			mcrypt_generic_deinit($td);
+			$cipher = trim($cipher);
+			return $cipher;
+		}
 	}
 
 	/**
@@ -256,7 +263,7 @@ class Encrypt
 		$key   = substr($snum . $key, 0, 32);   //混淆密钥,每个人的密钥均不同
 		$table = self::_cipherTable($key);
 		//拆成两部分进行解密
-		$midNum += $id;
+		$midNum += $id % self::MAX_ID;
 		$mid2 = (int) substr($midNum, 2, 4);
 		//后4位加密
 		$mid2 = array_search(self::aesEncode($mid2, $key), $table);
@@ -313,7 +320,7 @@ class Encrypt
 		$mid2 = sprintf('%04s', self::aesDecode($mid2, $key));
 		//还原
 		$num = substr_replace($midEncode, $mid2, 2);
-		$num -= $id;
+		$num -= $id % self::MAX_ID;
 		return $num;
 	}
 
@@ -326,11 +333,15 @@ class Encrypt
 	 */
 	private static function _cipherTable($key)
 	{
-		$tableName = 'et_' . $key;        //缓存表名称
-		$table     = Kv::get($tableName); //读取缓存中的密码表
-		if (!$table)
+		$tableName = 'et_' . urlencode($key); //缓存表名称
+		if ($table = Kv::get($tableName))
 		{
-			//密码表不存在则重新生成
+			/*读取缓存中的密码表*/
+			$table = unserialize($table);
+		}
+		else
+		{
+			/*密码表不存在则重新生成*/
 			//对所有数字,逐个进行AES加密生成密码表
 			$td = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_ECB, '');
 			mcrypt_generic_init($td, $key, '0000000000000000');
@@ -339,8 +350,8 @@ class Encrypt
 				$table[] = mcrypt_generic($td, $i);
 			}
 			mcrypt_generic_deinit($td);
-			sort($table);                //根据加密后内容排序得到密码表
-			Kv::set($tableName, $table); //缓存密码表
+			sort($table);                           //根据加密后内容排序得到密码表
+			Kv::set($tableName, serialize($table)); //缓存密码表
 		}
 		return $table;
 	}

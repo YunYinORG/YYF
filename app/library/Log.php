@@ -41,7 +41,7 @@ class Log
 			else
 			{
 				//日志目录
-				$logdir = Config::get('log.dir');
+				$logdir = Config::get('tempdir').'log';
 				if (!Storage\File::mkdir($logdir))
 				{
 					throw new Exception('目录文件无法创建' . $logdir, 1);

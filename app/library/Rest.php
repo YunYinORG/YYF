@@ -1,11 +1,15 @@
-<?php
+ <?php
 /**
  * REST 控制器
  */
 abstract class Rest extends Yaf_Controller_Abstract
 {
+	/*允许的请求*/
+	// protected $request = array('GET', 'POST', 'PUT', 'DELETE');
+
 	private $response_type = 'json'; //返回数据格式
-	protected $response    = false;  //返回数据
+	protected $response    = false;  //自动返回数据
+
 	/**
 	 * 初始化 REST 路由
 	 * 修改操作 和 绑定参数
@@ -14,25 +18,59 @@ abstract class Rest extends Yaf_Controller_Abstract
 	 */
 	protected function init()
 	{
-		Yaf_Dispatcher::getInstance()->disableView(); //关闭视图模板引擎
-		$action = $this->_request->getActionName();
-		//数字id映射带info控制器
+		Yaf_Dispatcher::getInstance()->disableView(); //立即输出响应，并关闭视图模板引擎
+		/*请求来源，跨站响应*/
+		if($cookie_domain=Config::get('cookie.domain'))
+		{
+			$from=isset($_SERVER['HTTP_REFERER'])?$_SERVER['HTTP_REFERER']:(isset($_SERVER['HTTP_ORIGIN'])?$_SERVER['HTTP_ORIGIN']:false);
+			if ($from)
+			{
+				/*跨站请求*/
+				$from = parse_url($from);
+				if (isset($from['host']) && strrchr($from['host'],$cookie_domain)==$cookie_domain)
+				{
+					$cors = Config::get('cors');
+					foreach ($cors as $key => $value)
+					{
+						header($key . ':' . $value);
+					}
+					/*允许来自cors跨站响应头*/
+					header('Access-Control-Allow-Origin:' . $from['scheme'] . '://' . $from['host']);
+				}
+			}
+		}		
+
+		/*请求操作判断*/
+		$request = $this->_request;
+		$method  = $request->getMethod();
+		if ($method == 'OPTIONS')
+		{
+			/*cors应答*/
+			exit();
+		}
+		elseif ($method == 'PUT')
+		{
+			//put请求写入GOLBAL中和post get一样
+			parse_str(file_get_contents('php://input'), $GLOBALS['_PUT']);
+		}
+
+		/*Action路由*/
+		$action = $request->getActionName();
 		if (is_numeric($action))
 		{
-			$this->_request->setParam('id', intval($action));
+			/*数字id映射带infoAction*/
+			$request->setParam('id', intval($action));
 			$path   = substr(strstr($_SERVER['PATH_INFO'], $action), strlen($action) + 1);
 			$action = $path ? strstr($path . '/', '/', true) : 'info';
-			$this->_request->setActionName($action);
 		}
-		//对应REST_Action
-		$method      = $this->_request->getMethod();
-		$rest_action = $method . '_' . $action;
+
+		$rest_action = $method . '_' . $action; //对应REST_Action
 
 		/*检查该action操作是否存在，存在则修改为REST接口*/
 		if (method_exists($this, $rest_action . 'Action'))
 		{
 			/*存在对应的操作*/
-			$this->_request->setActionName($rest_action);
+			$request->setActionName($rest_action);
 		}
 		elseif (!method_exists($this, $action . 'Action'))
 		{
@@ -41,13 +79,11 @@ abstract class Rest extends Yaf_Controller_Abstract
 				'error' => '未定义操作',
 				'method' => $method,
 				'action' => $action,
-				'controller' => $this->_request->getControllerName(),
+				'controller' => $request->getControllerName(),
+				'module' => $request->getmoduleName(),
 			);
 			exit;
 		}
-		
-		//put请求写入GOLBAL中
-		($method == 'PUT') AND parse_str(file_get_contents('php://input'), $GLOBALS['_PUT']);
 	}
 
 	/**
@@ -73,17 +109,8 @@ abstract class Rest extends Yaf_Controller_Abstract
 	{
 		if ($this->response !== false)
 		{
-			switch ($this->response_type)
-			{
-				case 'xml':
-					header('Content-type: application/xml');
-					echo Parse\Xml::encode($this->response);
-					break;
-				case 'json':
-				default:
-					header('Content-type: application/json');
-					echo json_encode($this->response, JSON_UNESCAPED_UNICODE); 	//unicode不转码
-			}
+			header('Content-type: application/json;charset=utf-8');
+			echo (json_encode($this->response, JSON_UNESCAPED_UNICODE)); //unicode不转码
 		}
 	}
 }

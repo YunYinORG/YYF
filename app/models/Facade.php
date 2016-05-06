@@ -2,6 +2,25 @@
 /**
  * 基本的Facde接口，对model封装
  * @example
+ * 	class UserModel extends FacadeModel{}
+ *
+ * 	UserModel::find(1);//返回id为1的数据
+ * 	UserModel::slecet(['school'=>1]);//查找所有school值为1的用户
+ *
+ * 	UserModel::set('pwd','1234')->save(1);//将id为1的用户密码设置为1234
+ * 	UserModel::where('id','=','1')->update(['pwd'=>'1234']);//同上，也可以使用save
+ *
+ * 	UserModel::set(['pwd'=>'mypwd','name'=>'test'])->add();//添加新用户
+ * 	UserModel::add(['pwd'=>'mypwd','name'=>'test']);//同上，也可以使用insert()
+ *
+ *  UserModel::where('id','>','10')->where('id','<','100')->select();//查找所有id在10到100之间的用户
+ *  UserModel::where('id','=','1')->get('name');//获取id为一的用户的name
+ *  UserModel::where('id','>','1')->limit(10)->select('id,name');//查询id>1的10个用户的id和name
+ *  UserModel::where('id','>','1')->field('id','uid')->field('name','uname')->select();//查询id>1的用户的uid和uname(表示id和name)
+ *  UserModel::where('name','LIKE','%future%')->count();//统计name中包含future的字数
+ *
+ * 也可以实例化操作 $user=new UserModel;
+ * $user->find（1）;//
  */
 abstract class FacadeModel
 {

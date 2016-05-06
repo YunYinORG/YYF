@@ -114,7 +114,7 @@ class File
 		}
 		else
 		{
-			throw new Exception('目录无法创建：' . $dir);
+			throw new \Exception('目录无法创建：' . $dir);
 		}
 		$this->_serialized = $serialized;
 	}
