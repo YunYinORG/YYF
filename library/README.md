@@ -1,7 +1,6 @@
 YYF核心库
 ========
 
-* Auth.php : 登录信息验证类 (Auth)
 * Cache.php : 缓存管理类(Cache)
 * Config.php : 配置读取类(Config)
 * Cookie.php : 安全Cookie操作类(Cookie)
@@ -17,15 +16,6 @@ YYF核心库
 * Session.php : session操作管理(Session)
 * Validate.php : 格式验证(Validate)
 
-Auth
-------
-登录验证接口
-```php
-Auth::id()      #获取用户id
-Auth::number()  #获取学号
-Auth::getUser() #获取用户信息
-Auth::token(mixed $user|$id) #生成token
-```
 
 Cache
 ------
@@ -116,7 +106,6 @@ Mail
 ```php
 Mail::send($from, $to, $msg) #发送邮件
 Mail::sendVerify($email, $name, $link)#发送验证邮件
-Mail::sendNotify($email, $name, $body)#发送通知邮件
 ```
 
 
@@ -169,6 +158,16 @@ Rsa::encode($s) #加密
 Rsa::decode($s) #解密
 ```
 
+
+Safe
+--------
+安全防护
+获取客户端IP和检查尝试次数
+```php
+Safe::checkTry($key, [$maxTryTimes]) #检查计数器
+Safe::del($key)                      #删除计数器
+Safe::ip()                           #获取客户IP
+```
 
 Session
 --------

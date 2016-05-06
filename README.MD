@@ -1,4 +1,4 @@
-YYF
+YYF 2.0
 ====================
 Yunyin Yaf Framework
 
@@ -10,7 +10,7 @@ Yunyin Yaf Framework
 
 兼顾程序性能和代码优雅
 
-## [核心库](https://github.com/YunYinORG/YYF/tree/master/app/library)
+## [核心库](library/)
 
 
 数据库
@@ -42,8 +42,12 @@ REST控制器
 ```php
 class TestController extends Rest
 {
-function GET_indexAction(){$this->response=['method'=>'get'];}//处理GET
-function POST_indexAction(){$this->response['data']=$this->_request->getPost();}//处理POST
+	function GET_indexAction(){
+		$this->response=['method'=>'get'];
+	}//处理GET
+	function POST_indexAction(){
+		$this->response['data']=$this->_request->getPost();
+	}//处理POST
 }
 ```
 
@@ -86,7 +90,12 @@ Kv::flush()
 
 其他服务
 -----
-
 * Mail  简单邮件发送
 * Debug PHPConsole调试插件
 * Qiniu 七牛文件管理
+
+开发环境
+-----
+* 提高vagrant 虚拟机支持
+* 安装virtualbox和vagrant可自动部署和配置
+* 切换到此项目目录 `vagrant up`即可

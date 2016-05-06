@@ -4,7 +4,6 @@
  */
 Class Safe
 {
-	// private static $_key = [];
 
 	/**
 	 * 检查尝试次数是否超限
@@ -29,7 +28,6 @@ Class Safe
 		{
 			Cache::set($name, ++$times, Config::get('try.expire'));
 			return $times;
-			// return self::$_key[$key] = $times;
 		}
 	}
 
