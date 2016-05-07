@@ -10,6 +10,90 @@ Yunyin Yaf Framework
 
 兼顾程序性能和代码优雅
 
+## 目录结构
+>
+```
+│  .htaccess    开发环境重新url
+│  config.yaml  SAE配置和URL重定向
+│  LICENSE
+│  README.MD
+│  Vagrantfile  开发虚拟机环境配置
+│  
+├─app  
+│  │  Bootstrap.php  生产环境入口 
+│  │  Debug.php      调试入口
+│  │  README.MD
+│  │  
+│  ├─controllers     控制器目录【添加代码的主战场】
+│  │      Error.php  默认错误
+│  │      Index.php  DEMO控制器
+│  │      
+│  ├─email           邮件模板目录
+│  │      verify.tpl 默认验证邮件模板示例
+│  │      
+│  ├─models          模型目录
+│  │      Facade.php 基础FacadeModel
+│  │      README.md
+│  │      
+│  ├─plugins         插件目录
+│  │      Tracer.php 调试信息统计插件
+│  │      
+│  └─views           视图目录
+│      └─index
+│              index.phtml
+│              
+├─conf      配置目录
+│      app.ini       基础配置
+│      secret.common.ini  示例私密配置
+│      secret.product.ini 生产环境私密配置
+│ 
+├─library   库目录
+│  │  Cache.php    缓存管理类
+│  │  Config.php   配置读取类
+│  │  Cookie.php   安全Cookie接口
+│  │  Encrypt.php  加密库
+│  │  Input.php    输入过滤接口
+│  │  Kv.php       key-value存取类
+│  │  Log.php      日志管理类
+│  │  Mail.php     邮件发送
+│  │  Model.php    基础model
+│  │  Random.php   随机字符生成类
+│  │  README.md
+│  │  Rest.php     基础REST类
+│  │  Rsa.php      RSA加密类
+│  │  Safe.php     安全统计类
+│  │  Session.php  session管理接口
+│  │  Validate.php 类型验证类
+│  │  
+│  ├─Parse 格式解析
+│  │      Filter.php
+│  │      Xml.php
+│  │      
+│  ├─PhpConsole PHPConsole调试插件库
+│  │          
+│  ├─Service 系统基础服务
+│  │      Api.php
+│  │      Db.php
+│  │      Message.php
+│  │      Qiniu.php
+│  │      README.MD
+│  │      Smtp.php
+│  │      Ucpaas.php
+│  │      
+│  └─Storage 存储服务
+│          File.php
+│          
+├─public 公共目录【前端资源目录，生产环境根目录】
+│      .htaccess     url重写
+│      favicon.ico
+│      index.php    入口文件
+│      robots.txt
+│      
+└─temp 缓存日志临时文件夹【可写权限】
+```
+>
+            
+
 ## [核心库](library/)
 
 
