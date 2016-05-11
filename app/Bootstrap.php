@@ -12,6 +12,9 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
 	 */
 	public function _initRoute(Yaf_Dispatcher $dispatcher)
 	{
-		$dispatcher->getRouter()->addConfig(Config::get('routes'));
+		if($routes=Config::get('routes'))
+		{
+			$dispatcher->getRouter()->addConfig($routes);
+		}		
 	}
 }

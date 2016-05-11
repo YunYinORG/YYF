@@ -31,7 +31,7 @@ class Db
 	private $pdo;
 	# @object, PDO statement object
 	private $sQuery;
-	private $_isdebug;
+	private $debug;
 
 	public function __construct($dsn, $username, $password)
 	{
@@ -41,7 +41,7 @@ class Db
 
 		# Disable emulation of prepared statements, use REAL prepared statements instead.
 		$this->pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-		if ($this->_isdebug = Config::get('debug'))
+		if ($this->debug = Config::get('debug'))
 		{
 			$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		}
@@ -100,11 +100,14 @@ class Db
 	 */
 	public function query($sql, $params = null, $fetchmode = PDO::FETCH_ASSOC)
 	{
-		if ($this->_isdebug)
+		if ($this->debug)
 		{
-			Log::write($sql . json_encode($params,JSON_UNESCAPED_UNICODE), 'SQL');
-			\PC::DB($sql, 'sql');
-			$params and \PC::DB($params, 'params');
+			Log::write($sql . json_encode($params, JSON_UNESCAPED_UNICODE), 'SQL');
+			if ($this->debug == 'phpconsle')
+			{
+				\PC::DB($sql, 'sql');
+				$params and \PC::DB($params, 'params');
+			}
 		}
 
 		if (empty($params))
@@ -124,7 +127,7 @@ class Db
 
 		}
 		/*查询失败*/
-		$this->error($sql . PHP_EOL . json_encode($params,JSON_UNESCAPED_UNICODE));
+		$this->error($sql . PHP_EOL . json_encode($params, JSON_UNESCAPED_UNICODE));
 		return false;
 
 	}
@@ -139,11 +142,14 @@ class Db
 	 */
 	public function execute($sql, $params = null)
 	{
-		if ($this->_isdebug)
+		if ($this->debug)
 		{
-			Log::write($sql . json_encode($params,JSON_UNESCAPED_UNICODE), 'SQL');
-			\PC::DB($sql, 'prepare');
-			$params AND \PC::DB($params, 'params');
+			Log::write($sql . json_encode($params, JSON_UNESCAPED_UNICODE), 'SQL');
+			if ($this->debug == 'phpconsle')
+			{
+				\PC::DB($sql, 'prepare');
+				$params AND \PC::DB($params, 'params');
+			}
 		}
 		if (empty($params))
 		{
@@ -151,7 +157,7 @@ class Db
 		}
 		elseif (!$this->init($sql, $params))
 		{
-			$this->error($sql . PHP_EOL . json_encode($params,JSON_UNESCAPED_UNICODE));
+			$this->error($sql . PHP_EOL . json_encode($params, JSON_UNESCAPED_UNICODE));
 			return false;
 		}
 		$result = $this->sQuery->rowCount();
@@ -186,7 +192,7 @@ class Db
 		}
 		else
 		{
-			$this->error($sql . PHP_EOL . json_encode($params,JSON_UNESCAPED_UNICODE));
+			$this->error($sql . PHP_EOL . json_encode($params, JSON_UNESCAPED_UNICODE));
 		}
 	}
 
@@ -199,11 +205,14 @@ class Db
 	 */
 	public function single($query, $params = null)
 	{
-		if ($this->_isdebug)
+		if ($this->debug)
 		{
-			Log::write($query . json_encode($params,JSON_UNESCAPED_UNICODE), 'SQL');
-			\PC::DB($query, 'prepare');
-			$params AND \PC::DB($params, 'params');
+			Log::write($query . json_encode($params, JSON_UNESCAPED_UNICODE), 'SQL');
+			if ($this->debug == 'phpconsle')
+			{
+				\PC::DB($query, 'prepare');
+				$params AND \PC::DB($params, 'params');
+			}
 		}
 
 		if (empty($params))
@@ -222,7 +231,7 @@ class Db
 			return $result;
 		}
 		/*查询出错*/
-		$this->error($query . PHP_EOL . json_encode($params,JSON_UNESCAPED_UNICODE));
+		$this->error($query . PHP_EOL . json_encode($params, JSON_UNESCAPED_UNICODE));
 		return false;
 	}
 
@@ -230,7 +239,7 @@ class Db
 	private function error($msg)
 	{
 		Log::write('{SQL PDO exec PRE ERROR}:' . $msg, 'ERROR');
-		$this->_isdebug AND \PC::DB($msg, 'ERROR');
+		$this->debug == 'phpconsle' AND \PC::DB($msg, 'ERROR');
 	}
 
 	/*

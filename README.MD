@@ -180,6 +180,7 @@ Kv::flush()
 
 开发环境
 -----
-* 提高vagrant 虚拟机支持
-* 安装virtualbox和vagrant可自动部署和配置
-* 切换到此项目目录 `vagrant up`即可
+
+[查看快速配置](https://github.com/YunYinORG/YYF/wiki#%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE)
+
+为团队开发和服务器配置提高解决方案
