@@ -106,7 +106,7 @@ class Cookie
 	{
 		if ($data = Encrypt::aesDecode($data, self::config('key'), true))
 		{
-			return @json_decode($data);
+			return @json_decode($data, true);
 		}
 	}
 

@@ -5,10 +5,54 @@
 abstract class Rest extends Yaf_Controller_Abstract
 {
 	/*允许的请求*/
-	// protected $request = array('GET', 'POST', 'PUT', 'DELETE');
 
 	private $response_type = 'json'; //返回数据格式
 	protected $response    = false;  //自动返回数据
+
+	/**
+	 * @method corsHeader
+	 * CORS 跨域请求响应头处理
+	 * @author NewFuture
+	 */
+	public static function corsHeader()
+	{
+		$from = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : null);
+
+		if ($from)
+		{
+			$cors    = Config::get('cors');
+			$domains = $cors['Access-Control-Allow-Origin'];
+			if ($domains !== '*')
+			{
+				$domain = strtok($domains, ',');
+				while ($domain)
+				{
+					if (strpos($from, rtrim($domain, '/')) === 0)
+					{
+						$cors['Access-Control-Allow-Origin'] = $domain;
+						break;
+					}
+					$domain = strtok(',');
+				}
+				if (!$domain)
+				{
+					/*非请指定的求来源,自动终止响应*/
+					header('Forbid-Origin:' . $from);
+					// exit;
+					return;
+				}
+			}
+			elseif ($cors['Access-Control-Allow-Credentials'] === 'true')
+			{
+				/*支持多域名和cookie认证,此时修改源*/
+				$cors['Access-Control-Allow-Origin'] = $from;
+			}
+			foreach ($cors as $key => $value)
+			{
+				header($key . ':' . $value);
+			}
+		}
+	}
 
 	/**
 	 * 初始化 REST 路由
@@ -19,39 +63,42 @@ abstract class Rest extends Yaf_Controller_Abstract
 	protected function init()
 	{
 		Yaf_Dispatcher::getInstance()->disableView(); //立即输出响应，并关闭视图模板引擎
-		/*请求来源，跨站响应*/
-		if($cookie_domain=Config::get('cookie.domain'))
+		$request = $this->_request;
+
+		/*请求来源，跨站cors响应*/
+		if (Config::get('cors.Access-Control-Allow-Origin'))
 		{
-			$from=isset($_SERVER['HTTP_REFERER'])?$_SERVER['HTTP_REFERER']:(isset($_SERVER['HTTP_ORIGIN'])?$_SERVER['HTTP_ORIGIN']:false);
-			if ($from)
-			{
-				/*跨站请求*/
-				$from = parse_url($from);
-				if (isset($from['host']) && strrchr($from['host'],$cookie_domain)==$cookie_domain)
-				{
-					$cors = Config::get('cors');
-					foreach ($cors as $key => $value)
-					{
-						header($key . ':' . $value);
-					}
-					/*允许来自cors跨站响应头*/
-					header('Access-Control-Allow-Origin:' . $from['scheme'] . '://' . $from['host']);
-				}
-			}
-		}		
+			self::corsHeader();
+		}
 
 		/*请求操作判断*/
-		$request = $this->_request;
-		$method  = $request->getMethod();
-		if ($method == 'OPTIONS')
+		$method = $request->getMethod();
+		$type   = $request->getServer('CONTENT_TYPE');
+		if ($method === 'OPTIONS')
 		{
-			/*cors应答*/
+			/*cors 跨域header应答,只需响应头即可*/
 			exit();
 		}
-		elseif ($method == 'PUT')
+		elseif (strpos($type, 'application/json') === 0)
 		{
-			//put请求写入GOLBAL中和post get一样
-			parse_str(file_get_contents('php://input'), $GLOBALS['_PUT']);
+			//json格式
+			if ($inputs = file_get_contents('php://input'))
+			{
+				$input_data = json_decode($inputs, true);
+				if ($input_data)
+				{
+					$GLOBALS['_' . $method] = $input_data;
+				}
+				else
+				{
+					parse_str($inputs, $GLOBALS['_' . $method]);
+				}
+			}
+		}
+		elseif ($method === 'PUT' && ($inputs = file_get_contents('php://input')))
+		{
+			/*直接解析*/
+			parse_str($inputs, $GLOBALS['_PUT']);
 		}
 
 		/*Action路由*/
@@ -75,13 +122,13 @@ abstract class Rest extends Yaf_Controller_Abstract
 		elseif (!method_exists($this, $action . 'Action'))
 		{
 			/*action和REST_action 都不存在*/
-			$this->response = array(
-				'error' => '未定义操作',
-				'method' => $method,
-				'action' => $action,
+			$this->response(-8, array(
+				'error'      => '未定义操作',
+				'method'     => $method,
+				'action'     => $action,
 				'controller' => $request->getControllerName(),
-				'module' => $request->getmoduleName(),
-			);
+				'module'     => $request->getmoduleName(),
+			));
 			exit;
 		}
 	}
@@ -97,6 +144,7 @@ abstract class Rest extends Yaf_Controller_Abstract
 	protected function response($status, $info = '')
 	{
 		$this->response = ['status' => $status, 'info' => $info];
+		exit;
 	}
 
 	/**

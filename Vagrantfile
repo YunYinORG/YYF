@@ -31,12 +31,12 @@ Vagrant.configure(2) do |config|
   if use_pub_net
       config.vm.network "public_network"
   end
-  ### 虚拟机配置 ####  
+  ### 虚拟机配置 ####
   config.vm.provider "virtualbox" do |vb|# virtualbox
     vb.memory = vm_memory
   end
-  config.vm.provision "init",type: "shell" ,inline: init_shell
-  
+  config.vm.provision "shell" ,inline: init_shell
+
   message = "\n\n\n\n\t\t\tYYF 虚拟机环境已启动 V#{VERSION}"#启动显示提示
   message<<"\nWEB测试地址：http://#{webhost}/ 可显示和调试web界面"
   message<<"\nMySQL管理：http://#{webhost}/adminer 查看修改数据库"
