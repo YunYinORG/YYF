@@ -4,10 +4,9 @@
  */
 abstract class Rest extends Yaf_Controller_Abstract
 {
-	/*允许的请求*/
+	// private $response_type = 'json'; //返回数据格式
 
-	private $response_type = 'json'; //返回数据格式
-	protected $response    = false;  //自动返回数据
+	protected $response = false; //自动返回数据
 
 	/**
 	 * @method corsHeader
@@ -81,7 +80,7 @@ abstract class Rest extends Yaf_Controller_Abstract
 		}
 		elseif (strpos($type, 'application/json') === 0)
 		{
-			//json格式
+			/*json 数据格式*/
 			if ($inputs = file_get_contents('php://input'))
 			{
 				$input_data = json_decode($inputs, true);
@@ -105,10 +104,12 @@ abstract class Rest extends Yaf_Controller_Abstract
 		$action = $request->getActionName();
 		if (is_numeric($action))
 		{
-			/*数字id映射带infoAction*/
-			$request->setParam('id', intval($action));
-			$path   = substr(strstr($_SERVER['PATH_INFO'], $action), strlen($action) + 1);
-			$action = $path ? strstr($path . '/', '/', true) : 'info';
+			/*数字id绑定参数*/
+			$request->setParam(Config::get('application.num_param'), intval($action));
+			//$_SERVER['PATH_INFO']不存在使用REQUEST_URI
+			$path   = $_SERVER['PATH_INFO'] ?: strstr($_SERVER['REQUEST_URI'] . '?', '?', true);
+			$path   = substr(strstr($path, $action), strlen($action) + 1);
+			$action = $path ? strstr($path . '/', '/', true) : Config::get('application.num_action');
 		}
 
 		$rest_action = $method . '_' . $action; //对应REST_Action
@@ -131,10 +132,15 @@ abstract class Rest extends Yaf_Controller_Abstract
 			));
 			exit;
 		}
+		elseif ($action !== $request->getActionName())
+		{
+			/*绑定参数默认控制器*/
+			$request->setActionName($action);
+		}
 	}
 
 	/**
-	 * 设置返回信息
+	 * 设置返回信息，立即返回
 	 * @method response
 	 * @param  [type]   $status [请求结果]
 	 * @param  string   $info   [请求信息]
