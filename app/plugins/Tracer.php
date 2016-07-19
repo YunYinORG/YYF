@@ -21,26 +21,26 @@ class TracerPlugin extends Yaf_Plugin_Abstract
 		$this->time['routerstartup'] = self::mtime();
 	}
 
-//路由结束之后触发，此时路由一定正确完成, 否则这个事件不会触发
+	//路由结束之后触发，此时路由一定正确完成, 否则这个事件不会触发
 	public function routerShutdown(Yaf_Request_Abstract $request, Yaf_Response_Abstract $response)
 	{
 		$this->time['routershutdown'] = self::mtime();
 	}
 
-//分发循环开始之前被触发
+	//分发循环开始之前被触发
 	public function dispatchLoopStartup(Yaf_Request_Abstract $request, Yaf_Response_Abstract $response)
 	{
 		$this->time['dispatchloopstartup'] = self::mtime();
 		$this->mem['dispatch']             = memory_get_usage() / 1024;
 	}
 
-// //分发之前触发	如果在一个请求处理过程中, 发生了forward, 则这个事件会被触发多次
+	//分发之前触发	如果在一个请求处理过程中, 发生了forward, 则这个事件会被触发多次
 	// 	public function preDispatch(Yaf_Request_Abstract $request, Yaf_Response_Abstract $response)
 	// 	{
 	// 		$this->time['predispatch'] = self::mtime();
 	// 	}
 
-//分发结束之后触发，此时动作已经执行结束, 视图也已经渲染完成. 和preDispatch类似, 此事件也可能触发多次
+	//分发结束之后触发，此时动作已经执行结束, 视图也已经渲染完成. 和preDispatch类似, 此事件也可能触发多次
 	public function postDispatch(Yaf_Request_Abstract $request, Yaf_Response_Abstract $response)
 	{
 		$this->time['postdispatch'] = self::mtime();
@@ -94,7 +94,7 @@ class TracerPlugin extends Yaf_Plugin_Abstract
 		if (isset($time['dispatchloopshutdown']))
 		{
 			$time_msg .= PHP_EOL . '处理过程耗时：' . ($time['dispatchloopshutdown'] - $time['dispatchloopstartup']) . 'ms';
-			$time_msg .= PHP_EOL . '输出关闭耗时:' . ($end - $time['dispatchloopshutdown']) . 'ms';
+			$time_msg .= PHP_EOL . '输出关闭耗时: ' . ($end - $time['dispatchloopshutdown']) . 'ms';
 		}
 		else
 		{

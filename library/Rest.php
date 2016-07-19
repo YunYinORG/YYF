@@ -107,7 +107,7 @@ abstract class Rest extends Yaf_Controller_Abstract
 			/*数字id绑定参数*/
 			$request->setParam(Config::get('application.num_param'), intval($action));
 			//$_SERVER['PATH_INFO']不存在使用REQUEST_URI
-			$path   = $_SERVER['PATH_INFO'] ?: strstr($_SERVER['REQUEST_URI'] . '?', '?', true);
+			$path   = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : strstr($_SERVER['REQUEST_URI'] . '?', '?', true);
 			$path   = substr(strstr($path, $action), strlen($action) + 1);
 			$action = $path ? strstr($path . '/', '/', true) : Config::get('application.num_action');
 		}
