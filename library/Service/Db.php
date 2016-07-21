@@ -35,7 +35,7 @@ class Db
 
 	public function __construct($dsn, $username, $password)
 	{
-		$this->pdo = new PDO($dsn, $username, $password, array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'));
+		$this->pdo = new PDO($dsn, $username, $password);
 		# We can now log any exceptions on Fatal error.
 		// $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
@@ -103,11 +103,11 @@ class Db
 		if ($this->debug)
 		{
 			Log::write($sql . json_encode($params, JSON_UNESCAPED_UNICODE), 'SQL');
-			if ($this->debug == 'phpconsle')
-			{
-				\PC::DB($sql, 'sql');
-				$params and \PC::DB($params, 'params');
-			}
+			// if ($this->debug == 'phpconsle')
+			// {
+			// 	\PC::DB($sql, 'sql');
+			// 	$params and \PC::DB($params, 'params');
+			// }
 		}
 
 		if (empty($params))
@@ -145,11 +145,11 @@ class Db
 		if ($this->debug)
 		{
 			Log::write($sql . json_encode($params, JSON_UNESCAPED_UNICODE), 'SQL');
-			if ($this->debug == 'phpconsle')
-			{
-				\PC::DB($sql, 'prepare');
-				$params AND \PC::DB($params, 'params');
-			}
+			// if ($this->debug == 'phpconsle')
+			// {
+			// 	\PC::DB($sql, 'prepare');
+			// 	$params AND \PC::DB($params, 'params');
+			// }
 		}
 		if (empty($params))
 		{
@@ -208,11 +208,11 @@ class Db
 		if ($this->debug)
 		{
 			Log::write($query . json_encode($params, JSON_UNESCAPED_UNICODE), 'SQL');
-			if ($this->debug == 'phpconsle')
-			{
-				\PC::DB($query, 'prepare');
-				$params AND \PC::DB($params, 'params');
-			}
+			// if ($this->debug == 'phpconsle')
+			// {
+			// 	\PC::DB($query, 'prepare');
+			// 	$params AND \PC::DB($params, 'params');
+			// }
 		}
 
 		if (empty($params))
@@ -239,7 +239,7 @@ class Db
 	private function error($msg)
 	{
 		Log::write('{SQL PDO exec PRE ERROR}:' . $msg, 'ERROR');
-		$this->debug == 'phpconsle' AND \PC::DB($msg, 'ERROR');
+		// $this->debug == 'phpconsle' AND \PC::DB($msg, 'ERROR');
 	}
 
 	/*
