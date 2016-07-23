@@ -13,10 +13,12 @@ Yunyin Yaf Framework
 ## 目录结构
 >
 ```
-│  .htaccess    开发环境重新url
+│  .htaccess    Apache开发环境重新url
 │  config.yaml  SAE配置和URL重定向
+|  init.cmd     环境初始化脚本 
 │  LICENSE
 │  README.MD
+|  server.cmd   启动php server 调试 
 │  Vagrantfile  开发虚拟机环境配置
 │  
 ├─app  
@@ -52,6 +54,7 @@ Yunyin Yaf Framework
 │  │  Config.php   配置读取类
 │  │  Cookie.php   安全Cookie接口
 │  │  Encrypt.php  加密库
+│  │  Head.php     调试header输出库
 │  │  Input.php    输入过滤接口
 │  │  Kv.php       key-value存取类
 │  │  Log.php      日志管理类
@@ -64,12 +67,12 @@ Yunyin Yaf Framework
 │  │  Safe.php     安全统计类
 │  │  Session.php  session管理接口
 │  │  Validate.php 类型验证类
+│  │  Wechat.php   微信登录接口库类
 │  │  
 │  ├─Parse 格式解析
 │  │      Filter.php
 │  │      Xml.php
 │  │      
-│  ├─PhpConsole PHPConsole调试插件库
 │  │          
 │  ├─Service 系统基础服务
 │  │      Api.php

@@ -1,26 +1,60 @@
+:<<":START"
 @ECHO off
 
-ECHO 设置快捷启动：双击start.cmd可直接启动虚机环境
-ECHO @echo off > start.cmd
-ECHO echo 正在启动虚拟机环境... >> start.cmd
-ECHO vagrant up>>start.cmd
-ECHO pause>> start.cmd
+
+:START
+echo ========================= YYF INIT =========================
+echo cleaning up temp folders ...
+
+:<<"::BASH"
+GOTO :CMD
 
 
-ECHO 设置快速关闭：双击stop.cmd可直接启动虚机环境
-ECHO @echo off > stop.cmd
-ECHO echo 正在关闭虚拟机环境 >> stop.cmd
-ECHO vagrant halt>>stop.cmd
-ECHO pause >> stop.cmd
 
-ECHO 清理临时目录
+::BASH
+#bash scripts
+if [ -d "temp" ]; then
+  rm -r temp
+fi
+mkdir temp temp/log temp/kv temp/cache 
+chmod -R 777 temp
+
+if [ ! -f "conf/secret.product.ini" ]; then
+  cp conf/secret.common.ini conf/secret.product.ini
+  echo "copy secret.common.ini  to secret.product.ini"
+fi
+
+echo "create [start.cmd], for starting the virtual machine"
+echo $'#!/bin/bash\nvagrant up' > start.cmd
+chmod +x start.cmd
+echo "create [stop.cmd], for stoping the virtual machine"
+echo $'#!/bin/bash\nvagrant halt' > stop.cmd
+chmod +x stop.cmd
+:<<":END"
+
+
+
+:CMD
+REM widnows batch scripts
 RD temp /s /q
 mkdir temp
-mkdir temp\cache
-mkdir temp\kv
-mkdir temp\log
+mkdir temp\cache temp\kv temp\log
 
-ECHO 启动和配置虚机环境
+if not exist conf\secret.product.ini copy conf\secret.common.ini conf\secret.product.ini
+
+ECHO create [start.cmd], for starting the virtual machine
+(ECHO @echo off && ECHO.vagrant up && ECHO.pause) > start.cmd
+ECHO create [stop.cmd], for stoping the virtual machine
+(ECHO @echo off && ECHO.vagrant halt && ECHO.pause) > stop.cmd
+
+
+
+:END
+echo ------------------------------------------------------------
+echo init the virtual machine environment
+echo ============================================================
 vagrant halt
 vagrant up --provision
+
+:;exit
 pause
