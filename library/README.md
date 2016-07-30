@@ -4,12 +4,14 @@ YYF核心库
 * Cache.php : 缓存管理类(Cache)
 * Config.php : 配置读取类(Config)
 * Cookie.php : 安全Cookie操作类(Cookie)
+* Db.php : 数据相关操作辅助封装
 * Encrypt.php : 安全加密类(Encrypt)
 * Input.php : 输入管理类(Input)
 * Kv.php : 键值对存储类(Kv)
 * Log.php : 日志管理类(Log)
 * Mail.php : 邮件管理类(Mail)
 * Model.php : 核心model类(Model)
+* Orm.php : 数据库查询核心封装
 * Random.php : 随机数生成器(Random)
 * Rest.php : REST核心controller类(Rest)
 * Rsa.php : Rsa 加解密类(Rsa)
@@ -109,18 +111,18 @@ Mail::sendVerify($email, $name, $link)#发送验证邮件
 ```
 
 
-Model
+Orm 和 Model
 --------
 安全数据库操作
 未非静态封装(这样比静态化封装的效率要高)
-在**FadeModel**则进行静态化处理
+在**Model**则进行静态化处理
 ```php
 $User = new Model('user');#创建model参数表名和主键
 $User->find(123);#查找id为123的用户
 $User->set('time',time())->save();#保存
 $User->Insert(['name'=>'test']);新建用户
 
-$Book = new Model('book');    #创建book
+$Book = new Orm('book');    #创建book
 $Book->where('amount','>',10) #选择amount>10
      ->order('amount','DESC') #amount倒序
      ->select('id AS NO,name,amount');  #选出id作为NO,name和account
@@ -145,7 +147,6 @@ REST控制器核心基类
 * 自动绑定参数id
 * 自动输出xml或者json格式数据
 
-`private $response_type='json'` 数据格式json和xml
 `protected $response `响应的数据
 `protected response(status,info)`快速设置响应方法
 

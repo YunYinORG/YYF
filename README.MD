@@ -34,7 +34,6 @@ Yunyin Yaf Framework
 │  │      verify.tpl 默认验证邮件模板示例
 │  │      
 │  ├─models          模型目录
-│  │      Facade.php 基础FacadeModel
 │  │      README.md
 │  │      
 │  ├─plugins         插件目录
@@ -53,6 +52,7 @@ Yunyin Yaf Framework
 │  │  Cache.php    缓存管理类
 │  │  Config.php   配置读取类
 │  │  Cookie.php   安全Cookie接口
+|  |  Db.php       数据库操作封装
 │  │  Encrypt.php  加密库
 │  │  Head.php     调试header输出库
 │  │  Input.php    输入过滤接口
@@ -60,6 +60,7 @@ Yunyin Yaf Framework
 │  │  Log.php      日志管理类
 │  │  Mail.php     邮件发送
 │  │  Model.php    基础model
+|  |  Orm.php      ORM数据库对象映射
 │  │  Random.php   随机字符生成类
 │  │  README.md
 │  │  Rest.php     基础REST类
@@ -76,7 +77,7 @@ Yunyin Yaf Framework
 │  │          
 │  ├─Service 系统基础服务
 │  │      Api.php
-│  │      Db.php
+│  │      Database.php
 │  │      Message.php
 │  │      Qiniu.php
 │  │      README.MD
@@ -116,7 +117,7 @@ $Info=InfoModel::find(1);//查找id为1的
 $Info->set('time',time())->save();
 ```
 
-[详细使用说明](https://github.com/YunYinORG/YYF/tree/master/app/models)
+[详细使用说明](app/models)
 
 REST控制器
 -----
