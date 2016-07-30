@@ -1,9 +1,8 @@
- Model 库
+ Model
 ================
 
-核心FacadeModel
------------------
-基本的Facde接口，对model封装
+核心 Model封装的ORM
+-----------------装
 
 实例
 --------------
@@ -11,10 +10,10 @@
 新建`UserModel`对应`User.php`
 定义如下
 ```php 
- class UserModel extends FacadeModel
+ class UserModel extends Model
  {
- //未定义$pk,默认使用'id'
- //未定义$table,默认使用表名为类名去掉Model
+    //未定义$_pk,默认使用'id'
+    //未定义$_name,默认使用表名为类名去掉Model
  }
 ```
 
@@ -22,9 +21,9 @@
 ```php 
 # find 快速查找
 # 返回的是包含查找数据的Model可以继续使用
-#find($id = null, $value = null)
+# find($id = null, $value = null)
 $user=UserModel::find(1);	//返回id为1的用户
-$user=UserModel::find('phone','13888888888');	//返回phone为1388888的一个用户
+$user=UserModel::where('phone','13888888888')->find();	//返回phone为1388888的一个用户
 
 # select
 #批量查询select($data)
@@ -52,6 +51,7 @@ $id = UserModel::set('name','测试')->set('pwd',123')->add();//插入一个新�
 UserModel::where('id',1')->update(['pwd'=>'1234']);//更新数据
 # save
 UserModel::set('pwd','1234')->save(1);//更新数据
+UserModel::set('pwd','1234')->where('id',1)->save();//更新数据
 
 # delete
 #删除数据
@@ -59,7 +59,7 @@ UserModel::delete(1);//删除id为1的用户
 
 # page($page,$n)翻页操作
 # order($field,'')//排序
-UserModel::page(2,5)->order('id','DESC')->select();
+UserModel::page(2,10)->order('id',true)->select();
 
 # 其他操作
 # count统计
@@ -67,12 +67,24 @@ UserModel::page(2,5)->order('id','DESC')->select();
 # avg均值
 # min最小值
 # max最大值
-# inc增加自段值
+# increment增加自段值
+# decrement
+#alias
+
+#join
+#has
+#belongs
+
+
+
 ```
 也可以实例化操作 
 `$user=new UserModel`
 
-也可以使用Model直接实例化未定义的模型
-`$info=new Model('info')`
+也可以使用orm直接实例化未定义的模型(性能和效率上更优)
+```php
+$user=new orm('user')
+$user->find(1)
+```
 
 其使用方法和以上相同

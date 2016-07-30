@@ -1,985 +1,129 @@
 <?php
-class Model implements JsonSerializable, ArrayAccess
+/**
+ * 基本的Facde接口，对model封装
+ * @example
+ * 	class UserModel extends Model{}
+ *
+ * 	UserModel::find(1);//返回id为1的数据
+ * 	UserModel::slecet('id,number,name AS username');//列出用户
+ *
+ * 	UserModel::set('pwd','1234')->save(1);//将id为1的用户密码设置为1234
+ * 	UserModel::where('id','=','1')->update(['pwd'=>'1234']);//同上，也可以使用save
+ *
+ * 	UserModel::set(['pwd'=>'mypwd','name'=>'test'])->add();//添加新用户
+ * 	UserModel::add(['pwd'=>'mypwd','name'=>'test']);//同上，也可以使用insert()
+ *
+ *  UserModel::where('id','>','10')->where('id','<','100')->select();//查找所有id在10到100之间的用户
+ *  UserModel::where('id','=','1')->get('name');//获取id为一的用户的name
+ *  UserModel::where('id','>','1')->limit(10)->select('id,name');//查询id>1的10个用户的id和name
+ *  UserModel::where('id','>','1')->field('id','uid')->field('name','uname')->select();//查询id>1的用户的uid和uname(表示id和name)
+ *  UserModel::where('name','LIKE','%future%')->count();//统计name中包含future的字数
+ *
+ * 也可以实例化操作 $user=new UserModel;
+ * $user->find（1）;//
+ */
+class Model
 {
-    /**
-    * 数据库表名
-    * @var string
-    */
-    protected $table;
-    /**
-    * 主键
-    * @var string
-    */
-    protected $pk = 'id';
-    // protected $id = ;
-    
-    protected $has_tables        = array();
-    protected $belongs_to_tables = array();
-    protected $fields            = array(); //查询字段
-    protected $data              = array(); //数据
-    protected $where             = '';      //查询条件
-    protected $param             = array(); //查询参数
-    protected $distinct          = false;   //是否去重
-    protected $order             = array(); //排序字段
-    protected $limit             = null;
-    
-    private static $_db = null; //数据库连接
-    
-    public function __construct($table, $pk = 'id')
-    {
-        $this->table = $table;
-        $this->pk    = $pk;
-        if (self::$_db == null)
-        {
-            $config = Config::getSecret('database');
-            $dsn    = strtolower($config['driver']);
-            if ('sqlite' === $dsn)
-            {
-                assert('$config["file"]', '[db] sqlite 数据库需要制定存储位置');
-                $dsn .= ':' . $config['file'];
-            }
-            else
-            {
-                assert('$config["host"]', '[db] ' . $dsn . ' 数据库主机地址host必须设定');
-                assert('$config["dbname"]', '[db] ' . $dsn . ' 数据库名dbname必须设定');
-                $dsn .= ':host=' . $config['host'] . ';dbname=' . $config['dbname'];
-                if ($config['port'])
-                {
-                    $dsn .= ';port=' . $config['port'];
-                }
-            }
-            self::$_db = new Service\Db($dsn, $config['username'], $config['password']);
-        }
-    }
-    
-    /**
-    * has
-    * 一对多
-    * @method one
-    * @param  [type] $table [description]
-    * @param  [type] $fk    [description]
-    * @return [type]        [description]
-    * @author NewFuture
-    */
-    // public function has($table, $fk = null)
-    // {
-    // 	if ($fk == null)
-    // 	{
-    // 		$fk = substr($this->table, 0, 3) . '_id';
-    // 	}
-    // 	$this->has_one_tables[$fk] = $table;
-    // 	return $this;
-    // }
-    
-    /**
-    * 从属关系
-    * 对于inner join
-    * @method belongs
-    * @param  [string]  $table [表名]
-    * @param  [string]  $pk    [外键]
-    * @return [object]         [description]
-    * @author NewFuture
-    */
-    public function belongs($table, $fk = null)
-    {
-        if ($fk == null)
-        {
-            $fk = substr($table, 0, 3) . '_id';
-        }
-        $this->belongs_to_tables[$fk] = $table;
-        return $this;
-    }
-    
-    /**
-    * 单条查询
-    * @method find
-    * @param  [mixed] $id [description]
-    * @return [array]     [结果数组]
-    * @author NewFuture
-    * @example
-    * 	find(1);//查找主键为1的结果
-    * 	find(['name'=>'ha'])//查找name为ha的结果
-    */
-    public function find($id = null, $value = null)
-    {
-        if (null !== $value)
-        {
-            $this->data[$id] = $value;
-        }
-        elseif (null != $id)
-        {
-            if (is_array($id))
-            {
-                $this->data = array_merge($this->data, $id);
-            }
-            else
-            {
-                $this->data[$this->pk] = $id;
-            }
-        }
-        $this->limit = 1;
-        $result      = $this->select();
-        $this->data  = isset($result[0]) ? $result[0] : $result;
-        if (is_numeric($id))
-        {
-            $this->data[$this->pk] = $id;
-        }
-        return $result ? $this : null;
-    }
-    
-    /**
-    * 批量查询
-    * @method select
-    * @param  array  $data  [查询数据条件]
-    * @return [array]       [结果数组]
-    * @author NewFuture
-    */
-    public function select($data = array())
-    {
-        if (is_array($data))
-        {
-            //数组条件
-            $this->data = array_merge($this->data, $data);
-        }
-        elseif (is_string($data))
-        {
-            //select筛选字段
-            $this->field($data);
-        }
-        
-        $sql = $this->buildSelectSql();
-        $sql .= $this->buildFromSql();
-        $sql .= $this->buildWhereSql();
-        $sql .= $this->buildTailSql();
-        return $this->query($sql, $this->param);
-    }
-    
-    /**
-    * 保存数据
-    * @method save
-    * @param  array  $data [description]
-    * @return [type]       [description]
-    * @author NewFuture
-    */
-    public function save($data = array())
-    {
-        if (is_numeric($data))
-        {
-            $this->where($this->pk, '=', $data);
-            $data       = $this->data;
-            $this->data = array();
-        }
-        elseif (empty($data))
-        {
-            $data       = $this->data;
-            $this->data = array();
-        }
-        return $this->update($data);
-    }
-    
-    /**
-    * 更新数据
-    * @method update
-    * @param  array  $data  [要更新的数据]
-    * @return [array]       [结果数组]
-    * @author NewFuture
-    */
-    public function update($data = array())
-    {
-        //字段过滤
-        $fields = $this->fields;
-        if (!empty($fields))
-        {
-            $fields = array_flip($fields);
-            $data   = array_intersect_key($data, $field);
-        }
-        
-        if (is_array($data))
-        {
-            
-            $update_string = '';
-            foreach ($data as $key => $v)
-            {
-                $param_key = 's_' . $key;
-                $update_string .= self::backQoute($key) . '=:' . $param_key . ',';
-                $this->param[$param_key] = $v;
-            }
-            $update_string = trim($update_string, ',');
-        }
-        elseif (is_string($data))
-        {
-            $update_string = $data;
-        }
-        else
-        {
-            if (Config::get('debug'))
-            {
-                throw new Exception('未知参数', 1);
-            }
-            return false;
-        }
-        
-        $sql = 'UPDATE' . self::backQoute($this->table);
-        $sql .= 'SET' . $update_string;
-        
-        if (empty($this->where) && empty($this->data) && isset($data[$this->pk]))
-        {
-            /*默认使用data主键作为更新值*/
-            $this->data[$this->pk] = $data[$this->pk];
-        }
-        $sql .= $this->buildWhereSql();
-        
-        return $this->execute($sql, $this->param);
-    }
-    
-    /**
-    * 新增数据
-    * 合并现有的data属性
-    * @method add
-    * @param  array $data [要更新的数据]
-    * @author NewFuture
-    */
-    public function add($data = array())
-    {
-        if (is_array($data))
-        {
-            $this->data = array_merge($this->data, $data);
-        }
-        $data = $this->data;
-        return $this->insert($data);
-    }
-    
-    /**
-    * 插入数据库
-    * @method insert
-    * @param  [array] $data 	[要更新的数据]
-    * @return [integer]        [返回插入行id]
-    * @author NewFuture
-    */
-    public function insert($data = array())
-    {
-        //字段过滤
-        $fields = $this->fields;
-        if (!empty($fields))
-        {
-            $fields = array_flip($fields);
-            $data   = array_intersect_key($data, $field);
-        }
-        //插入数据
-        if (!empty($data))
-        {
-            // $this->fields = $data;
-            $fields       = array_keys($data);
-            $quote_fields = $fields;
-            //对字段进行转义
-            array_walk($quote_fields, function (&$k)
-            {
-                $k = self::backQoute($k);
-            });
-            $sql = 'INSERT INTO' . self::backQoute($this->table);
-            $sql .= '(' . implode(',', $quote_fields) . ')VALUES(:' . implode(',:', $fields) . ')';
-            $this->execute($sql, $data);
-            return self::$_db->lastInsertId();
-        }
-    }
-    
-    /**
-    * 批量插入数据
-    * @method insertAll
-    * @param  array    $fields       [字段]
-    * @param  array     $values      [数据，二维数组]
-    * @return int 插入条数
-    * @author NewFuture
-    */
-    public function insertAll($fields, $values = array())
-    {
-        //字段过滤
-        $quote_fields = array_map(array($this, 'backQoute'), $fields);
-        
-        //插入数据
-        $sql = 'INSERT INTO' . self::backQoute($this->table);
-        $sql .= '(' . implode(',', $quote_fields) . ')VALUES';
-        $param = [];
-        foreach ($values as $i => $value)
-        {
-            $sql .= '(:' . implode($i . ',:', $fields) . $i . '),';
-            foreach ($fields as $k => $field)
-            {
-                $param[$field . $i] = $value[$k];
-            }
-        }
-        $sql = rtrim($sql, ',');
-        return $this->execute($sql, $param);
-    }
-    
-    /**
-    * 删除数据
-    * @method delete
-    * @param  [string] $id [description]
-    * @return [array]     	[description]
-    * @author NewFuture
-    */
-    public function delete($id = '')
-    {
-        if (null != $id)
-        {
-            if (is_array($id))
-            {
-                $this->data = array_merge($this->data, $id);
-            }
-            else
-            {
-                $this->data[$this->pk] = $id;
-            }
-        }
-        $sql = 'DELETE ';
-        $sql .= $this->buildFromSql();
-        $where = $this->buildWhereSql();
-        if (!$where)
-        {
-            return false;
-        }
-        else
-        {
-            $sql .= $where;
-            return $this->execute($sql, $this->param);
-        }
-    }
-    
-    /**
-    * 数据读取操作
-    * @method query
-    * @param  [string] $sql  	[sql语句]
-    * @param  [type] $bind 	[description]
-    * @return [array]       	[结果数组]
-    * @author NewFuture
-    */
-    public function query($sql, $bind = null)
-    {
-        $result = self::$_db->query($sql, $bind);
-        $this->clear();
-        return $result;
-    }
-    
-    /**
-    * 数据写入修改操作
-    * @method execute
-    * @param  [string] $sql  	[sql语句]
-    * @param  [type] $bind 	[description]
-    * @return [array]       	[结果数组]
-    * @author NewFuture
-    */
-    public function execute($sql, $bind = null)
-    {
-        $result = self::$_db->execute($sql, $bind);
-        $this->clear();
-        return $result;
-    }
-    
-    /**
-    * 字段过滤
-    * @method field
-    * field('name','username')
-    * field('name AS username')
-    * field('id,name,pwd')
-    * @param  [string]		$field    	[字段]
-    * @param  [string] 	$alias 		[description]
-    * @return [object]        			[description]
-    * @author NewFuture
-    */
-    public function field($field, $alias = null)
-    {
-        if ($alias && $field)
-        {
-            $this->fields[trim($field)] = trim($alias);
-        }
-        else
-        {
-            /*多字段解析*/
-            $fields = explode(',', $field);
-            foreach ($fields as $field)
-            {
-                $field = strtolower(trim($field));
-                /*解析是否为name AS alias的形式*/
-                if (strpos($field, ' as '))
-                {
-                    list($name, $alias)        = explode(' as ', $field);
-                    $this->fields[trim($name)] = trim($alias);
-                    // $this->fields[trim(stristr($field, ' AS ', true))] = trim(stristr($field, ' AS '));
-                }
-                else
-                {
-                    $this->fields[$field] = $field;
-                }
-            }
-        }
-        return $this;
-    }
-    
-    /**
-    * where 查询
-    * @method where
-    * @param  [mixed] 	$key        [description]
-    * @param  [string] $exp        [description]
-    * @param  [mixed] 	$value      [description]
-    * @param  [string] $conidition [逻辑条件]
-    * @return [object]             [description]
-    * @example
-    * where($data)
-    * where('id',1) 查询id=1
-    * where('id','>',1)
-    * @author NewFuture
-    */
-    public function where($key, $exp = null, $value = null)
-    {
-        // if ($conidition !== 'OR')
-        // {
-        // 	$conidition = 'AND';
-        // }
-        $and = isset($this->where['and']) ? $this->where['and'] : [];
-        if (null === $exp) //单个参数，where($array)或者where($sql)
-        {
-            if (is_string($key))
-            {
-                //直接sql条件
-                //TO 安全过滤
-                $and[] = $key;
-            }
-            elseif (is_array($key))
-            {
-                /*数组形式*/
-                foreach ($key as $k => $v)
-                {
-                    $and[] = array($k, '=', $v);
-                }
-                // foreach ($key as $k => $v)
-                // {
-                // 	$name               = $k . '_w_eq';
-                // 	$where[]            = self::backQoute($k) . '=:' . $name;
-                // 	$this->param[$name] = $v;
-                // }
-                // $where = $conidition . '((' . implode(')AND(', $where) . '))';
-            }
-            else
-            {
-                throw new Exception('非法where查询:' . json_encode($key));
-            }
-        }
-        elseif (null === $value) //where($key,$v)等价于where($key,'=',$v);
-        {
-            // $name  = $key . '_w_eq';
-            // $where = $conidition . '(' . self::backQoute($key) . '=:' . $name . ')';
-            // $this->param[$name] = $exp;
-            $and[] = [$key, '=', $exp];
-        }
-        else
-        {
-            // $name  = $key . '_w_eq';
-            // $where = $conidition . '(' . self::backQoute($key) . $exp . ' :' . $name . ')';
-            // $this->param[$name] = $value;
-            $and[] = [$key, $exp, $value];
-        }
-        $this->where['and'] = $and;
-        return $this;
-    }
-    
-    /**
-    * OR 条件
-    * @method orWhere
-    * @param  [mixed]  $key   	[description]
-    * @param  [string] $exp   	[description]
-    * @param  [string] $value 	[description]
-    * @return [type]         	[description]
-    * @author NewFuture
-    */
-    public function orWhere($key, $exp = null, $value = null)
-    {
-        $or = isset($this->where['or']) ? $this->where['or'] : [];
-        if (null === $exp) //单个参数，where($array)或者where($sql)
-        {
-            if (is_string($key))
-            {
-                //直接sql条件
-                //TO 安全过滤
-                $or[] = $key;
-            }
-            elseif (is_array($key))
-            {
-                /*数组形式*/
-                foreach ($key as $k => $v)
-                {
-                    $or[] = array($k, '=', $v);
-                }
-            }
-            else
-            {
-                throw new Exception('非法where查询:' . json_encode($key));
-            }
-        }
-        elseif (null === $value)
-        {
-            //where($key,$v)等价于where($key,'=',$v);
-            $or[] = [$key, '=', $exp];
-        }
-        else
-        {
-            $or[] = [$key, $exp, $value];
-        }
-        $this->where['or'] = $or;
-        return $this;
-    }
-    
-    /**
-    * 排序条件
-    * @method order
-    * @param  [type]  		$fields     [description]
-    * @param  [boolean] 	$desc 		[是否降序]
-    * @return [array]              	[结果数组]
-    * @author NewFuture
-    */
-    public function order($fields, $desc = false)
-    {
-        $this->order[trim($fields)] = ($desc === true || $desc === 1 || strtoupper($desc) == 'DESC') ? 'DESC' : '';
-        return $this;
-    }
-    
-    /**
-    * 限制位置和数量
-    * @method limit
-    * @param  integer $n      [description]
-    * @param  integer $offset [description]
-    * @return [type]          [description]
-    * @author NewFuture
-    */
-    public function limit($n = 20, $offset = 0)
-    {
-        if ($offset > 0)
-        {
-            $this->limit = intval($offset) . ',' . intval($n);
-        }
-        else
-        {
-            $this->limit = intval($n);
-        }
-        return $this;
-    }
-    
-    /**
-    * 翻页
-    * @method page
-    * @param  integer $p [页码]
-    * @param  integer $n [每页个数]
-    * @return [type]     [description]
-    * @author NewFuture
-    */
-    public function page($p = 1, $n = 10)
-    {
-        return $this->limit($n, ($p - 1) * $n);
-    }
-    
-    /**
-    * 统计
-    * @method count
-    * @param  [type] $field [description]
-    * @return [type]        [description]
-    * @author NewFuture
-    */
-    public function count($field = null)
-    {
-        $exp = $field ? 'COUNT(' . self::backQoute($field) . ')' : 'COUNT(*)';
-        $sql = $this->buildSelectSql($exp);
-        $sql .= $this->buildFromSql();
-        $sql .= $this->buildWhereSql();
-        $result = self::$_db->single($sql, $this->param);
-        $this->clear();
-        return $result;
-    }
-    
-    /**
-    * 表达式查询
-    * @method inc
-    * @param  [type]  $field [description]
-    * @param  [type]  $exp   [description]
-    * @param  integer $n     [description]
-    * @return [type]         [description]
-    * @author NewFuture
-    */
-    public function inc($field, $step = 1)
-    {
-        $sql = self::backQoute($field) . '=' . self::backQoute($field) . '+:_inc_step';
-        
-        $this->param['_inc_step'] = $step;
-        return $this->update($sql);
-    }
-    
-    public function __call($op, $args)
-    {
-        $op = strtoupper($op);
-        if (in_array($op, ['MAX', 'MIN', 'AVG', 'SUM']) && isset($args[0]))
-        {
-            //数学计算
-            $sql = $this->buildSelectSql($op . '(' . self::backQoute($args[0]) . ')');
-            $sql .= $this->buildFromSql();
-            $sql .= $this->buildWhereSql();
-            $result = self::$_db->single($sql, $this->param);
-            $this->clear();
-            return $result;
-        }
-        else
-        {
-            throw new Exception('不支持操作' . $op, 1);
-        }
-    }
-    
-    /**
-    * 设置字段值
-    * @method __set
-    * @param  [type]  $name  [description]
-    * @param  [type]  $value [description]
-    * @access private
-    * @author NewFuture
-    */
-    public function __set($name, $value)
-    {
-        $this->data[$name] = $value;
-    }
-    
-    /**
-    * 获取字段值
-    * @method __get
-    * @param  [type]  $name [description]
-    * @return [type]        [description]
-    * @access private
-    * @author NewFuture
-    */
-    public function __get($name)
-    {
-        return isset($this->data[$name]) ? $this->data[$name] : null;
-    }
-    
-    public function __unset($name)
-    {
-        unset($this->data[$name]);
-    }
-    
-    /**
-    * 设置数据
-    * @method set
-    * @param  [type] $data  [description]
-    * @param  [type] $value [description]
-    * @author NewFuture
-    */
-    public function set($data, $value = null)
-    {
-        if (is_array($data))
-        {
-            $this->data = array_merge($this->data, $data);
-        }
-        else
-        {
-            $this->data[$data] = $value;
-        }
-        return $this;
-    }
-    
-    /**
-    * 读取数据
-    * 如果有直接读取，无数据库读取
-    * @method get
-    * @param  [type] $name [字段名称]
-    * @param  [type] $auto_db [是否自动尝试从数据库获取]
-    * @return [type]       [description]
-    * @author NewFuture
-    */
-    public function get($name = null, $auto_db = true)
-    {
-        if ($name)
-        {
-            if (isset($this->data[$name]))
-            {
-                return $this->data[$name];
-            }
-            elseif ($auto_db)
-            {
-                //数据库读取
-                $sql = $this->buildSelectSql(self::backQoute($name));
-                $sql .= $this->buildFromSql();
-                $sql .= $this->buildWhereSql();
-                $sql .= 'LIMIT 1';
-                $data  = $this->data;
-                $value = self::$_db->single($sql, $this->param);
-                $this->clear();
-                if ($value !== null)
-                {
-                    $data[$name] = $value;
-                }
-                $this->data = $data;
-                return $value;
-            }
-        }
-        else
-        {
-            return empty($this->data) && $auto_db ? $this->find() : $this->data;
-        }
-    }
-    
-    /**
-    * 清空
-    * @method clear
-    * @return [type] [description]
-    * @author NewFuture
-    */
-    public function clear()
-    {
-        $this->fields   = array(); //查询字段
-        $this->data     = array(); //数据
-        $this->where    = '';      //查询条件
-        $this->param    = array(); //查询参数
-        $this->distinct = false;   //是否去重
-        $this->order    = array(); //排序字段
-        $this->limit    = null;
-        return $this;
-    }
-    
-    /**
-    * field分析
-    * @access private
-    * @param mixed $fields
-    * @return string
-    */
-    private function parseField()
-    {
-        $fields = $this->fields;
-        
-        /*多表链接时加入表名*/
-        $pre = $this->belongs_to_tables ? self::backQoute($this->table) . '.' : '';
-        $str = '';
-        if (empty($fields))
-        {
-            $str = $pre . '*';
-        }
-        elseif ($pre)
-        {
-            //多表加入表名
-            $pre = ',' . $pre;
-            foreach ($fields as $field => $alias)
-            {
-                $str .= $pre . self::backQoute($field) . 'AS' . self::backQoute($alias);
-            }
-        }
-        else
-        {
-            // 支持 'fieldname'=>'alias' 这样的字段别名定义
-            foreach ($fields as $field => $alias)
-            {
-                $str .= ($field == $alias || is_int($field)) ? ',' . self::backQoute($field)
-                : ',' . (self::backQoute($field) . 'AS' . self::backQoute($alias));
-            }
-        }
-        $str = ltrim($str, ',');
-        /*belong关系，从属与*/
-        foreach ($this->belongs_to_tables as $fk => $table)
-        {
-            $str .= ',' . self::backQoute($table) . '.' . self::backQoute('name') . 'AS' . self::backQoute($table);
-        }
-        //TODO其他接表方式
-        return $str;
-    }
-    
-    /**
-    * 数据解析和拼接
-    * @method parseData
-    * @param  string    $pos [description]
-    * @return [type]         [description]
-    * @author NewFuture
-    */
-    private function parseData($pos = ',')
-    {
-        $fieldsvals = array();
-        foreach (array_keys($this->data) as $column)
-        {
-            $fieldsvals[] = self::backQoute($column) . '=:' . $column;
-        }
-        $this->param = array_merge($this->param, $this->data);
-        return implode($pos, $fieldsvals);
-    }
-    
-    /**
-    * 构建select子句
-    * @method buildSelectSql
-    * @return [type]         [description]
-    * @author NewFuture
-    */
-    private function buildSelectSql($exp = null)
-    {
-        $sql = $this->distinct ? 'SELECT DISTINCT ' : 'SELECT ';
-        $sql .= $exp ?: $this->parseField();
-        return $sql;
-    }
-    
-    /**
-    * 构建From子句
-    * @method buildFromSql
-    * @return [type]       [description]
-    * @author NewFuture
-    */
-    private function buildFromSql()
-    {
-        $from = 'FROM' . self::backQoute($this->table) . '';
-        //belong关系(属于)1对多，innerjoin
-        foreach ($this->belongs_to_tables as $fk => $table)
-        {
-            $from .= 'INNER JOIN' . self::backQoute($table) .
-            'ON' . self::backQoute($this->table) . '.' . self::backQoute($fk) .
-            '=' . self::backQoute($table) . '.' . self::backQoute('id');
-        }
-        return $from;
-    }
-    
-    /**
-    * 构建where子句
-    * @method buildWhereSql
-    * @return [string]        [''或者WHERE(xxx)]
-    * @author NewFuture
-    */
-    private function buildWhereSql()
-    {
-        $pre   = $this->belongs_to_tables ? self::backQoute($this->table) . '.' : '';
-        $sql   = empty($this->data) ? '' : '(' . $pre . $this->parseData(')AND(' . $pre) . ')';
-        $where = $this->where;
-        
-        if (!empty($where))
-        {
-            /*AND*/
-            $and = isset($where['and']) ? $where['and'] : [];
-            foreach ($and as $c)
-            {
-                //逐个and条件处理
-                if (is_string($c))
-                {
-                    //字符串形式sql
-                    $conidition[] = $c;
-                }
-                else
-                {
-                    //数组关系式
-                    list($key, $exp, $value) = $c;
-                    $name                    = 'w_and_' . $key; //字段名带上表前缀
-                    $field                   = strpos($key, '.') ? $key . ' ' : $pre . self::backQoute($key);
-                    $conidition[]            = $field . $exp . ' :' . $name;
-                    $this->param[$name]      = $value;
-                }
-            }
-            if (!empty($conidition))
-            {
-                $and = '(' . implode(')AND(', $conidition) . ')';
-                $sql = $sql ? $sql . 'AND' . $and : $and;
-            }
-            
-            /*OR*/
-            $or = isset($where['or']) ? $where['or'] : [];
-            unset($conidition);
-            foreach ($or as $c)
-            {
-                if (is_string($c))
-                {
-                    $conidition[] = $c;
-                }
-                else
-                {
-                    list($key, $exp, $value) = $c;
-                    $name                    = 'w_or_' . $key;
-                    $field                   = strpos($key, '.') ? $key . ' ' : $pre . self::backQoute($key);
-                    $conidition[]            = $field . $exp . ' :' . $name;
-                    $this->param[$name]      = $value;
-                }
-            }
-            if (!empty($conidition))
-            {
-                $or  = '(' . implode(')OR(', $conidition) . ')';
-                $sql = $sql ? $sql . 'OR' . $or : $or;
-            }
-        }
-        return $sql ? ' WHERE ' . $sql : '';
-    }
-    
-    /**
-    * 构建尾部子句
-    * limt order等
-    * @method buildTailSql
-    * @return [type]       [description]
-    * @author NewFuture
-    */
-    private function buildTailSql()
-    {
-        $tail = '';
-        if ($this->order)
-        {
-            /*多表链接时加入表名*/
-            $pre   = $this->belongs_to_tables ? ',' . self::backQoute($this->table) . '.' : ',';
-            $order = '';
-            /*拼接排序字段*/
-            foreach ($this->order as $field => $value)
-            {
-                $order .= $pre . self::backQoute($field) . $value;
-            }
-            $tail = ' ORDER BY' . ltrim($order, ',');
-        }
-        if ($this->limit)
-        {
-            $tail .= ' LIMIT ' . $this->limit;
-        }
-        return $tail;
-    }
-    
-    /**
-    * 对字段和表名进行反引字符串
-    * 并字符进行安全检查
-    * 合法字符为[a-zA-Z_]
-    * @method backQoute
-    * @param  [type]    $str [description]
-    * @return [type]         [description]
-    * @author NewFuture
-    */
-    public static function backQoute($str)
-    {
-        if (!ctype_alnum(strtr($str, '_', 'A')))
-        {
-            //合法字符为字母[a-zA-Z]或者下划线_
-            throw new Exception('非法字符' . $str);
-            die('数据库操作中断');
-        }
-        else
-        {
-            return '`' . $str . '`';
-        }
-    }
-    
-    /**json序列化接口实现**/
-    public function jsonSerialize()
-    {
-        return $this->data;
-    }
-    
-    /**数组操作接口实现**/
-    public function offsetExists($offset)
-    {
-        return isset($this->data[$offset]);
-    }
-    
-    public function offsetGet($offset)
-    {
-        return $this->get($offset, false);
-    }
-    
-    public function offsetSet($offset, $value)
-    {
-        $this->data[$offset] = $value;
-    }
-    
-    public function offsetUnset($offset)
-    {
-        unset($this->data[$offset]);
-    }
+	protected $_name  = null; //数据库表
+	protected $_pk    = 'id'; //主键
+    protected $_pre   = null; //前缀
+	protected $_orm   = null; //底层orm
+	
+    protected static $_instance = null; //接口实体
+
+	/**
+	 * 构造函数
+	 * @method __construct
+	 * @param  array       $data [传入数据]
+	 * @access public
+	 * @author NewFuture
+	 */
+	public function __construct($data = array())
+	{
+		if (null === $this->_name)
+		{
+			$this->_name = strtolower(strstr(get_called_class(), 'Model', true));
+		}
+		$this->_orm = new Orm($this->_name, $this->_pk);
+		if (!empty($data))
+		{
+			$this->_orm->set($data);
+		}
+	}
+
+	/*获取错误信息*/
+	public function getError()
+	{
+		return $this->_error;
+	}
+
+	/**
+	 * 获取模型实例
+	 * @method getModel
+	 * @return [type]   [description]
+	 * @author NewFuture
+	 */
+	protected function getModel()
+	{
+		if (null === $this->_orm)
+		{
+			$this->_orm = new Model($this->_name, $this->pk);
+		}
+		return $this->_orm;
+	}
+
+	/**
+	 * 获取实现的实体
+	 * @method getInstance
+	 * @return [type]      [description]
+	 * @author NewFuture
+	 */
+	public static function getInstance()
+	{
+		return static::$_instance?:static::$_instance = new static;
+	}
+
+	/**
+	 * 直接修改字段
+	 * @method __set
+	 * @param  [type]  $name  [description]
+	 * @param  [type]  $value [description]
+	 * @access public
+	 * @author NewFuture
+	 */
+	public function __set($name, $value)
+	{
+		return $this->_orm->set($name, $value);
+	}
+
+	/**
+	 * 直接读取字段
+	 * @method __get
+	 * @return [type]  [description]
+	 * @access public
+	 * @author NewFuture
+	 */
+	public function __get($name)
+	{
+		return $this->_orm->get($name, false);
+	}
+
+	/**
+	 * 直接调用model的操作
+	 * @author NewFuture
+	 */
+	public function __call($method, $params)
+	{
+		return call_user_func_array(array($this->getModel(), $method), $params);
+	}
+
+	/**
+	 * 静态调用model的操作
+	 * @author NewFuture
+	 */
+	public static function __callStatic($method, $params)
+	{
+		// $instance = new static; //::getInstance();
+		return call_user_func_array(array(self::getInstance()->getModel(), $method), $params);
+	}
 }
-?>
