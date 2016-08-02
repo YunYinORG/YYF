@@ -1,11 +1,12 @@
 #tempFile
 #临时文件
 temp/
-start.cmd
-stop.cmd
 
 #vagrant 
 .vagrant/
+Vagrantfile
+start.cmd
+stop.cmd
 
 #localfile
 #本地文件
