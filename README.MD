@@ -1,9 +1,10 @@
-YYF 2.0
+YYF 2.3
 ====================
 Yunyin Yaf Framework
 
-云印YAF(yet another framework)框架
+云印Yaf(yet another framework)框架
 ------
+
 基于PHP的YAF扩展构建的**高效**,**安全**,**简单**,**优雅**的框架
 
 借鉴内流行的ThinkPHP框架和国际流行的Laravel框架的使用习惯
@@ -15,15 +16,14 @@ Yunyin Yaf Framework
 ```
 │  .htaccess    Apache开发环境重新url
 │  config.yaml  SAE配置和URL重定向
-|  init.cmd     环境初始化脚本 
+|  init.cmd     开发环境初始化脚本 
 │  LICENSE
 │  README.MD
 |  server.cmd   启动php server 调试 
-│  Vagrantfile  开发虚拟机环境配置
 │  
 ├─app  
-│  │  Bootstrap.php  生产环境入口 
-│  │  Debug.php      调试入口
+│  │  Bootstrap.php     生产环境入口 
+│  │  Bootstrap.dev.php 开发环境入口
 │  │  README.MD
 │  │  
 │  ├─controllers     控制器目录【添加代码的主战场】
