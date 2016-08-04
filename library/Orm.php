@@ -3,9 +3,9 @@
  * 数据库表
  * ORM
  * @todo sql缓存
+ * @todo where字段 别名支持(修改数据库时需要)
  * @todo where嵌套构建
- * @todo 条件查询 字段与字段 比较
- * @todo 计算表达式解析
+ * @todo 计算表达式解析?
  */
 class Orm implements JsonSerializable, ArrayAccess
 {
@@ -72,7 +72,7 @@ class Orm implements JsonSerializable, ArrayAccess
             $this->field($fields);
         }
         $sql=$this->buildSelect();
-        return true===$this->_debug ? array('sql'=>$sql,'param'=>$this->_param): $this->query($sql);
+        return $this->query($sql);
     }
 
     /**
@@ -96,13 +96,11 @@ class Orm implements JsonSerializable, ArrayAccess
         $this->limit(1);
         $sql= $this->buildSelect();
 
-        if (true===$this->_debug) {
-            //调试输出
-            return array('sql'=>$sql,'param'=>$this->_param);
-        }
-
         if ($result = $this->query($sql)) {
-            if (isset($result[0])) { //查询成功
+            if (true===$this->_debug) {               
+                return $result; //调试输出
+            }else if (isset($result[0])) {
+                 //查询成功
                 $this->_data = $result[0];
                 return $this;
             }
@@ -112,7 +110,7 @@ class Orm implements JsonSerializable, ArrayAccess
 
     /**
      * 读取数据 字段或者全部数据
-     * 如果有直接读取，无数据库读取
+     * 如果有直接读取，无数据库读取,遵循field别名设置
      * @method get
      * @param  [string] $key [字段名称，无此参数时返回全部数据]
      * @param  [boolean $auto_query [是否自动尝试从数据库获取]
@@ -121,26 +119,21 @@ class Orm implements JsonSerializable, ArrayAccess
      */
     public function get($key = '', $auto_query = true)
     {
-        $data = $this->_data;
-        if ('' === $key) {
+        $data = &$this->_data;
+        if ('' == $key) {
             return (empty($data) && $auto_query) ? $this->find() : $data; //获取全部数据
         }
         if (isset($data[$key])) {
             return $data[$key]; //键值存在
         }
         if ($auto_query) {
-            /*自动查询*/
-            $this->limit(1);
-            $sql = $this->buildSelect(self::backQoute($key));
-         
-            if (true===$this->_debug) {
-                //调试输出
-            return array('sql'=>$sql,'param'=>$this->_param);
-            }
-
-            $value = $this->value($sql, false); //单列查询
+            /*自动查询*///判断是否有别名设置
+            $field = array_search($key,$this->_fields,true);
+            $field = is_string($field) ? self::qouteField($field) : self::backQoute($key);
+            $sql   = $this->limit(1)->buildSelect($field);
+            $value = $this->value($sql); //单列查询
             if ($value !== false) {
-                $this->_data[$name] = $value;
+                $this->_data[$key] = $value;
             }
             return $value;
         }
@@ -169,13 +162,8 @@ class Orm implements JsonSerializable, ArrayAccess
             $value=$this->bindParam($value);
         }
         $sql = $this->buildInsert($data);
-
-        if (true===$this->_debug) {
-            return array('sql'=>$sql,'param'=>$this->_param);
-        }
-        
         $result = $this->execute($sql);
-        return $this->getDb('_write')->lastInsertId() ?: boolval($result);
+        return $this->getDb('_write')->lastInsertId() ?:$result;
     }
 
     /**
@@ -215,7 +203,7 @@ class Orm implements JsonSerializable, ArrayAccess
              return false;
         }
         $sql=$this->buildInsert($data);
-        return true===$this->_debug? array('sql'=>$sql,'param'=>$this->_param):$this->execute($sql);
+        return $this->execute($sql);
     }
 
     /**
@@ -280,7 +268,7 @@ class Orm implements JsonSerializable, ArrayAccess
         }
         unset($value);
         $sql=$this->buildUpdate($data);
-        return true===$this->_debug ? array('sql'=>$sql,'param'=>$this->_param): $this->execute($sql);
+        return $this->execute($sql);
     }
 
     /**
@@ -309,6 +297,40 @@ class Orm implements JsonSerializable, ArrayAccess
     }
 
     /**
+     * 修改并写入数据 对set和save的简化
+     * @method put
+     * @param  string  $key [保存的键值]
+     * @param  scalar  $value [修改后的键值]
+     * @return 操作结果 修改成功的条数
+     * @author NewFuture
+     */
+    public function put($key,$value)
+    {
+        $update=array($key =>$this->bindParam($value));
+        if( $fields = &$this->_fields){//字段检查
+            if($field=array_search($key,$fields,true)){
+                if(is_string($field)){//别名
+                    $update=array($field => current($update));
+                }
+            }else if(!isset($field[$key])){
+                return false;//无此字段
+            }
+        }
+
+        $data = &$this->_data;
+        if (empty($this->_where) && isset($data[$this->_pk])) {
+            //空条件且设置了主键，使用主键作为更新参数
+            $this->where($this->_pk, $data[$this->_pk]);
+        }
+        $sql=$this->buildUpdate($update);
+        $result=$this->execute($sql);
+        if($result!==false){
+            $data[$key]=$value;//写入数据
+        }
+        return $result;
+    }
+
+    /**
      * 删除数据[危险操作]
      * @method delete
      * @param  [int] $id [删除id]
@@ -321,7 +343,7 @@ class Orm implements JsonSerializable, ArrayAccess
         assert('null===$id||is_numeric($id)', '[Orm::add]删除id为空或者数字');
         $id and $this->where($this->_pk, $id);
         $sql=$this->buildDelete();
-        return true===$this->_debug ? array('sql'=>$sql,'param'=>$this->_param):$this->execute($sql);
+        return $this->execute($sql);
     }
 
     /**
@@ -364,24 +386,27 @@ class Orm implements JsonSerializable, ArrayAccess
      * where('id',1) 查询id=1
      * where('id','>',1)
      */
-    public function where($field)
+    public function where()
     {
-        if (is_array($field)) {
-            assert(1===func_num_args(), '[Orm::where]使用数组型参数直接收一个参数');
-            //数组型表达式 //索引数组 或者键值对
-            foreach ($field as $key => $value) {
-                //键值对转数组
-                is_array($value) or ($value = array($key, $value));
-                $this->_where[] = $this->parseCondition($value, 'AND');
-            }
-        } else {
-            $this->_where[] = $this->parseCondition(func_get_args(), 'AND');
-        }
-        return $this;
+       return $this->parseWhere(func_get_args(), 'AND');
     }
 
     /**
-     * where OR 条件
+     * where 字段比较，和where一样但是值按照字段处理
+     * @method whereField
+     * @param  mixed     $field        [键值,条件数组,条件SQL]
+     * @param  [string] $operator    [比较操作符]
+     * @param  [mixed]     $value      [值]
+     * @return [object] $this
+     * @author NewFuture
+     */
+    public function whereField()
+    {
+        return $this->parseWhere(func_get_args(), 'AND',false);
+    }
+
+    /**
+     * where OR 条件，
      * @method orWhere
      * @param  mixed    $field     [字段值或者,条件数组]
      * @param  [string] $operator    [比较操作符]
@@ -389,19 +414,23 @@ class Orm implements JsonSerializable, ArrayAccess
      * @return [object] $this
      * @author NewFuture
      */
-    public function orWhere($field)
+    public function orWhere()
     {
-        if (is_array($field)) {
-            assert(1===func_num_args(), '[Orm::where]使用数组型参数直接收一个参数');
-            //数组型表达式
-            foreach ($field as $key => $value) {
-                is_array($value) or ($value = array($key, $value)); //键值对转数组
-                $this->_where[] = $this->parseCondition($value, 'OR');
-            }
-        } else {
-            $this->_where[] = $this->parseCondition(func_get_args(), 'OR');
-        }
-        return $this;
+        return $this->parseWhere(func_get_args(), 'OR');
+    }
+
+    /**
+     * where 字段比较 OR 条件,和orWhere一样但是值按照字段处理
+     * @method orWhereField
+     * @param  mixed     $field        [键值,条件数组,条件SQL]
+     * @param  [string] $operator    [比较操作符]
+     * @param  [mixed]     $value      [值]
+     * @return [object] $this
+     * @author NewFuture
+     */
+    public function orWhereField()
+    {
+        return $this->parseWhere(func_get_args(), 'OR',false);
     }
 
     /**
@@ -417,9 +446,9 @@ class Orm implements JsonSerializable, ArrayAccess
     {
         $type=strtoupper($type);
         assert('in_array($type,array("AND","OR"))', '[Orm::exists] 类型只存在 AND 或者 OR 输入的是:' . $type);
-        $not=$not?'NOT ':'';
-        $sql=$not.'EXISTS '.$this->buildSubquery($query);
-        $this->_where[]=array(null,$sql,$type);
+        $sql = $not?'NOT EXISTS ':'EXISTS';
+        $sql .= $this->buildSubquery($query);
+        $this->_where[]=array($type,$sql);
         return $this;
     }
 
@@ -864,7 +893,7 @@ class Orm implements JsonSerializable, ArrayAccess
 
     public function __get($name)
     {
-        return isset($this->_data[$name]) ? $this->_data[$name] : null;
+        return $this->get($name,false);
     }
 
     public function __unset($name)
@@ -886,7 +915,7 @@ class Orm implements JsonSerializable, ArrayAccess
 
     public function offsetGet($offset)
     {
-        return isset($this->_data[$offset]) ? $this->_data[$offset] : null;
+        return $this->get($offset,false);
     }
 
     public function offsetSet($offset, $value)
@@ -933,7 +962,6 @@ class Orm implements JsonSerializable, ArrayAccess
         $sql .= 'VALUES';
         if (is_string(key($data))) {
             assert('is_array($data)&&count($fields)===count($data)', '[Orm::buildInsert] $data 应该是数组');
-
             $sql.='('.implode(',', $data).'),';
         } else {
             assert('is_array($data[0])&&count($fields)===count($data[0])', '[Orm::buildInsert] $data 应该是一个二维数组,其中每个数组是一条记录');
@@ -962,8 +990,9 @@ class Orm implements JsonSerializable, ArrayAccess
             $sql .= self::backQoute($key) . '='.$v.',';
         }
         $sql{strlen($sql) - 1} = ' ';
-        $sql .= $this->buildWhere();
-        $sql .= $this->buildTail();
+        $sql .= $this->buildJoin()
+                . $this->buildWhere()
+                . $this->buildTail();
         return $sql;
     }
 
@@ -995,9 +1024,11 @@ class Orm implements JsonSerializable, ArrayAccess
             $sql .= empty($this->_joins) ? '*' : self::backQoute($this->_alias) . '.*';
         }
 
-        $sql .= $this->buildFrom();
-        $sql .= $this->buildWhere();
-        $sql .= $this->buildTail();
+        $sql .= $this->buildFrom() 
+                . $this->buildJoin()
+                . $this->buildWhere()
+                . $this->buildGroupHaving()
+                . $this->buildTail();
         return $sql;
     }
 
@@ -1010,15 +1041,17 @@ class Orm implements JsonSerializable, ArrayAccess
      */
     protected function buildDelete()
     {
-        $sql =  'DELETE '. $this->buildFrom();
-        $sql .= $this->buildWhere();
-        $sql.=$this->buildTail();
+        $sql =  'DELETE '
+                . $this->buildFrom()
+                . $this->buildJoin() 
+                . $this->buildWhere()
+                . $this->buildTail();
         return $sql;
     }
 
     /**
      * 构建FROM sql分句
-     * From 和 join
+     * From 
      * @method buildFrom
      * @return string
      * @author NewFuture
@@ -1032,9 +1065,20 @@ class Orm implements JsonSerializable, ArrayAccess
         if ($alias = $this->_alias) {
             ($alias === $name) or ($from .= 'AS' . self::backQoute($alias));
         }
-        foreach ($this->_joins as $join) {
-            $join_table=$join[1];
+        return $from;
+    }
 
+     /**
+     * 构建条件Join sql分句
+     * @method buildJoin
+     * @return string        [''或者JOIN(xxx)]
+     * @author NewFuture
+     */
+    protected function buildJoin()
+    {
+        $join='';
+         foreach ($this->_joins as $join) {
+            $join_table=$join[1];
             if ($pos = stripos($join_table, ' AS ')) {
                 //别名形式
                 $join_alias=self::backQoute(substr($join_table, $pos + 4));
@@ -1043,40 +1087,90 @@ class Orm implements JsonSerializable, ArrayAccess
                 $join_table = self::backQoute($prefix . $join[1]);
                 $join_alias = &$join_table;
             }
-            $from .= $join[0] . ' JOIN' . $join_table. 'ON' . $join_alias .'.'. self::backQoute($join[2]) . '=' . $this->qouteField($join[3], true);
+            $join .= $join[0] . ' JOIN' . $join_table. 'ON' . $join_alias .'.'. self::backQoute($join[2]) . '=' . $this->qouteField($join[3], true);
         }
-        return $from;
+        return $join;
     }
 
     /**
-     * 构建条件 sql分句
+     * 构建条件WhERE sql分句
      * @method buildWhere
      * @return string        [''或者WHERE(xxx)]
      * @author NewFuture
      */
     protected function buildWhere()
     {
-        $sql = '';
+        $condition = '';
         if ($where = &$this->_where) {
-            $condition = '';
             foreach ($where as $w) {
-                $field=null===$w[0]?'':$this->qouteField($w[0]);
-                $condition .= $w[2] . '(' . $field . $w[1] . ')';
+                $condition.=$w[0].'(';
+                switch (count($w)) {
+                    case 2://直接SQL语句;如exis
+                        $condition.=$w[1];
+                        break;
+
+                    case 5://字段与字段关系，对字段编码
+                        if(is_array($w[3])){
+                            assert('in_array($w[2],array("BETWEEN","NOT BETWEEN","IN","NOT IN"))',
+                                '[Orm::buildWhere]只有IN和between后可接数组参数');
+                            foreach ($w[3] as &$f) {
+                                $f=self::qouteField($f);
+                            }
+                            unset($f);
+                        }else{
+                            assert('in_array($w[2],array("=","<>",">",">=","<","<=","LIKE","NOT LIKE","LIKE BINARY","NOT LIKE BINARY"))',
+                                '[Orm::buildWhere]只有值比较可以使用这些类型');
+                            $w[3]=self::qouteField($w[3]);
+                        }
+                        //继续处理
+                    case 4:
+                        $operator=&$w[2];
+                        $value=&$w[3];
+                        if(is_array($value)){
+                            if('BETWEEN'===$operator||'NOT BETWEEN'===$operator){ //BETWEEN
+                                assert('2===count($value))','[Orm::buildWhere] between 操作后续 参数必须是两个值');
+                                $value= $value[0].' AND '.$value[1];
+                            }else{//IN
+                                assert('in_array($operator, array("IN","NOT IN"))','[Orm::buildWhere] 只有IN和BETWEEN相关操作能使用数组'.$w[2]);
+                                $value= '('.implode(',',$value).')';
+                            }
+                        }
+                        $condition.=self::qouteField($w[1]).$operator.' '.$value;
+                        break;
+                    default:
+                        throw new Exception("无法处理的WHERE条件:".json_encode($w), 1);
+                }
+                $condition.=')';
             }
-            $sql = 'WHERE' . strstr($condition, '(');
+            $condition = 'WHERE' . strstr($condition, '(');
         }
+        return $condition;
+    }
+
+
+    /**
+     * 构建 GROUP 和 HAVING sql分句
+     * @method buildGroupHaving
+     * @return string        [''或者GROUP(xxx)]
+     * @author NewFuture
+     */
+    protected function buildGroupHaving()
+    {
+        $sql='';
         if ($groups = &$this->_groups) {
             $condition = '';
-            foreach ($groups as $g) {
-                $condition .= ',' . $this->qouteField($g[0]) . $g[1];
+            foreach ($groups as &$g) {
+                $condition .= ',' . $this->qouteField($g[0]) . $g[1].' '.$g[2];
             }
+            unset($g);
             $sql .= substr_replace($condition, 'GROUP BY ', 0, 1);
         }
         if ($having = &$this->_having) {
             $condition = '';
-            foreach ($having as $h) {
+            foreach ($having as &$h) {
                 $condition .= $h[2] . '(' . $this->parseFunction($h[0]) . $h[1] . ')';//聚合函数
             }
+            unset($h);
             $sql .= 'HAVING' . strstr($condition, '(');
         }
         return $sql;
@@ -1131,8 +1225,7 @@ class Orm implements JsonSerializable, ArrayAccess
      */
     protected function aggregate($exp)
     {
-        $sql = $this->buildSelect($exp);
-        return true===$this->_debug ? array('sql'=>$sql,'param'=>$this->_param):$this -> value($sql);
+        return $this->value($this->buildSelect($exp));
     }
 
     /**
@@ -1144,9 +1237,9 @@ class Orm implements JsonSerializable, ArrayAccess
      */
     protected function execute($sql)
     {
-        $result = $this->getDb('_write')->exec($sql, $this->_param);
-        $this->clear();
-        return $result;
+        return true===$this->_debug ? 
+            array('sql'=>$sql,'param'=>$this->_param): 
+            $this->getDb('_write')->exec($sql, $this->_param);
     }
 
     /**
@@ -1158,24 +1251,23 @@ class Orm implements JsonSerializable, ArrayAccess
      */
     protected function query($sql)
     {
-        $result = $this->getDb('_read')->query($sql, $this->_param);
-        $this->clear();
-        return $result;
+        return true===$this->_debug ? 
+            array('sql'=>$sql,'param'=>$this->_param): 
+            $this->getDb('_read')->query($sql, $this->_param);
     }
 
     /**
      * 数据读取操作,返回一个值
      * @method value
      * @param  string $sql      [sql语句]
-     * @param  [boolen] $auto_clear [自动跟新]
      * @return [mixed]           [查询结果]
      * @author NewFuture
      */
-    protected function value($sql, $auto_clear = true)
+    protected function value($sql)
     {
-        $result = $this->getDb('_read')->column($sql, $this->_param);
-        $auto_clear and $this->clear();
-        return $result;
+        return true===$this->_debug ? 
+            array('sql'=>$sql,'param'=>$this->_param): 
+            $this->getDb('_read')->column($sql, $this->_param);
     }
 
     /**
@@ -1278,64 +1370,100 @@ class Orm implements JsonSerializable, ArrayAccess
     }
 
     /**
+    * 解析where条件
+    * @method parseWhere
+    * @param  array $where [where 参数数组]
+    * @param  string $addition [附加条件，'AND'或者'OR']
+    * @param  [boolean] $bind_value [是否绑定参数]
+    * @return array 格式化的三元或者多元元索引数组
+    * @author NewFuture
+    */
+    protected function parseWhere(array $where,$type,$bind_value=true)
+    {
+        if(is_array($where[0]))
+        {
+             assert('1===count($where)', '[Orm::parseWhere]使用where数组型参数,直接收一个参数');
+             foreach ($where[0] as $key => $value) {
+                //支持键值对和多维数组方式
+                $this->_where[] = is_array($value)?
+                     $this->parseCondition($value,$type,$bind_value):
+                     $this->parseCondition(array($key, $value),$type,$bind_value);
+            }
+        }
+        $this->_where[] = $this->parseCondition($where, $type,$bind_value);
+        return $this;
+    }
+
+    /**
      * 解析条件 数组
      * @method parseCondition
      * @param  array $condition [条件数组]
-     * @param  string $append [后置条件]
-     * @return array 格式化的三元或者二元索引数组
+     * @param  [string] $addition [附加条件，'AND'或者'OR']
+     * @param  [boolean] $bind_value [是否绑定参数]
+     * @return array 格式化的三元或者多元元索引数组
+     *          array([$addition,],$field,$operator,$value[,NO_BIND_FLAG])
      * @author NewFuture
      */
-    protected function parseCondition(array $condition, $append = null)
+    protected function parseCondition(array $condition, $addition = null,$bind_value=true)
     {
-        assert('is_array($condition)', '[Orm::parseCondition]条件解析数据必须是数组');
-        assert('is_string($condition[0])', '[Orm::parseCondition]数组的第一个元素必须是字符串');
-        $result = array($condition[0]);
+        assert('is_array($condition)', 
+            '[Orm::parseCondition]条件解析数据必须是数组');
+        assert('is_string($condition[0])', 
+            '[Orm::parseCondition]数组的第一个元素必须是字符串');
+        assert('is_scalar($condition[1])||is_null($condition[1])',
+            '[Orm::parseCondition]数组的第二个参数必须是基本类型');
+        $result =$addition?array($addition,$condition[0]): array($condition[0]);
         switch (count($condition)) {
             case 2: //两个值,相等条件
                 if ((null === $condition[1])) {
-                    $result[] = 'IS NULL';
+                    assert('$bind_value','[Orm::parseCondition]NULL值时不能设为字段');
+                    $result[] = 'IS';
+                    $result[] = 'NULL';
                 } else {
-                    $result[] = '=' . $this->bindParam($condition[1]);
+                    $result[] = '=';
+                    $result[] = $bind_value?$condition[1]:$$this->bindParam($condition[1]);
                 }
                 break;
 
             case 3: //三个值，三元表达式
                 $operator = strtoupper($condition[1]);
                 $value = &$condition[2];
-                if (null === $condition[2]) { //NULL 值标准化
-                    assert('in_array($condition[1],array("=","<>","!="))', '[Orm::parseCondition]NULL值判读只允许 [等于] 或者[不等于]');
-                    $result[] = ('=' === $operator) ? 'IS NULL' : 'IS NOT NULL';
-                } elseif (in_array($operator, self::OPERATOR['V'])) {
-                    //值绑定
-                    assert('is_scalar($condition[2])', '[Orm::parseCondition]值型参数应该是字符或者数字等基本类型');
-                    $result[] = $operator .' '. $this->bindParam($condition[2]);
-                } elseif ('!=' === $operator) {
+                if (null === $value) { //NULL值判断标准化
+                    assert('in_array($condition[1],array("=","<>","!=","IS"))',
+                     '[Orm::parseCondition]NULL值判读只允许 [等于] 或者[不等于]');
+                    assert('$bind_value','[Orm::parseCondition]NULL值时不能设为字段');
+                    $result[] = 'IS';
+                    $result[] = (('=' === $operator)||('IS' === $operator)) ? 'NULL' : 'NOT NULL';
+                }else{
                     //不等号标准化
-                    assert('is_scalar($condition[2])', '[Orm::parseCondition] 不等条件只允许 的比较应该是字符或者数字等基本类型');
-                    $result[] = '<>' . $this->bindParam($condition[2]);
-                } elseif (in_array($operator, self::OPERATOR['BT'])) {
-                    //between条件数组型绑定参数
-                    assert('is_array($condition[2])&&(2===count($condition[2]))', '[Orm::parseCondition] between 操作后续 参数必须是两个值的数组或者两个分开的值');
-                    $result[] = $operator.' ' . $this->bindParam($condition[2][0]) . ' AND ' . $this->bindParam($condition[2][1]);
-                } elseif (in_array($operator, self::OPERATOR['IN'])) {
-                    assert('is_array($condition[2])', '[Orm::parseCondition] in 参数必须是数组');
-                    $result[] = $operator . '(';
-                    foreach ($condition[2] as $v) {
-                        $result[1] .= $this->bindParam($v) . ',';
+                    $result[]='!='===$operator?'<>':$operator;
+                    if($bind_value){
+                    //绑定参数
+                        if(is_array($value)){
+                            assert('in_array($operator,array("BETWEEN","NOT BETWEEN","IN","NOT IN"))',
+                                '[Orm::parseCondition]只有IN和between后可接数组参数');
+                            foreach ($value as &$v) {
+                                $v=$this->bindParam($v);
+                            }
+                            unset($v);
+                        }else{
+                            assert('in_array($operator,array("=","<>","!=",">",">=","<","<=","LIKE","NOT LIKE","LIKE BINARY","NOT LIKE BINARY"))',
+                                '[Orm::parseCondition]只有值比较可以使用这些类型');
+                            $value=$this->bindParam($value);
+                        }
                     }
-                    $result[1]{strlen($result[1]) - 1} = ')'; //最后，换成)
-                } else {
-                    throw new Exception('解析到 未知操作条件：' . $operator, 1);
-                    return;
+                    $result[]=$value;
                 }
                 break;
 
             case 4: //4元表达式between
                 $operator = strtoupper($condition[1]);
-                assert('in_array($operator,array("BETWEEN","NOT BTWEEN"))', '[Orm::parseCondition] 四参数条件只支持[not ]between表达式 :' . $operator);
-                assert('is_scalar($condition[2])&&is_scalar($condition[2])', '[Orm::parseCondition] BETWEEN 条件后接两个参数时 应该是字符或者数字等基本类型');
-               $result[] = $operator .' '. $this->bindParam($condition[2])
-                          . ' AND ' . $this->bindParam($condition[3]);
+                assert('in_array($operator,array("BETWEEN","NOT BTWEEN"))',
+                    '[Orm::parseCondition] 四参数条件只支持[not ]between表达式 :' . $operator);
+                $result[] = $operator ;
+                $result[] = $bind_value?
+                    array($this->bindParam($condition[2]),$this->bindParam($condition[3])):
+                    array($condition[2],$condition[3]);
                 break;
 
             case 1: //表达式
@@ -1345,14 +1473,15 @@ class Orm implements JsonSerializable, ArrayAccess
                 }
                 $result = array(null,$condition[0]);
                 break;
+
             default:
                 throw new Exception("where条件参数太多，无法解析." . json_decode($condition, JSON_UNESCAPED_UNICODE));
                 break;
         }
-        if ($append) {
-            $result[] = $append;
+        if(!$bind_value)
+        {
+            $result[]=true;
         }
-
         return $result;
     }
 }

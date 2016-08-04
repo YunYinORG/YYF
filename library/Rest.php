@@ -163,7 +163,7 @@ abstract class Rest extends Yaf_Controller_Abstract
 	{
 		if ($this->response !== false)
 		{
-			header('Content-type: application/json;charset=utf-8');
+			header('Content-Type: application/json; charset=utf-8');
 			echo (json_encode($this->response, JSON_UNESCAPED_UNICODE)); //unicode不转码
 		}
 	}
