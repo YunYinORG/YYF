@@ -2,6 +2,13 @@
 /**
  * 数据库表
  * ORM
+ * join 类型 JOIN_TYPE = array('INNER', 'LEFT', 'RIGHT', 'OUTER', 'FULL OUTER');
+ * 查询支持的函数 FUNCTIONS = array('ABS','AVG','COUNT','LCASE','LENGTH','MAX','MIN','SIGN','SUM','UCASE',);
+ * where 表达式 比较符
+ *  'op' => array('=', '<>', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'LIKE BINARY', 'NOT LIKE BINARY'), //值比较
+ *  'BT' => array('BETWEEN', 'NOT BETWEEN'),
+ *  'IN' => array('IN', 'NOT IN'),
+ * 
  * @todo sql缓存
  * @todo where字段 别名支持(修改数据库时需要)
  * @todo where嵌套构建
@@ -9,17 +16,6 @@
  */
 class Orm implements JsonSerializable, ArrayAccess
 {
-    /*join 类型*/
-    const JOIN_TYPE = array('INNER', 'LEFT', 'RIGHT', 'OUTER', 'FULL OUTER');
-    /*查询支持的函数*/
-    const FUNCTIONS = array('ABS','AVG','COUNT','LCASE','LENGTH','MAX','MIN','SIGN','SUM','UCASE',);
-    /*where 表达式 比较符*/
-    const OPERATOR = array(
-        'V' => array('=', '<>', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'LIKE BINARY', 'NOT LIKE BINARY'), //值比较
-        'BT' => array('BETWEEN', 'NOT BETWEEN'),
-        'IN' => array('IN', 'NOT IN'),
-    );
-
     private static $_paramid  = 0; //参数ID
     protected static $_dbpool = array();//数据库链接池
 
@@ -129,7 +125,7 @@ class Orm implements JsonSerializable, ArrayAccess
         if ($auto_query) {
             /*自动查询*///判断是否有别名设置
             $field = array_search($key,$this->_fields,true);
-            $field = is_string($field) ? self::qouteField($field) : self::backQoute($key);
+            $field = is_string($field) ? $this->parseFunction($field) : self::backQoute($key);
             $sql   = $this->limit(1)->buildSelect($field);
             $value = $this->value($sql); //单列查询
             if ($value !== false) {
@@ -599,7 +595,7 @@ class Orm implements JsonSerializable, ArrayAccess
      */
     public function join($table, $table_field, $condition, $type = 'INNER')
     {
-        if (!in_array($type, self::JOIN_TYPE)) {
+        if (!in_array($type, array('INNER', 'LEFT', 'RIGHT', 'OUTER', 'FULL OUTER'))) {
             throw new Exception("[Orm::join] 不支持的JOIN 方式:" . $type, 1);
         }
         $this->_joins[] = array($type, $table, $table_field, $condition);
@@ -651,7 +647,7 @@ class Orm implements JsonSerializable, ArrayAccess
     {
         if (1 === func_num_args()) {
             assert('is_string($field)', '[Orm::group]第一个参数必须是字符串');
-            $this->_groups[] = array($field, '');
+            $this->_groups[] = $field;
         } else { //多个参数
             $this->_groups[] = $this->parseCondition(func_get_args());
         }
@@ -760,7 +756,7 @@ class Orm implements JsonSerializable, ArrayAccess
     public function increment($field, $step=1)
     {
         $data = $this->_data;
-        $data[$field]=self::qouteField($field) . '+'.$this->bindParam(intval($step));
+        $data[$field]=$this->qouteField($field) . '+'.$this->bindParam(intval($step));
         $sql = $this->buildUpdate($data);
         return true===$this->_debug ? array('sql'=>$sql,'param'=>$this->_param):$this->execute($sql);
     }
@@ -1114,13 +1110,13 @@ class Orm implements JsonSerializable, ArrayAccess
                             assert('in_array($w[2],array("BETWEEN","NOT BETWEEN","IN","NOT IN"))',
                                 '[Orm::buildWhere]只有IN和between后可接数组参数');
                             foreach ($w[3] as &$f) {
-                                $f=self::qouteField($f);
+                                $f=$this->qouteField($f);
                             }
                             unset($f);
                         }else{
                             assert('in_array($w[2],array("=","<>",">",">=","<","<=","LIKE","NOT LIKE","LIKE BINARY","NOT LIKE BINARY"))',
                                 '[Orm::buildWhere]只有值比较可以使用这些类型');
-                            $w[3]=self::qouteField($w[3]);
+                            $w[3]=$this->qouteField($w[3]);
                         }
                         //继续处理
                     case 4:
@@ -1135,7 +1131,7 @@ class Orm implements JsonSerializable, ArrayAccess
                                 $value= '('.implode(',',$value).')';
                             }
                         }
-                        $condition.=self::qouteField($w[1]).$operator.' '.$value;
+                        $condition.=$this->qouteField($w[1]).$operator.' '.$value;
                         break;
                     default:
                         throw new Exception("无法处理的WHERE条件:".json_encode($w), 1);
@@ -1160,7 +1156,11 @@ class Orm implements JsonSerializable, ArrayAccess
         if ($groups = &$this->_groups) {
             $condition = '';
             foreach ($groups as &$g) {
-                $condition .= ',' . $this->qouteField($g[0]) . $g[1].' '.$g[2];
+                if(is_array($g)){
+                    $condition .= ',' . $this->qouteField($g[0]) . $g[1].' '.$g[2];
+                }else{
+                     $condition .=',' . $this->qouteField($g);
+                }
             }
             unset($g);
             $sql .= substr_replace($condition, 'GROUP BY ', 0, 1);
@@ -1168,7 +1168,7 @@ class Orm implements JsonSerializable, ArrayAccess
         if ($having = &$this->_having) {
             $condition = '';
             foreach ($having as &$h) {
-                $condition .= $h[2] . '(' . $this->parseFunction($h[0]) . $h[1] . ')';//聚合函数
+                $condition .= $h[0] . '(' . $this->parseFunction($h[1]) . $h[2] .$h[3]. ')';//聚合函数
             }
             unset($h);
             $sql .= 'HAVING' . strstr($condition, '(');
@@ -1358,13 +1358,13 @@ class Orm implements JsonSerializable, ArrayAccess
         }
         $str=ltrim(rtrim($str, ') '), '( ');
         $fun=strtoupper(strtok($str, '('));//(拆解函数
-        if (in_array($fun, self::FUNCTIONS)) {
+        if (strlen($fun)===strlen($str)) {
+            //不是函数按照字段处理
+            return $this->qouteField($str);
+        }elseif (in_array($fun, array('ABS','AVG','COUNT','LCASE','LENGTH','MAX','MIN','SIGN','SUM','UCASE',))) {
             $arg=trim(strtok(')'));//字段
             assert('false===strtok(")")', '[Orm::parseFunction]函数表达式解析异常'.$str);
             return ' '.$fun.'('.$this->qouteField($arg).')';
-        } elseif (strlen($fun)===strlen($str)) {
-            //不是函数按照字段处理
-            return $this->qouteField($str);
         }
         throw new Exception('无法解析表达式'.$str);
     }
