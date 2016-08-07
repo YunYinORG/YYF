@@ -5,6 +5,8 @@ Yunyin Yaf Framework
 云印Yaf(yet another framework)框架
 ------
 
+开发文档[yyf-book(更新中)](http://yyf.newfuture.cc/)
+
 基于PHP的YAF扩展构建的**高效**,**安全**,**简单**,**优雅**的框架
 
 借鉴内流行的ThinkPHP框架和国际流行的Laravel框架的使用习惯
