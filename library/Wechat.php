@@ -1,4 +1,5 @@
 <?php
+use Logger as Log;
 /**
  * 微信API接口封装【包括JSSDK，微信认证和登录】
  * 在secret配置中[wechat]配置两个key即可
@@ -113,13 +114,13 @@ class Wechat
 	{
 		if (!($code || Input::get('code', $code)))
 		{
-			LOG::write('[wechat] 微信认证缺少 code 参数');
+			Log::write('[wechat] 微信认证缺少 code 参数');
 			return false;
 		}
 		if (!self::_checkState())
 		{
 			//自动验证state失败
-			LOG::write('[wechat] state check fialed');
+			Log::write('[wechat] state check fialed','WARN');
 			return false;
 		}
 		$url  = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=' . self::_getConfig('appid') . '&secret=' . self::_getConfig('secret') . '&code=' . $code . '&grant_type=authorization_code';
@@ -127,7 +128,7 @@ class Wechat
 		$data = json_decode($res, true);
 		if (!($data && isset($data['access_token'])))
 		{
-			LOG::write('[wechat] access_token failed :' . $res);
+			Log::write('[wechat] access_token failed :' . $res,'CRITICAL');
 			return false;
 		}
 		return $key ? $data[$key] : $data;
@@ -233,7 +234,7 @@ class Wechat
 			}
 			else
 			{
-				LOG::write('[wechat] 无法获取state数据' . $Type);
+				Log::write('[wechat] 无法获取state数据' . $Type,'WARN');
 				return FALSE;
 			}
 		}

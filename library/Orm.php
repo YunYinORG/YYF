@@ -184,7 +184,7 @@ class Orm implements JsonSerializable, ArrayAccess
         /*字段过滤*/
         foreach ($data as $key => &$row) {
             if (self::fieldFilter($fields, $row)!==$fields) {
-                Log::write('[Orm]这条数据在批量插入时被过滤掉:'.print_r($row, true), 'info');
+                Logger::write('[Orm]这条数据在批量插入时被过滤掉:'.jso($row, JSON_UNESCAPED_UNICODE), 'INFO');
                 unset($data[$key]);//不符合的数据将被过滤掉
                 continue;
             }
@@ -1084,11 +1084,10 @@ class Orm implements JsonSerializable, ArrayAccess
      */
     protected function buildFrom()
     {
-        $prefix = $this->_pre;
-        $name = $prefix . $this->_table;
+        $name = $this->_pre . $this->_table;
         $from = 'FROM' . self::backQoute($name);
-        if ($alias = $this->_alias) {
-            ($alias === $name) or ($from .= 'AS' . self::backQoute($alias));
+        if (($alias = $this->_alias)&&($alias === $name)) {
+            $from .= 'AS' . self::backQoute($alias);
         }
         return $from;
     }

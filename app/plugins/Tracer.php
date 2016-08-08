@@ -1,4 +1,5 @@
 <?php
+use \Logger as log;
 /**
  * 时间跟踪统计
  * 和文件加载统计
@@ -12,7 +13,7 @@ class TracerPlugin extends Yaf_Plugin_Abstract
 		$start = $_SERVER['REQUEST_TIME_FLOAT'] * 1000;
 		Log::write(getenv('REQUEST_METHOD') . getenv('REQUEST_URI'), 'TRACER');
 		$this->time['request'] = $start;
-		$this->mem['start']    = memory_get_usage() / 1024; //启动内存，包括调试插件占用
+		$this->mem['start']    = memory_get_peak_usage() / 1024; //启动内存，包括调试插件占用
 	}
 
 	//在路由之前触发，这个是7个事件中, 最早的一个. 但是一些全局自定的工作, 还是应该放在Bootstrap中去完成
@@ -31,7 +32,7 @@ class TracerPlugin extends Yaf_Plugin_Abstract
 	public function dispatchLoopStartup(Yaf_Request_Abstract $request, Yaf_Response_Abstract $response)
 	{
 		$this->time['dispatchloopstartup'] = self::mtime();
-		$this->mem['dispatch']             = memory_get_usage() / 1024;
+		$this->mem['dispatch']             = memory_get_peak_usage() / 1024;
 	}
 
 	//分发之前触发	如果在一个请求处理过程中, 发生了forward, 则这个事件会被触发多次
@@ -75,13 +76,15 @@ class TracerPlugin extends Yaf_Plugin_Abstract
 		$included_files = get_included_files();
 		$file_msg       = '文件加载[' . count($included_files) . ']' . print_r($included_files, true);
 
-		$mem     = $this->mem;
-		$mem_end = memory_get_usage() / 1024;
+		$mem     = &$this->mem;
+		$mem['max'] = memory_get_peak_usage()/1024;
+		$mem['end'] = memory_get_usage() / 1024;
 		$mem_msg = PHP_EOL . '[内存消耗统计]';
 		$mem_msg .= PHP_EOL . '启动消耗内存:' . $mem['start'] . 'Kb';
 		$mem_msg .= PHP_EOL . '路由消耗内存:' . ($mem['dispatch'] - $mem['start']) . 'Kb';
-		$mem_msg .= PHP_EOL . '处理消耗内存:' . ($mem_end - $mem['dispatch']) . 'Kb';
-		$mem_msg .= PHP_EOL . '总共消耗内存:' . $mem_end . 'Kb';
+		$mem_msg .= PHP_EOL . '处理消耗内存:' . ($mem['end'] - $mem['dispatch']) . 'Kb';
+		$mem_msg .= PHP_EOL . '最大消耗内存:' . $mem['max'] . 'Kb';
+		$mem_msg .= PHP_EOL . '结束占用内存:' . $mem['end'] . 'Kb';
 
 		$time     = $this->time;
 		$end      = self::mtime();

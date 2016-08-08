@@ -1,5 +1,6 @@
 <?php
 namespace Service;
+use \Logger as Log;
 /**
  * 上传文件管理
  * 封装七牛API
@@ -145,13 +146,13 @@ class Qiniu
 			{
 				return true;
 			}
-			elseif (\Config::get('debug'))
-			{
-				/*操作出错*/
-				\PC::debug($response, '七牛请求出错');
-			}
+			// elseif (\Config::get('debug'))
+			// {
+			// 	/*操作出错*/
+			// 	\PC::debug($response, '七牛请求出错');
+			// }
 		}
-		\Log::write('[QINIU]七牛错误' . $url . ':' . ($response ?: '请求失败'), 'ERROR');
+		Log::write('[QINIU]七牛错误' . $url . ':' . ($response ?: '请求失败'), 'ERROR');
 		return false;
 	}
 

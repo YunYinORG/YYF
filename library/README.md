@@ -8,7 +8,7 @@ YYF核心库
 * Encrypt.php : 安全加密类(Encrypt)
 * Input.php : 输入管理类(Input)
 * Kv.php : 键值对存储类(Kv)
-* Log.php : 日志管理类(Log)
+* Logger.php : 日志管理类(Logger)
 * Mail.php : 邮件管理类(Mail)
 * Model.php : 核心model类(Model)
 * Orm.php : 数据库查询核心封装
@@ -93,12 +93,12 @@ Cache::del($name)       #删除
 Cache::flush()          #清空
 ```
 
-Log
+Logger
 -------
 日志记录类
-$tag 日志标签,配置中开启的则记录
+$level 日志标签,配置中开启的则记录
 ```
-Log::write($msg, $tag = 'INFO')
+Logger::write($msg, $level = 'NOTICE')
 ```
 
 Mail

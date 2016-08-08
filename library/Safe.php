@@ -21,7 +21,7 @@ Class Safe
 		if ($times >= $timesLimit)
 		{
 			$msg = '多次尝试警告:' . $key . 'IP信息:' . self::ip();
-			Log::write($msg, 'WARN');
+			Logger::write($msg, 'WARN');
 			return false;
 		}
 		else
