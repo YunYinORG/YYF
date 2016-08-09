@@ -59,14 +59,13 @@ class Db
     {
         switch (func_num_args()) {
             case 1://一个参数，对象，数组，配置名或者dsn
-                if($config instanceof Database)
-                {
-                   return self::$current=$config;
+                if ($config instanceof Database) {
+                    return self::$current=$config;
                 }
                 if (is_string($config)&&strpos($config, ':')>0) {
                     $config['dsn']=$config;
                 }
-                assert('is_array($config)&&is_string($config)', '[Db::use] 单个数组参数必须是字符串或者数组');
+                assert('is_array($config)||is_string($config)', '[Db::use] 单个数组参数必须是字符串或者数组');
                 break;
             case 3://三参数最后一个为密码
                $config['password'] =func_get_arg(2);
@@ -92,9 +91,46 @@ class Db
        return new Orm($name, $pk, $prefix);
    }
 
-    /**调用Database 方法**/
+       /**
+    * exec 别名 覆盖Db类的的execute
+    * @method execute
+    * @return [int] 影响条数
+    * @author NewFuture
+    */
+    public static function execute($sql, array $params=null)
+    {
+        return self::current()->exec($sql, $params);
+    }
+
+    /**
+    * 数据库操作(写入)
+    * @method exec
+    * @return [int] 影响条数
+    * @author NewFuture
+    */
+    public static function exec($sql, array $params=null)
+    {
+        return self::current()->exec($sql, $params);
+    }
+
+    /**
+    * 数据库查询加速
+    * @method query
+    * @return mixed 查询结果
+    * @author NewFuture
+    */
+    public static function query($sql, array $params=null)
+    {
+        return self::current()->query($sql, $params);
+    }
+
+
+    /**
+    * 静态方式调用Database的方法
+    */
     public static function __callStatic($method, $params)
     {
+        assert('method_exists(self::current(),$method)', '[Db::Database]Database中不存在此方式:'.$method);
         return call_user_func_array([self::current(), $method], $params);
     }
 }

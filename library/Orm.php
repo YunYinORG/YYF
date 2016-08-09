@@ -803,21 +803,27 @@ class Orm implements JsonSerializable, ArrayAccess
 
  
     /**
-    * 启动事物
-    * @method transaction
-    * @return 函数参数
+    * 事务封装
+    * @method transact
+    * @param callable $func，事务回调函数，参数是当前Database，回调返回false或者出现异常回滚，否则提交
+    * @return 回调函数的返回值(执行异常自动回滚，返回false)
     * @author NewFuture
     */
-    public function transaction(callable  $func)
+    public function transact(callable  $func)
     {
-        $db=$this->getDb('_write');
+        $db=$this->getDb('_write');//自动调用写数据库
         $db->beginTransaction();
         try {
             $result=$func($this);
-            $db->commit();
+            if (false===$result) {
+                $db->rollBack();
+            } else {
+                $db->commit();
+            }
             return $result;
         } catch (Exception $e) {
             $db->rollBack();
+            Logger::write('[ORM] transact exception: '.$e->getMessage(), 'WARN');
         }
         return false;
     }
@@ -1136,7 +1142,7 @@ class Orm implements JsonSerializable, ArrayAccess
     protected function buildWhere()
     {
         if ($where = &$this->_where) {
-            return $this->buildCondition($where, 'WHRER');
+            return $this->buildCondition($where, 'WHERE');
         } else {
             return '';
         }

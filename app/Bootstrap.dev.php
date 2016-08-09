@@ -1,10 +1,13 @@
 <?php
+
 /**
  * 调试启动加载
  */
+define('YYF_INIT_TIME', microtime(true)); //启动时间
+define('YYF_INIT_MEM', memory_get_peak_usage()); //启动内存峰值
+
 class Bootstrap extends Yaf_Bootstrap_Abstract
 {
-
     /**
      * 断言设置
      * @method _initAssert
@@ -30,7 +33,7 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
             $assert_callback = function ($script, $line, $code, $message = null) {
                 echo "\n断言错误触发：\n<br>",
                      '<b><q>', $message, "</q></b><br>\n",
-                    "触发位置$script 第$line 行 </b><br>\n 判断逻辑<b><code> $code </code></b>\n<br/>",
+                    "触发位置$script 第$line 行:<br>\n 判断逻辑<b><code> $code </code></b>\n<br/>",
                     '(这里通常不是错误位置，是错误的调用方式或者参数引起的，请仔细检查)',
                      "<br>\n<small>(tips:断言错误是在正常逻辑中不应出现的情况，生产环境关闭系统断言提高性能)</small>\n<br>";
             };
@@ -51,7 +54,7 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
      */
     public function _initDebug()
     {
-        if ($debug = Config::get('debug')) {
+        if ($debug = Config::get('debug.type')) {
             error_reporting(E_ALL); //错误回传
             switch (strtolower($debug)) {
 
@@ -65,8 +68,53 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
                     break;
 
                 default:
-                    exit("未知调试类型设置,请检查[conf/app.ini]中的debug参数配置\n<br>unkown debug type: $debug . check 'debug' setting in [conf/app.ini]");
+                    exit("未知调试类型设置,请检查[conf/app.ini]中的debug.type参数配置\n<br>unkown debug type: $debug . check 'debug.type' setting in [conf/app.ini]");
             }
+        }
+        if (Config::get('debug.dumpsql')) {
+            \Service\Database::$debug=true;
+        }
+    }
+
+    /**
+     * 记录数据库查询
+     * @method _initSqlLog
+     * @author NewFuture
+     */
+    public function _initSqlLog()
+    {
+        /*记录执行次数*/
+        Yaf_Registry::set('_sql_exec_id', 0);
+        /*执行前调用*/
+        \Service\Database::$before=function (&$sql, &$param, $name) {
+            $id=Yaf_Registry::get('_sql_exec_id');
+            Yaf_Registry::set('_sql_exec_id', $id+1);
+            Yaf_Registry::set('_sql_exec_t', microtime(true));
+            Logger::write('[SQL'. str_pad($id, 3, '0', STR_PAD_LEFT).'] '.$sql, 'SQL');
+            if ($param) {
+                Logger::write('[params] '.json_encode($param, JSON_UNESCAPED_UNICODE), 'SQL');
+            }
+        };
+        /*执行后调用*/
+        \Service\Database::$after=function (&$db, &$result, $name) {
+            Logger::write('[result] '.json_encode($result, JSON_UNESCAPED_UNICODE), 'SQL');
+            if ($db->errorCode()!=0) {
+                Logger::write('[ERROR!] '.json_encode($db->errorInfo(), JSON_UNESCAPED_UNICODE), 'SQL');
+            }
+            $timer=microtime(true)-Yaf_Registry::get('_sql_exec_t');
+            Logger::write('[inform] '.($timer*1000).' ms ('.$name. ") \n\r", 'SQL');
+        };
+    }
+
+    /**
+     * 开启调试输出
+     * @method _initRoute
+     * @author NewFuture
+     */
+    public function _initRoute(Yaf_Dispatcher $dispatcher)
+    {
+        if ($routes = Config::get('routes')) {
+            $dispatcher->getRouter()->addConfig($routes);
         }
     }
 
@@ -82,17 +130,5 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
     {
         $tracer = new TracerPlugin();
         $dispatcher->registerPlugin($tracer);
-    }
-
-    /**
-     * 开启调试输出
-     * @method _initRoute
-     * @author NewFuture
-     */
-    public function _initRoute(Yaf_Dispatcher $dispatcher)
-    {
-        if ($routes = Config::get('routes')) {
-            $dispatcher->getRouter()->addConfig($routes);
-        }
     }
 }
