@@ -164,8 +164,8 @@ class Database extends PDO
     */
     public function transact(callable $func)
     {
-        $this->beginTransaction();
         try {
+            $this->beginTransaction();
             $result = $func($this);
             if (false===$result) {
                 //执行失败回滚

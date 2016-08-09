@@ -812,8 +812,8 @@ class Orm implements JsonSerializable, ArrayAccess
     public function transact(callable  $func)
     {
         $db=$this->getDb('_write');//自动调用写数据库
-        $db->beginTransaction();
         try {
+            $db->beginTransaction();
             $result=$func($this);
             if (false===$result) {
                 $db->rollBack();
