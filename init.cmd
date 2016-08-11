@@ -24,23 +24,14 @@ CALL :CLEAN_TEMP
 
 COLOR E
 
-GOTO DISPLAY_CHOICE
-
-GOTO :EOF
-
-::;##################################################
-::;#### the following is BATCH fuctions
-::;##################################################
-
-::;display the CHOICE
-
 :DISPLAY_CHOICE
 
 ECHO.
-ECHO.select wihch development environment you want to use?
+ECHO.select which development environment you want to use?
 ECHO.  1) Use virtual Machine with vagrant;
 ECHO.  2) Use local development (with PHP);
-ECHO.  0) Exit;
+ECHO.  0) Exit (in Server or Manual);
+ECHO.
 SET /P CHOICE=Input your choice (default[ENTER] is 1):
 
 IF "%CHOICE%"=="" SET CHOICE=1
@@ -48,16 +39,12 @@ IF "%CHOICE%"=="" SET CHOICE=1
 IF %CHOICE%==1 (
     COLOR B
     CALL :INIT_BAT_SCRIPT
-
-CALL :INIT_VAGRANTFILE
-
+    CALL :INIT_VAGRANTFILE
     COLOR A
     CALL :RESTART
-
 )ELSE IF %CHOICE%==2 (
     CALL :INIT_SERVER_BATCH
     CALL :START_PHP_SERVER 
-    GOTO :EOF
 )ELSE IF %CHOICE%==0 (
     ECHO.Exit Development Environment Initialization.
 )ELSE GOTO DISPLAY_CHOICE
@@ -66,12 +53,16 @@ PAUSE
 
 GOTO :EOF
 
+::;##################################################
+::;#### the following is BATCH fuctions
+::;##################################################
+
 ::;check secret config
 
 :CHECK_CONIFG
 
 IF NOT EXIST conf\secret.product.ini (
-    COPY conf\secret.common.ini conf\secret.product.ini && ECHO copy secret.common.ini  to secret.product.ini
+    COPY conf\secret.common.ini conf\secret.product.ini && ECHO.copy secret.common.ini  to secret.product.ini
 )
 GOTO :EOF
 
@@ -101,7 +92,7 @@ ECHO @ECHO OFF >start.cmd
 ECHO.CD /D "%~dp0" >>start.cmd
 ECHO.vagrant up >>start.cmd
 ECHO.PAUSE >>start.cmd
-
+ECHO.
 ECHO          ------------------------------------------------------------
 
 ECHO           [start.cmd] shortcut is created, to quickly STARTUP the VM
@@ -116,19 +107,8 @@ ECHO          ------------------------------------------------------------
 ECHO           [stop.cmd] shortcut is created, to quickly SHUTDOWN the VM
 ECHO          ------------------------------------------------------------
 
+ECHO.
 IF EXIST ".vagrant"  vagrant halt
-
-GOTO :EOF
-
-::;start local php server
-
-:START_PHP_SERVER
-
-ECHO.start the local PHP server...
-
-COLOR A
-
-%PHP_PATH% -S 0.0.0.0:1122 -t "%~dp0public"
 
 GOTO :EOF
 
@@ -158,7 +138,19 @@ echo          ------------------------------------------------------------
 
 GOTO :EOF
 
+::;start local php server
 
+:START_PHP_SERVER
+
+ECHO.start the local PHP server...
+
+COLOR A
+
+%PHP_PATH% -S 0.0.0.0:1122 -t "%~dp0public"
+
+GOTO :EOF
+
+::; heredoc hack
 
 :heredoc <uniqueIDX>
 
@@ -175,6 +167,7 @@ for /f "delims=" %%A in ('findstr /n "^" "%~f0"') do (
 )
 GOTO :EOF
 
+::; command EXISTs or not
 
 :IF_EXIST
 SETLOCAL &PATH   %PATH% ; %~dp0 ; %cd%
@@ -219,10 +212,10 @@ call :heredoc vagrantconfig >Vagrantfile && goto :VAGRANT_FILE
 ########## YYF vagrant Virtual Machine Config ###########
 vm_memory   = 512  # set the memory of virtual machine
 web_port    = 0    # the local port map to the web server,like 8080 or 80
-ssh_port    = 2333 # the local port map to the  ssh port like 2345
+ssh_port    = 0    # the local port map to the  ssh port like 2333
 static_ip   = "192.168.23.33" # set the static ip of the virtual machine 
 use_pub_net = false # use the public network or not
-VERSION     = "2.3" # current version
+VERSION     = "2.4" # current version
 init_shell  = "echo $(date)>InitTime.txt" # the shell script in the virtual machine to init the VM at the fisrt time
 box_name    = "newfuture/YYF"
 #########################################################
@@ -235,16 +228,19 @@ Vagrant.configure(2) do |config|
   config.vm.synced_folder ".", "/vagrant", :mount_options =>["dmode=777,fmode=777"]
   ### APPLY THE NETWORK CONFIG ###
   if web_port>0
-    config.vm.network "forwarded_port", guest: 80, host: web_port
+    config.vm.network "forwarded_port", guest: 80, host: web_port, auto_correct: true
   end
   if ssh_port>0
-    config.vm.network "forwarded_port", guest: 22, host: ssh_port
+    config.vm.network "forwarded_port", guest: 22, host: 2222, id: "ssh", disabled: true
+    config.vm.network "forwarded_port", guest: 22, host: ssh_port, auto_correct: true
   end
   if static_ip.empty?  
     webhost=(web_port==80) ? "127.0.0.1" : "127.0.0.1:#{web_port}"
+    sshhost="127.0.0.1:#{ssh_port}"
   else #static IP
-    config.vm.network "private_network", ip: static_ip
+    config.vm.network "private_network", ip: static_ip, auto_config: true
     webhost=static_ip
+    sshhost=static_ip
   end
   if use_pub_net
       config.vm.network "public_network"
@@ -261,7 +257,7 @@ Vagrant.configure(2) do |config|
   message<<"\nDB Management online: http://#{webhost}/adminer\n"
   message<<"-"*70+"\n"
   message<<"\nAccess to the virtual machine:"
-  message<<"\n  For Windows: SSH vagrant@127.0.0.1:#{ssh_port} (password:vagrant)"
+  message<<"\n  For Windows: SSH vagrant@#{sshhost} (password:vagrant)"
   message<<"\n  Linux / MAC: just use the command  [vagrant ssh]\n"
   message<<"-"*70
   message<<"\nCommon-use Commands:"
@@ -386,10 +382,10 @@ START_PHP_SERVER(){
 DISPLAY_CHOICE(){
 cat <<'EOF'
 
-select wihch development environment you want to use?
+select which development environment you want to use?
   1) Use virtual Machine with vagrant;
   2) Use local development (with PHP);
-  0) Exit;
+  0) Exit (in Server or Manual);
 
 EOF
 echo -n "Input your choice (default[ENTER] is 1):";

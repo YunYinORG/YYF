@@ -1,4 +1,4 @@
-YYF 2.3
+YYF 2.4
 ====================
 Yunyin Yaf Framework
 
@@ -18,10 +18,9 @@ Yunyin Yaf Framework
 ```
 │  .htaccess    Apache开发环境重新url
 │  config.yaml  SAE配置和URL重定向
-|  init.cmd     开发环境初始化脚本 
+|  init.cmd     开发环境初始化通用脚本 
 │  LICENSE
 │  README.MD
-|  server.cmd   启动php server 调试 
 │  
 ├─app  
 │  │  Bootstrap.php     生产环境入口 
@@ -35,7 +34,7 @@ Yunyin Yaf Framework
 │  ├─email           邮件模板目录
 │  │      verify.tpl 默认验证邮件模板示例
 │  │      
-│  ├─models          模型目录
+│  ├─models          数据模型目录
 │  │      README.md
 │  │      
 │  ├─plugins         插件目录
@@ -59,7 +58,7 @@ Yunyin Yaf Framework
 │  │  Head.php     调试header输出库
 │  │  Input.php    输入过滤接口
 │  │  Kv.php       key-value存取类
-│  │  Log.php      日志管理类
+│  │  Logger.php      日志管理类
 │  │  Mail.php     邮件发送
 │  │  Model.php    基础model
 |  |  Orm.php      ORM数据库对象映射
