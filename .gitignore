@@ -7,6 +7,7 @@ temp/
 Vagrantfile
 start.cmd
 stop.cmd
+server.cmd
 
 #localfile
 #本地文件

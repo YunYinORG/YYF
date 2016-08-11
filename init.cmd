@@ -1,15 +1,20 @@
-:;workdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";
+#!/bin/bash
+:;PROJECT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";
 :<<":START_MSG"
 
 ::;##################################################
 ::;#### the following is BATCH scripts for Windows
 ::;##################################################
 
-@ECHO OFF & SETLOCAL enabledelayedexpansion & CD /D %~dp0
+@ECHO OFF
 
-FOR /F "tokens=* USEBACKQ" %%F IN (`CHCP`) DO for %%A in (%%~F) do set encoding=%%A
+CLS
 
-CHCP 65001>nul  & COLOR B
+CD /D %~dp0
+
+SETLOCAL enabledelayedexpansion
+
+COLOR B
 
 CALL :START_MSG
 
@@ -19,30 +24,47 @@ CALL :CLEAN_TEMP
 
 COLOR E
 
-SET restart=YES
-
-SET /P restart= Init the Virtual Machine ? (input N[O] to exit; press ENTER to continue):
-
-IF /I %restart%==NO (GOTO :EOF)ELSE IF /I %restart%==N GOTO :EOF
-
-CALL :INIT_BAT_SCRIPT
-
-CALL :INIT_VAGRANTFILE
-
-
-CHCP %encoding%>nul
-
-COLOR A
-
-CALL :RESTART
-
-PAUSE
+GOTO DISPLAY_CHOICE
 
 GOTO :EOF
 
 ::;##################################################
 ::;#### the following is BATCH fuctions
 ::;##################################################
+
+::;display the CHOICE
+
+:DISPLAY_CHOICE
+
+ECHO.
+ECHO.select wihch development environment you want to use?
+ECHO.  1) Use virtual Machine with vagrant;
+ECHO.  2) Use local development (with PHP);
+ECHO.  0) Exit;
+SET /P CHOICE=Input your choice (default[ENTER] is 1):
+
+IF "%CHOICE%"=="" SET CHOICE=1
+
+IF %CHOICE%==1 (
+    COLOR B
+    CALL :INIT_BAT_SCRIPT
+
+CALL :INIT_VAGRANTFILE
+
+    COLOR A
+    CALL :RESTART
+
+)ELSE IF %CHOICE%==2 (
+    CALL :INIT_SERVER_BATCH
+    CALL :START_PHP_SERVER 
+    GOTO :EOF
+)ELSE IF %CHOICE%==0 (
+    ECHO.Exit Development Environment Initialization.
+)ELSE GOTO DISPLAY_CHOICE
+
+PAUSE
+
+GOTO :EOF
 
 ::;check secret config
 
@@ -74,21 +96,68 @@ GOTO :EOF
 
 :INIT_BAT_SCRIPT
 
-ECHO.Create [start.cmd], to quickly STARTUP the VM
 
 ECHO @ECHO OFF >start.cmd
 ECHO.CD /D "%~dp0" >>start.cmd
 ECHO.vagrant up >>start.cmd
 ECHO.PAUSE >>start.cmd
 
-ECHO.Create [stop.cmd], to quickly SHUTDOWN the VM
+ECHO          ------------------------------------------------------------
+
+ECHO           [start.cmd] shortcut is created, to quickly STARTUP the VM
 
 ECHO @ECHO OFF >stop.cmd
 ECHO.CD /D "%~dp0" >>stop.cmd
 ECHO.vagrant halt >>stop.cmd
 ECHO.PAUSE >>stop.cmd
 
+ECHO          ------------------------------------------------------------
+
+ECHO           [stop.cmd] shortcut is created, to quickly SHUTDOWN the VM
+ECHO          ------------------------------------------------------------
+
+IF EXIST ".vagrant"  vagrant halt
+
 GOTO :EOF
+
+::;start local php server
+
+:START_PHP_SERVER
+
+ECHO.start the local PHP server...
+
+COLOR A
+
+%PHP_PATH% -S 0.0.0.0:1122 -t "%~dp0public"
+
+GOTO :EOF
+
+
+::;create local php server batch
+
+:INIT_SERVER_BATCH
+CALL :IF_EXIST php.exe && SET PHP_PATH=php && GOTO CREATE_SERVER_CMD
+
+:READ_PHP_PATH
+ECHO.CAN NOT find the php.exe in path!
+SET /P PHP_PATH=Input the PATH of the PHP (just drag it here):
+
+IF EXIST %PHP_PATH%/php.exe (SET PHP_PATH="%PHP_PATH%\php.exe"
+)ELSE IF EXIST %PHP_PATH% (SET PHP_PATH="%PHP_PATH%"
+)ELSE GOTO READ_PHP_PATH
+
+:CREATE_SERVER_CMD
+echo.@ECHO OFF>server.cmd
+echo.%PHP_PATH% -S 0.0.0.0:1122 -t "%~dp0public">>server.cmd
+echo          ------------------------------------------------------------
+
+echo           the  'server.cmd'  is created, to quickly start dev server!
+
+echo          ------------------------------------------------------------
+
+
+GOTO :EOF
+
 
 
 :heredoc <uniqueIDX>
@@ -105,6 +174,14 @@ for /f "delims=" %%A in ('findstr /n "^" "%~f0"') do (
     ))
 )
 GOTO :EOF
+
+
+:IF_EXIST
+SETLOCAL &PATH   %PATH% ; %~dp0 ; %cd%
+if   "%~$PATH:1" == ""   exit   /b   1
+exit   /b  0
+GOTO :EOF
+
 
 
 ::;##############################################################
@@ -127,7 +204,7 @@ echo ===========================================================================
 GOTO :EOF
 
 
-::;create the Vagrantfile
+::;#create the Vagrantfile
 
 :INIT_VAGRANTFILE
  
@@ -136,7 +213,7 @@ GOTO :EOF
 echo CREATE the Vagrantfile
 
 :;FILE=Vagrantfile;cat>$FILE<<'REM'
-call :heredoc vagrantconfig >Vagrantfile && GOTO :VAGRANT_FILE
+call :heredoc vagrantconfig >Vagrantfile && goto :VAGRANT_FILE
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 ########## YYF vagrant Virtual Machine Config ###########
@@ -152,6 +229,7 @@ box_name    = "newfuture/YYF"
 
 Vagrant.configure(2) do |config|
   config.vm.box = box_name
+  config.vm.box_check_update = false
   config.vm.define "YYF" do |yyf|
   end
   config.vm.synced_folder ".", "/vagrant", :mount_options =>["dmode=777,fmode=777"]
@@ -203,7 +281,7 @@ REM
 GOTO :EOF
 
 
-::;restart and  init the VM
+::;#restart and  init the VM
 
 :RESTART
 
@@ -215,7 +293,7 @@ echo =================== init the environment of virtual machine ===============
 
 echo -------------------------------------------------------------------------------
 
-vagrant halt
+vagrant box update
 
 vagrant up --provision
  
@@ -257,43 +335,94 @@ echo "Temp folders have been cleaned up !" ;
 
 
 INIT_BASH_SCRIPT(){ 
-echo "create '${workdir}/start.cmd', to quickly STARTUP the VM"
+
 cat>start.cmd<<CMD
 #!/bin/bash
-cd "$workdir"
+cd "$PROJECT_DIR"
 vagrant up
 CMD
 chmod +x start.cmd
+echo "          ------------------------------------------------------------"
+echo "          the 'start.cmd' script is created, to quickly STARTUP the VM"
 
-echo "create '${workdir}/stop.cmd', to quickly SHUTDOWN the VM"
 cat>stop.cmd<<CMD
 #!/bin/bash
-cd "$workdir"
+cd "$PROJECT_DIR"
 vagrant halt
 CMD
 chmod +x stop.cmd;
+echo "          ------------------------------------------------------------"
+echo "          the 'stop.cmd' script is created, to quickly SHUTDOWN the VM"
+echo "          ------------------------------------------------------------"
+
+if [ -d ".vagrant" ]; then
+  vagrant halt;
+fi;
 }
 
+
+INIT_SERVER_BASH(){
+PHP_PATH='/usr/bin/php';
+while [ ! -f $PHP_PATH ]; do
+ echo "${PHP_PATH} in NOT EXIST";
+ echo -n "Input the PHP path:";
+ read PHP_PATH
+done;
+
+echo "\"${PHP_PATH}\" -S 0.0.0.0:1122 -t \"${PROJECT_DIR}/public/\"">'server.cmd'
+chmod +x server.cmd
+echo "          ------------------------------------------------------------"
+echo "           the  'server.cmd'  is created, to quickly start dev server!"
+echo "          ------------------------------------------------------------"
+}
+
+
+START_PHP_SERVER(){
+  echo "start the local PHP server..."
+  sh server.cmd;
+}
+
+
+DISPLAY_CHOICE(){
+cat <<'EOF'
+
+select wihch development environment you want to use?
+  1) Use virtual Machine with vagrant;
+  2) Use local development (with PHP);
+  0) Exit;
+
+EOF
+echo -n "Input your choice (default[ENTER] is 1):";
+read CHOICE;
+if  [ ! -n "$CHOICE" ] ;then
+ CHOICE=1;
+fi;
+
+case "$CHOICE" in
+"1") INIT_BASH_SCRIPT;
+   INIT_VAGRANTFILE;
+   RESTART;
+   ;;
+"2") INIT_SERVER_BASH;
+   START_PHP_SERVER;
+   ;;
+"0") echo "Exit Development Environment Initialization." ;
+   exit;
+   ;;
+*) DISPLAY_CHOICE;
+   ;;
+esac
+}
 
 :;##################################################
 :;#### the following is BASH commond to init
 :;##################################################
-cd $workdir;
+cd $PROJECT_DIR;
 clear;
 
 START_MSG;
 CHECK_CONIFG;
 CLEAN_TEMP;
 
-echo -n "Init the Virtual Machine? (input N[O] to exit; press ENTER to continue):";
-read restart;
-restart=${restart:0:1};
-if [ "$restart" == "n" ] || [ "$restart" == "N" ]; then
-  exit;
-fi;
-
-INIT_BASH_SCRIPT;
-INIT_VAGRANTFILE;
-RESTART;
-
-exit;
+DISPLAY_CHOICE;
+exit
