@@ -29,12 +29,25 @@ class Db
             $config=Config::getSecret('database', 'db.'.$key);
             assert('!empty($config)', '[Db::connect]数据库配置未设置:db.'.$key);
         }
-        if (isset(self::$_dbpool[$key])) {
-            return self::$_dbpool[$key];
+        if (isset(Db::$_dbpool[$key])) {
+            return Db::$_dbpool[$key];
         }
         $username = isset($config['username']) ? $config['username'] : null;
         $password = isset($config['password']) ? $config['password'] : null;
-        return self::$_dbpool[$key]=new Database($config['dsn'], $username, $password);
+        $options  = isset($config['options']) ? $config['options']:array();
+        
+        $options[PDO::ATTR_EMULATE_PREPARES]=false;
+        if (Config::getSecret('database', 'exception')) {
+            //执行出错抛出异常
+            $options [PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
+        }
+
+        try {
+            return Db::$_dbpool[$key]=new Database($config['dsn'], $username, $password, $options);
+        } catch (Exception $e) {
+            Logger::log('ALERT', '[Db::connect]数据库[{KEY}]({DSN})无法连接:{MSG}',
+                    array('KEY'=>$key, 'DSN'=>$config['dsn'], 'MSG'=>$e->getMessage()));
+        }
     }
 
     /**
@@ -45,7 +58,22 @@ class Db
     */
     public static function current()
     {
-        return self::$current?:(self::$current=self::connect());
+        return Db::$current?:(Db::$current=Db::connect());
+    }
+
+    /**
+     * @method get
+     * 获取数据库连接，用于读写分离，如果不存在配置使用默认数据库
+     * @param  string $name         [数据库名]
+     * @return [type] [description]
+     * @author NewFuture
+     */
+    public static function get($name = '_')
+    {
+        if (isset(Db::$_dbpool[$name])) {
+            return Db::$_dbpool[$name];
+        }
+        return  Db::$_dbpool[$name]=Config::getSecret('database', 'db.'.$name.'.dsn') ?Db::connect($name):Db::connect('_');
     }
 
     /**
@@ -60,7 +88,7 @@ class Db
         switch (func_num_args()) {
             case 1://一个参数，对象，数组，配置名或者dsn
                 if ($config instanceof Database) {
-                    return self::$current=$config;
+                    return Db::$current=$config;
                 }
                 if (is_string($config)&&strpos($config, ':')>0) {
                     $config['dsn']=$config;
@@ -77,7 +105,7 @@ class Db
             default:
             throw new Exception("无法解析参数，参数数目异常", 1);
         }
-        return self::$current=self::connect($config);
+        return Db::$current=Db::connect($config);
     }
 
     /**
@@ -99,7 +127,7 @@ class Db
     */
     public static function execute($sql, array $params=null)
     {
-        return self::current()->exec($sql, $params);
+        return Db::get('_write')->exec($sql, $params);
     }
 
     /**
@@ -110,7 +138,7 @@ class Db
     */
     public static function exec($sql, array $params=null)
     {
-        return self::current()->exec($sql, $params);
+        return Db::get('_write')->exec($sql, $params);
     }
 
     /**
@@ -119,18 +147,29 @@ class Db
     * @return mixed 查询结果
     * @author NewFuture
     */
-    public static function query($sql, array $params=null)
+    public static function query($sql, array $params=null, $fetchmode = PDO::FETCH_ASSOC)
     {
-        return self::current()->query($sql, $params);
+        return Db::get('_read')->query($sql, $params, $fetchmode);
     }
 
+
+    /**
+    * 数据库查询加速
+    * @method column
+    * @return mixed 查询结果
+    * @author NewFuture
+    */
+    public static function column($sql, array $params=null)
+    {
+        return Db::get('_read')->column($sql, $params);
+    }
 
     /**
     * 静态方式调用Database的方法
     */
     public static function __callStatic($method, $params)
     {
-        assert('method_exists(self::current(),$method)', '[Db::Database]Database中不存在此方式:'.$method);
-        return call_user_func_array([self::current(), $method], $params);
+        assert('method_exists(Db::current(),$method)', '[Db::Database]Database中不存在此方式:'.$method);
+        return call_user_func_array([Db::current(), $method], $params);
     }
 }

@@ -30,16 +30,6 @@ class Database extends PDO
     private $_errorCode = null;
     private $_errorInfo = null;
     
-
-    public function __construct($dsn, $username=null, $password=null, array $options=null)
-    {
-        parent::__construct($dsn, $username, $password, $options);
-        parent::setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-        if (Config::getSecret('database', 'exception')) {
-            parent::setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        }
-    }
-
     /**
     * @method query
     * 查询数据库,返回数组或者null
@@ -51,10 +41,10 @@ class Database extends PDO
     */
     public function query($sql, array $params = null, $fetchmode = \PDO::FETCH_ASSOC)
     {
-        if (self::$before) {
+        if ($before=&Database::$before) {
             //执行前调用
-            assert('is_callable(self::$before)', '$before 因该是可执行的回调');
-            call_user_func_array(self::$before, array(&$sql, &$params, 'query'));
+            assert('is_callable($before)', '[Database::$before] 应该是可执行的回调');
+            call_user_func_array($before, array(&$sql, &$params, 'query'));
         }
 
         $result=false;
@@ -63,10 +53,10 @@ class Database extends PDO
             $statement->closeCursor();
         }
 
-        if (self::$after) {
+        if ($after=&Database::$after) {
             //执行完成调用
-            assert('is_callable(self::$after)', '$after 应该是可执行的回调');
-            call_user_func_array(self::$after, array(&$this, &$result, 'query'));
+            assert('is_callable($after)', '[Database::$after] 应该是可执行的回调');
+            call_user_func_array($after, array(&$this, &$result, 'query'));
         }
         return $result;
     }
@@ -82,10 +72,10 @@ class Database extends PDO
     public function exec($sql, array $params = null)
     {
         assert('stripos($sql,"SElECT")!==0', '[Database::exec] select查询语句请使用query方法');
-        if (self::$before) {
+        if ($before=&Database::$before) {
             //执行前调用
-            assert('is_callable(self::$before)', '$before 因该是可执行的回调');
-            call_user_func_array(self::$before, array(&$sql, &$params, 'exec'));
+            assert('is_callable($before)', '[Database::$before] 应该是可执行的回调');
+            call_user_func_array($before, array(&$sql, &$params, 'exec'));
         }
         
         $result=false;
@@ -99,10 +89,10 @@ class Database extends PDO
             $statement->closeCursor();
         }
         
-        if (self::$after) {
+        if ($after=&Database::$after) {
             //执行完成调用
-            assert('is_callable(self::$after)', '$after 应该是可执行的回调');
-            call_user_func_array(self::$after, array(&$this, &$result, 'exec'));
+            assert('is_callable($after)', '[Database::$after] 应该是可执行的回调');
+            call_user_func_array(Database::$after, array(&$this, &$result, 'exec'));
         }
         return $result;
     }
@@ -116,20 +106,20 @@ class Database extends PDO
     */
     public function column($sql, array $params = null)
     {
-        if (self::$before) {
+        if ($before=&Database::$before) {
             //执行前调用
-            assert('is_callable(self::$before)', '$before 因该是可执行的回调');
-            call_user_func_array(self::$before, array(&$sql, &$params, 'column'));
+            assert('is_callable($before)', '[Database::$before] 应该是可执行的回调');
+            call_user_func_array($before, array(&$sql, &$params, 'column'));
         }
         $result=false;
         if ($statement = $this->execute($sql, $params)) {
             $result = $statement->fetchColumn();
             $statement->closeCursor();
         }
-        if (self::$after) {
+        if ($after=&Database::$after) {
             //执行完成调用
-            assert('is_callable(self::$after)', '$after 应该是可执行的回调');
-            call_user_func_array(self::$after, array(&$this, &$result, 'column'));
+            assert('is_callable($after)', '[Database::$after] 应该是可执行的回调');
+            call_user_func_array(Database::$after, array(&$this, &$result, 'column'));
         }
         return $result;
     }
@@ -226,17 +216,17 @@ class Database extends PDO
             if (is_int($key=key($params))) {
                 /*索引数组*/
                 foreach ($params as $key => &$value) {
-                    $statement->bindValue($key+1, $value, self::getType($value));
+                    $statement->bindValue($key+1, $value, Database::getType($value));
                 }
             } elseif ($key[0]===':') {
                 /*关联数组已加分隔符：*/
                 foreach ($params as $key => &$value) {
-                    $statement->bindValue($key, $value, self::getType($value));
+                    $statement->bindValue($key, $value, Database::getType($value));
                 }
             } else {
                 /*关联型数组键值未设置冒号*/
                 foreach ($params as $key => &$value) {
-                    $statement->bindValue(':' . $key, $value, self::getType($value));
+                    $statement->bindValue(':' . $key, $value, Database::getType($value));
                 }
             }
             unset($value);
@@ -246,7 +236,7 @@ class Database extends PDO
                 $this->_errorCode = $statement->errorCode();
                 $this->_errorInfo = $statement->errorInfo();
                 
-                if (self::$debug) {
+                if (Database::$debug) {
                     //dump 查询错误
                     $statement->debugDumpParams();
                 }

@@ -111,17 +111,4 @@ class File
         }
         $this->_serialized = $serialized;
     }
-
-    // /**
-    //  * 循环创建目录
-    //  * @method mkdir
-    //  * @param  [type]  $dir [目录名]
-    //  * @param  integer $mod [创建模式]
-    //  * @return [bool]       [是否创建成功]
-    //  * @author NewFuture
-    //  */
-    // public static function mkdir($dir, $mod = 0755)
-    // {
-    // 	return is_dir($dir) || (self::mkdir(dirname($dir), $mod) && mkdir($dir, $mod));
-    // }
 }

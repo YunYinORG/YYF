@@ -17,26 +17,40 @@
  */
 class Logger
 {
+    /**
+     * 日志监控回调,可以修改message和level
+     * @var callable
+     */
+    public static $listener = null;
+
     private static $_conf   = null;
     private static $_stream = null;
     private static $_dir    = null;
+    
     /**
      * 写入日志
      * @method write
-     * @param  [string]  $msg   [消息]
-     * @param  [integer] $level [日志级别]
+     * @param  string  $msg   [消息]
+     * @param  [string] $level [日志级别]
      * @return [bool]         [写入状态]
      * @author NewFuture
      */
     public static function write($msg, $level = 'NOTICE')
     {
+        $level=strtoupper($level);
+        if (self::$listener) {
+            //日志监控回调
+            assert('is_callable(self::$listener)', '[Logger::write]$listener 应该是可执行的回调函数');
+            call_user_func_array(self::$listener, array(&$level, &$msg));
+        }
+
         if (!$config=&self::$_conf) {
             //读取配置信息
             $config=Config::get('log');
             $config['type']  = strtolower($config['type']);
             $config['allow'] = explode(',', strtoupper($config['allow']));
         }
-        $level=strtoupper($level);
+
         if (in_array($level, $config['allow'])) {
             switch ($config['type']) {
                 case 'system':// 系统日志
@@ -47,7 +61,6 @@ class Logger
                     return fwrite(self::getStream($level), '[' . date('c') . '] ' . $msg . PHP_EOL);
                 default:
                     throw new Exception('未知日志类型' . $config['type']);
-                    break;
             }
         }
     }
@@ -66,17 +79,16 @@ class Logger
             if (!$logdir=&self::$_dir) {
                 //日志目录
                 $logdir = Config::get('tempdir').DIRECTORY_SEPARATOR.'log';
-                if (is_dir($logdir)||mkdir($logdir)) {
+                if (is_dir($logdir)||mkdir($logdir,0700,true)) {
                     date_default_timezone_set('PRC');
                 } else {
-                    throw new Exception('目录文件无法创建' . $logdir, 1);
-                    return;
+                    throw new \Exception('目录文件无法创建' . $logdir, 1);
                 }
             }
             //打开日志文件
-            $file = $logdir . DIRECTORY_SEPARATOR . $tag . '.log';
+            $file = $logdir . DIRECTORY_SEPARATOR . date('y-m-d-') . $tag . '.log';
             if (!self::$_stream[$tag] = fopen($file, 'a')) {
-                throw new Exception('Cannot open to log file: ' . $file);
+                throw new \Exception('Cannot open to log file: ' . $file);
             }
         }
         return self::$_stream[$tag];
