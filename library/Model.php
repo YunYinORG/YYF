@@ -39,10 +39,10 @@ abstract class Model
      * @access public
      * @author NewFuture
      */
-    public function __construct(array $data = null)
+    final public function __construct(array $data = null)
     {
         if (!$name=&$this->name) {
-            $name = strtolower(strstr(get_called_class(), 'Model', true));
+            $name=strtolower(preg_replace('/.(?=[A-Z])/', '$1_', substr(get_called_class(), 0, -5)));
         }
         $this->_orm = new Orm($name, $this->pk, $this->prefix);
         
@@ -62,13 +62,24 @@ abstract class Model
 
     /**
      * 获取模型实例
-     * @method getModel
+     * @method getOrm
      * @return [type]   [description]
      * @author NewFuture
      */
-    public function getModel()
+    public function getOrm()
     {
         return $this->_orm;
+    }
+
+    public function toArray()
+    {
+        return $this->_orm->get();
+    }
+
+
+    public function toJson($type=JSON_UNESCAPED_UNICODE)
+    {
+        return json_encode($this->_orm->get(), $type);
     }
 
     /**
@@ -102,7 +113,7 @@ abstract class Model
      */
     public function __call($method, $params)
     {
-        return call_user_func_array(array($this->getModel(), $method), $params);
+        return call_user_func_array(array($this->getOrm(), $method), $params);
     }
 
     /**
@@ -111,6 +122,6 @@ abstract class Model
      */
     public static function __callStatic($method, $params)
     {
-        return call_user_func_array(array((new static)->getModel(), $method), $params);
+        return call_user_func_array(array((new static)->getOrm(), $method), $params);
     }
 }

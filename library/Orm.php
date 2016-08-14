@@ -22,7 +22,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
     protected $_table = ''; //数据库表名
     protected $_pk    = 'id'; //主键
     protected $_pre   = null; //前缀
-    protected $_data  = null; //数据
+    protected $_data  = array(); //数据
     protected $_alias = null; //别名
 
     protected $_safe  = true; //安全模式
@@ -236,7 +236,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
     public function set($key, $value = null)
     {
         if (is_array($key)) {
-            $this->_data = $key+$this->_data;//array_merge($this->_data, $key);
+            $this->_data = $key+($this->_data);//array_merge($this->_data, $key);
         } else {
             assert(func_num_args()===2, '[Orm::set] $key为非数组时,需要两个参数(设置value)');
             $this->_data[$key] = $value;
@@ -892,7 +892,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
      */
     public function clear()
     {
-        $this->_data     = null; //数据
+        $this->_data     = array(); //数据
         $this->_safe     = true; //安全模式
         $this->_debug    = false;//调试输出
         $this->_param    = array(); //查询参数

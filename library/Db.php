@@ -22,7 +22,7 @@ class Db
     {
         if (is_array($config)) {
             assert('isset($config["dsn"])', '[Db::connect] 数组参数必须配置dsn');
-            $key=md5(serialize($config));
+            $key=md5(json_encode($config));
         } else {
             assert('is_string($config)', '[Db::connect]直接收数组或者字符串参数');
             $key=$config;
@@ -79,33 +79,40 @@ class Db
     /**
     * 指定并切换数据库
     * 之后DB直接查询将使用此数据库
-    * @method use
+    * @method set
+    * @param string $name 设置名称
+    * @param mixed  $config 配置名称
     * @return [object] Database
     * @author NewFuture
     */
-    public static function use($config)
+    public static function set($name, $config)
     {
+        $conf=array();
         switch (func_num_args()) {
-            case 1://一个参数，对象，数组，配置名或者dsn
+            case 2://一个参数，对象，数组，配置名或者dsn
                 if ($config instanceof Database) {
                     return Db::$current=$config;
                 }
                 if (is_string($config)&&strpos($config, ':')>0) {
-                    $config['dsn']=$config;
+                    $conf['dsn']=&$config;
+                } else {
+                    assert('is_string($config)||is_array($config)', '[Db::set] 单个数组参数必须是字符串或者数组');
+                    $conf=$config;
                 }
-                assert('is_array($config)||is_string($config)', '[Db::use] 单个数组参数必须是字符串或者数组');
                 break;
-            case 3://三参数最后一个为密码
-               $config['password'] =func_get_arg(2);
-            case 2://两参数第二个为账号
-                assert('is_string($config)', '[Db::use]多参数dsn链接设置必须是字符串');
-               $config['dsn'] =$config;
-               $config['password']  = func_get_args(1);
-               break;
+            case 5://三参数最后一个为密码
+               $conf['options'] =func_get_arg(4);
+            case 4://三参数最后一个为密码
+               $conf['password'] =func_get_arg(3);
+            case 3://两参数第二个为账号
+                assert('is_string($config)', '[Db::set]多参数dsn链接设置必须是字符串');
+                $conf['username']  = func_get_arg(2);
+                $conf['dsn'] =$config;
+                break;
             default:
-            throw new Exception("无法解析参数，参数数目异常", 1);
+                throw new Exception('无法解析参数，参数数目异常'.func_num_args());
         }
-        return Db::$current=Db::connect($config);
+        return Db::$_dbpool[$name]=Db::connect($conf);
     }
 
     /**
@@ -169,7 +176,7 @@ class Db
     */
     public static function __callStatic($method, $params)
     {
-        assert('method_exists(Db::current(),$method)', '[Db::Database]Database中不存在此方式:'.$method);
+        assert('method_exists(Database,$method)', '[Db::Database]Database中不存在此方式:'.$method);
         return call_user_func_array([Db::current(), $method], $params);
     }
 }
