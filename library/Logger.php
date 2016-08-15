@@ -38,13 +38,13 @@ class Logger
     public static function write($msg, $level = 'NOTICE')
     {
         $level=strtoupper($level);
-        if (self::$listener) {
+        if ($listener=&Logger::$listener) {
             //日志监控回调
-            assert('is_callable(self::$listener)', '[Logger::write]$listener 应该是可执行的回调函数');
-            call_user_func_array(self::$listener, array(&$level, &$msg));
+            assert('is_callable($listener)', '[Logger::$listener] 应该是可执行的回调函数');
+            call_user_func_array($listener, array(&$level, &$msg));
         }
 
-        if (!$config=&self::$_conf) {
+        if (!$config=&Logger::$_conf) {
             //读取配置信息
             $config=Config::get('log');
             $config['type']  = strtolower($config['type']);
@@ -58,7 +58,7 @@ class Logger
                 case 'sae'://sae日志
                     return sae_debug($level .':'. $msg);
                 case 'file'://文件日志
-                    return fwrite(self::getStream($level), '[' . date('c') . '] ' . $msg . PHP_EOL);
+                    return fwrite(Logger::getStream($level), '[' . date('c') . '] ' . $msg . PHP_EOL);
                 default:
                     throw new Exception('未知日志类型' . $config['type']);
             }
@@ -74,12 +74,12 @@ class Logger
      */
     private static function getStream($tag)
     {
-        if (!isset(self::$_stream[$tag])) {
+        if (!isset(Logger::$_stream[$tag])) {
             /*打开文件流*/
-            if (!$logdir=&self::$_dir) {
+            if (!$logdir=&Logger::$_dir) {
                 //日志目录
                 $logdir = Config::get('tempdir').DIRECTORY_SEPARATOR.'log';
-                if (is_dir($logdir)||mkdir($logdir,0700,true)) {
+                if (is_dir($logdir)||mkdir($logdir, 0700, true)) {
                     date_default_timezone_set('PRC');
                 } else {
                     throw new \Exception('目录文件无法创建' . $logdir, 1);
@@ -87,11 +87,11 @@ class Logger
             }
             //打开日志文件
             $file = $logdir . DIRECTORY_SEPARATOR . date('y-m-d-') . $tag . '.log';
-            if (!self::$_stream[$tag] = fopen($file, 'a')) {
+            if (!Logger::$_stream[$tag] = fopen($file, 'a')) {
                 throw new \Exception('Cannot open to log file: ' . $file);
             }
         }
-        return self::$_stream[$tag];
+        return Logger::$_stream[$tag];
     }
 
 
@@ -104,7 +104,7 @@ class Logger
      */
     public static function emergency($message, array $context = array())
     {
-        return self::log('EMERGENCY', $message, $context);
+        return static::log('EMERGENCY', $message, $context);
     }
 
     /**
@@ -119,7 +119,7 @@ class Logger
      */
     public static function alert($message, array $context = array())
     {
-        return self::log('ALERT', $message, $context);
+        return static::log('ALERT', $message, $context);
     }
 
     /**
@@ -133,7 +133,7 @@ class Logger
      */
     public static function critical($message, array $context = array())
     {
-        return self::log('CRITICAL', $message, $context);
+        return static::log('CRITICAL', $message, $context);
     }
 
     /**
@@ -146,7 +146,7 @@ class Logger
      */
     public static function error($message, array $context = array())
     {
-        return self::log('ERROR', $message, $context);
+        return static::log('ERROR', $message, $context);
     }
 
     /**
@@ -161,7 +161,7 @@ class Logger
      */
     public static function warning($message, array $context = array())
     {
-        return self::log('WARN', $message, $context);
+        return static::log('WARN', $message, $context);
     }
 
     /**
@@ -176,7 +176,7 @@ class Logger
      */
     public static function warn($message, array $context = array())
     {
-        return self::log('WARN', $message, $context);
+        return static::log('WARN', $message, $context);
     }
     /**
      * Normal but significant events.
@@ -187,7 +187,7 @@ class Logger
      */
     public static function notice($message, array $context = array())
     {
-        return self::log('NOTICE', $message, $context);
+        return static::log('NOTICE', $message, $context);
     }
 
     /**
@@ -201,7 +201,7 @@ class Logger
      */
     public static function info($message, array $context = array())
     {
-        return self::log('INFO', $message, $context);
+        return static::log('INFO', $message, $context);
     }
 
     /**
@@ -213,7 +213,7 @@ class Logger
      */
     public static function debug($message, array $context = array())
     {
-        return self::log('DEBUG', $message, $context);
+        return static::log('DEBUG', $message, $context);
     }
 
     /**
@@ -237,6 +237,6 @@ class Logger
         } else {
             $message=json_encode($mesage, JSON_UNESCAPED_UNICODE);
         }
-        return self::write($message, $level);
+        return Logger::write($message, $level);
     }
 }
