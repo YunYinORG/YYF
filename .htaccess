@@ -1,6 +1,4 @@
 <IfModule mod_rewrite.c>
-  Options +FollowSymlinks
   RewriteEngine On
-  RewriteBase /
   RewriteRule ^(.*)$ public/$1 [QSA,PT,L]
 </IfModule>

@@ -16,10 +16,9 @@ Yunyin Yaf Framework
 ## 目录结构
 >
 ```
-│  .htaccess    Apache开发环境重新url
-│  config.yaml  SAE配置和URL重定向
+│  .htaccess    Apache开发环境和SAE重定向url
 |  init.cmd     开发环境初始化通用脚本 
-│  LICENSE
+│  LICENSE      Apache 2.0 许可证
 │  README.MD
 │  
 ├─app  
@@ -180,12 +179,15 @@ Kv::flush()
 其他服务
 -----
 * Mail  简单邮件发送
-* Debug PHPConsole调试插件
+* Debug 支持日志，header和
 * Qiniu 七牛文件管理
 
 开发环境
 -----
 
-[查看快速配置](https://github.com/YunYinORG/YYF/wiki#%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE)
+支持本机和虚拟机开发
 
-为团队开发和服务器配置提高解决方案
+为团队开发和服务器配置提供统一解决方案
+
+
+详细参照文档[配置开发文档](http://yyf.newfuture.cc/setup/develop.html)
