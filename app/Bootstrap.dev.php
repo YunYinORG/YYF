@@ -1,4 +1,5 @@
 <?php
+use \Storage\File as File;
 
 /**
  * 调试启动加载
@@ -64,7 +65,7 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
 
                 case 'log': //log到文件
                     ini_set('log_errors', 1);
-                    ini_set('error_log', Config::get('tempdir') . '/error_log.txt');
+                    ini_set('error_log', Config::get('runtime') . '/error_log.txt');
                     break;
 
                 default:
@@ -107,7 +108,7 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
     }
 
     /**
-     * 开启调试输出
+     * 添加路由
      * @method _initRoute
      * @author NewFuture
      */
@@ -115,6 +116,21 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
     {
         if ($routes = Config::get('routes')) {
             $dispatcher->getRouter()->addConfig($routes);
+        }
+    }
+
+
+     /**
+     * 文件权限
+     * @method _initMode
+     * @author NewFuture
+     */
+    public function _initMode()
+    {
+        if ($mode = Config::get('log.mode')) {
+            $mode = intval($mode, 8);
+            Logger::$mode = $mode;
+            File::$mode = $mode;
         }
     }
 

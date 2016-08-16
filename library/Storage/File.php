@@ -13,7 +13,7 @@ use \Logger as Log;
  */
 class File
 {
-
+    public static $mode    = 0700;  //文件权限
     protected $_dir        = null;  //文件目录
     protected $_serialized = false; //是否序列化存取
 
@@ -35,7 +35,7 @@ class File
         }
 
         $filename = $this->_dir . $name . '.php';
-        return file_put_contents($filename, $value);
+        return file_put_contents($filename, $value)&&chmod($filename, File::$mode);
     }
 
     /**
@@ -101,14 +101,12 @@ class File
      */
     public function __construct($dir, $serialized = false)
     {
-        $dir .= DIRECTORY_SEPARATOR;
-        if (is_dir($dir)||mkdir($dir, 0700, true)) {
-            $this->_dir = $dir;
-        } else {
-            $msg='无法创建目录:'.$dir;
-            Log::write($msg, 'EEROR');
-            throw new \Exception($msg);
+        if (!is_dir($dir)) {
+            $oldmask=umask(0);
+            mkdir($dir, File::$mode, true);
+            umask($oldmask);
         }
+        $this->_dir = $dir.DIRECTORY_SEPARATOR;
         $this->_serialized = $serialized;
     }
 }

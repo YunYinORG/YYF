@@ -1,17 +1,29 @@
 #tempFile
 #临时文件
 temp/
+runtime/
 
 #vagrant 
 .vagrant/
 Vagrantfile
 start.cmd
 stop.cmd
+
+# 启动脚本
+# script
 server.cmd
+
+#editor
+.vscode/
+.atom/
+sftp-config.json
+
 
 #localfile
 #本地文件
+#secret config
 *.local
+conf/secret.product.ini
 
 # Windows image file caches
 Thumbs.db
@@ -56,4 +68,3 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
-conf/secret.product.ini

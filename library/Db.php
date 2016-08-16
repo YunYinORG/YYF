@@ -47,6 +47,7 @@ class Db
         } catch (Exception $e) {
             Logger::log('ALERT', '[Db::connect]数据库[{KEY}]({DSN})无法连接:{MSG}',
                     array('KEY'=>$key, 'DSN'=>$config['dsn'], 'MSG'=>$e->getMessage()));
+            throw $e;
         }
     }
 

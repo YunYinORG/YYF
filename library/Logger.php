@@ -22,10 +22,14 @@ class Logger
      * @var callable
      */
     public static $listener = null;
+    /**
+     * 日志和日志目录权限,默认只允许php读写
+     * @var callable
+     */
+    public static $mode     = 0700;
 
     private static $_conf   = null;
-    private static $_stream = null;
-    private static $_dir    = null;
+    private static $_files  = null;
     
     /**
      * 写入日志
@@ -54,11 +58,12 @@ class Logger
         if (in_array($level, $config['allow'])) {
             switch ($config['type']) {
                 case 'system':// 系统日志
-                    return error_log($level.':'.$msg);
+                    return error_log('['.$level .']:'. $msg);
                 case 'sae'://sae日志
-                    return sae_debug($level .':'. $msg);
+                    return sae_debug('['.$level .']:'. $msg);
                 case 'file'://文件日志
-                    return fwrite(Logger::getStream($level), '[' . date('c') . '] ' . $msg . PHP_EOL);
+                    $msg='[' . date('c') . '] ' . $msg . PHP_EOL;
+                    return file_put_contents(Logger::getFile($level), $msg, FILE_APPEND);
                 default:
                     throw new Exception('未知日志类型' . $config['type']);
             }
@@ -67,31 +72,37 @@ class Logger
 
     /**
      * 获取写入流
-     * @method getStream
-     * @param  [integer]    $tag [日志级别]
+     * @method getFile
+     * @param  [string]    $tag [日志级别]
      * @return [array]           [description]
      * @author NewFuture
      */
-    private static function getStream($tag)
+    private static function getFile($tag)
     {
-        if (!isset(Logger::$_stream[$tag])) {
+        $files=&Logger::$_files;
+        if (!isset($files[$tag])) {
             /*打开文件流*/
-            if (!$logdir=&Logger::$_dir) {
+            if (!isset($files['_dir'])) {
                 //日志目录
-                $logdir = Config::get('tempdir').DIRECTORY_SEPARATOR.'log';
-                if (is_dir($logdir)||mkdir($logdir, 0700, true)) {
-                    date_default_timezone_set('PRC');
-                } else {
-                    throw new \Exception('目录文件无法创建' . $logdir, 1);
+                $logdir = Config::get('runtime').DIRECTORY_SEPARATOR.'log';
+                if (!is_dir($logdir)) {
+                    $oldmask=umask(0);
+                    mkdir($logdir, Logger::$mode, true);
+                    umask($oldmask);
                 }
+                date_default_timezone_set('PRC');
+                $files['_dir']=$logdir.DIRECTORY_SEPARATOR . date('y-m-d-');
             }
-            //打开日志文件
-            $file = $logdir . DIRECTORY_SEPARATOR . date('y-m-d-') . $tag . '.log';
-            if (!Logger::$_stream[$tag] = fopen($file, 'a')) {
-                throw new \Exception('Cannot open to log file: ' . $file);
+
+            $file =  $files['_dir'] . $tag . '.log';
+            //检查权限
+            if (($mode= @fileperms($file))&&(($mode&Logger::$mode) !== Logger::$mode)) {
+                chmod($file, Logger::$mode);
+                clearstatcache();
             }
+            $files[$tag] = $file ;
         }
-        return Logger::$_stream[$tag];
+        return $files[$tag];
     }
 
 

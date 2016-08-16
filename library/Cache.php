@@ -77,7 +77,7 @@ class Cache
 					break;
 
 				case 'file':	//文件缓存
-					self::$_handler = new Storage\File(Config::get('tempdir') . 'cache', true);
+					self::$_handler = new Storage\File(Config::get('runtime') . 'cache', true);
 					break;
 
 				default:

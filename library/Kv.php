@@ -90,7 +90,7 @@ class Kv
 					self::$_handler = memcache_init();
 					break;
 				case 'file':	//文件缓存
-					self::$_handler = new Storage\File(Config::get('tempdir') . 'kv', false);
+					self::$_handler = new Storage\File(Config::get('runtime') . 'kv', false);
 					break;
 
 				default:

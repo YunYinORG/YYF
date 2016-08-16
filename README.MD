@@ -93,7 +93,7 @@ Yunyin Yaf Framework
 │      index.php    入口文件
 │      robots.txt
 │      
-└─temp 缓存日志临时文件夹【可写权限】
+└─runtime 文件缓存日志临时文件夹【保证程序具有可读写权限】
 ```
 >
             

@@ -71,14 +71,12 @@ GOTO :EOF
 
 :CLEAN_TEMP
 
-IF NOT EXIST temp  MKDIR temp 
-IF EXIST temp\cache (RMDIR /s/q temp\cache) 
-IF EXIST temp\kv (RMDIR /s/q temp\kv) 
-IF EXIST temp\log (RMDIR /s/q temp\log) 
+IF NOT EXIST runtime  MKDIR runtime 
+IF EXIST runtime\cache (RMDIR /s/q runtime\cache) 
+IF EXIST runtime\kv (RMDIR /s/q runtime\kv) 
+IF EXIST runtime\log (RMDIR /s/q runtime\log) 
 
-MKDIR temp\cache temp\kv temp\log 
-
-ECHO Temp folders have been cleaned up.
+ECHO runtime folders have been cleaned up.
 
 GOTO :EOF
 
@@ -314,19 +312,17 @@ fi;
 
 
 CLEAN_TEMP(){ 
-if [ ! -d "temp" ]; then
-  mkdir temp;
+if [ ! -d "runtime" ]; then
+  mkdir runtime;
 fi;
 folders=("cache" "kv" "log");
 for f in "${folders[@]}"; do  
-  if [ -d "temp/"$f ]; then
-    rm -r "temp/"$f;
-  else
-    mkdir "temp/"$f;
+  if [ -d "runtime/"$f ]; then
+    rm -rf "runtime/"$f;
   fi
 done;
-chmod -R 755 temp;
-echo "Temp folders have been cleaned up !" ;
+chmod 777 runtime;
+echo "runtime folders have been cleaned up !" ;
 } 
 
 
