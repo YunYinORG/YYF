@@ -144,7 +144,9 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
      */
     public function _initPlugin(Yaf_Dispatcher $dispatcher)
     {
-        $tracer = new TracerPlugin();
-        $dispatcher->registerPlugin($tracer);
+        if (false===defined('TRACER_OFF')) {
+            $tracer = new TracerPlugin();
+            $dispatcher->registerPlugin($tracer);
+        }
     }
 }

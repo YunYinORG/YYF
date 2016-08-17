@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit bootstrap="./init.php"
+         backupGlobals="false"
+         backupStaticAttributes="false"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         colors="true">
+
+    <testsuites>
+
+        <testsuite name="Environment">
+            <file>EnvTest.php</file>
+        </testsuite>
+    
+        <testsuite name="Library">
+            <directory>library</directory>
+        </testsuite>
+        
+    </testsuites>
+
+    <filter>
+        <whitelist>
+            <directory suffix=".php">../library</directory>
+        </whitelist>
+    </filter>
+
+</phpunit>
