@@ -1,0 +1,48 @@
+# http://about.travis-ci.org/docs/user/languages/php/
+dist: trusty
+language: php
+
+# list any PHP version
+php:
+  # using major version aliases
+  # aliased to a recent 7.x version
+  - 7.0
+  # aliased to a recent 5.6.x version
+  - 5.6
+  # aliased to a recent 5.5.x version
+  - 5.5
+  # aliased to a recent 5.4.x version
+  - 5.4
+  # aliased to 5.3.29
+  - 5.3
+
+
+# https://docs.travis-ci.com/user/environment-variables/
+# optionally specify a list of environments
+env:
+    - environ=dev
+    - environ=product
+
+# optionally set up exclutions and allowed failures in the matrix
+# matrix:
+#   # allow_failures:
+#   #   - php: 5.3
+
+
+install:
+  #init tests environment
+  - ./tests/install-yaf.sh
+
+
+# execute any number of scripts before the test run, custom env's are available as variables
+before_script:
+  #init YYF
+  - echo 0 | ./init.cmd
+  
+# omitting "script:" will default to phpunit
+# use the env variable to determine the phpunit.xml to use
+script: phpunit --coverage-text --configuration tests/phpunit.xml
+
+# configure notifications (email, IRC, campfire etc)
+notifications:
+  email: false
