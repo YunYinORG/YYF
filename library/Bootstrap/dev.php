@@ -1,5 +1,6 @@
 <?php
 use \Storage\File as File;
+use \Logger as Logger;
 
 /**
  * 调试启动加载
@@ -43,7 +44,7 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
             assert_options(ASSERT_ACTIVE, false);
         }
 
-        assert_options(ASSERT_QUIET_EVAL, true);//在断言表达式求值时禁用error_reporting
+        assert_options(ASSERT_QUIET_EVAL, false);//关闭在断言表达式求值时禁用error_reporting
         assert_options(ASSERT_WARNING, $assert['warning']);//为每个失败的断言产生一个 PHP 警告（warning)
         assert_options(ASSERT_BAIL, $assert['bail']);//在断言失败时中止执行
     }

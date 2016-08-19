@@ -1405,7 +1405,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
                     $value=&$w[3];
                     if (is_array($value)) {
                         if ('BETWEEN'===$operator||'NOT BETWEEN'===$operator) { //BETWEEN
-                            assert('2===count($value))', '[Orm::buildCondition] between 操作后续 参数必须是两个值');
+                            assert('2===count($value)', '[Orm::buildCondition] between 操作后续 参数必须是两个值');
                             $value= $value[0].' AND '.$value[1];
                         } else {
                             //IN
