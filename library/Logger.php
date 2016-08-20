@@ -1,4 +1,6 @@
 <?php
+use Storage\File as File;
+
 /**
 * 日志记录
 * 遵循 https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
@@ -50,7 +52,7 @@ class Logger
 
         if (!$config=&Logger::$_conf) {
             //读取配置信息
-            $config=Config::get('log');
+            $config=Config::get('log')->toArray();
             $config['type']  = strtolower($config['type']);
             $config['allow'] = explode(',', strtoupper($config['allow']));
         }
@@ -67,6 +69,16 @@ class Logger
                 default:
                     throw new Exception('未知日志类型' . $config['type']);
             }
+        }
+    }
+
+    /**
+    * 清空日志(仅对文件模式有效)
+    */
+    public static function clear()
+    {
+        if ('file'=== Config::get('log.type')) {
+            File::cleanDir(Config::get('runtime').DIRECTORY_SEPARATOR.'log'.DIRECTORY_SEPARATOR);
         }
     }
 

@@ -44,5 +44,5 @@ before_script:
 script: phpunit --coverage-text --configuration tests/phpunit.xml
 
 # configure notifications (email, IRC, campfire etc)
-notifications:
-  email: false
+# notifications:
+#   email: false
