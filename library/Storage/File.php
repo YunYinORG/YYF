@@ -33,7 +33,7 @@ class File
             $cache  = array('e' => $expire, 'c' => $value);
             $value  = serialize($cache);
         }
-
+        assert('is_scalar($value)', '保存的数据应该是基本类型');
         $filename = $this->_dir . $name . '.php';
         return file_put_contents($filename, $value)&&chmod($filename, File::$mode);
     }
@@ -84,14 +84,7 @@ class File
      */
     public function flush()
     {
-        $dir = $this->_dir;
-        /*获取全部文件*/
-        $files = scandir($dir);
-        unset($files[0]);
-        unset($files[1]);
-        foreach ($files as $f) {
-            @unlink($dir . $f);
-        }
+        File::cleanDir($this->_dir);
     }
 
     /**
@@ -108,5 +101,22 @@ class File
         }
         $this->_dir = $dir.DIRECTORY_SEPARATOR;
         $this->_serialized = $serialized;
+    }
+
+    /**
+     * 清空目录
+     * @param  [type]  $dir [存储目录]
+     * @author NewFuture
+     */
+    public static function cleanDir($dir)
+    {
+        /*获取全部文件*/
+        $files = scandir($dir);
+        unset($files[0]);
+        unset($files[1]);
+        foreach ($files as &$f) {
+            @unlink($dir . $f);
+        }
+        unset($files);
     }
 }

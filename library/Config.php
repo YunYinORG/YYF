@@ -6,6 +6,7 @@
 class Config
 {
     private static $_config = null;
+    private static $_secret = null;
 
     /**
      * 获取配置
@@ -17,10 +18,11 @@ class Config
      */
     public static function get($key = null, $default = null)
     {
-        if (null===($value = self::getConfig()->get($key))) {
-            return $default;
+        if (!$config=&Config::$_config) {
+            $config=Yaf_Application::app()->getConfig();
         }
-        return is_object($value) ? $value->toArray():$value;
+        $value = $config -> get($key);
+        return null===$value ? $default : $value;
     }
 
     /**
@@ -28,7 +30,7 @@ class Config
      * @method secret
      * @param  [string] $name     [配置名]
      * @param  [string] $key 		[键值]
-     * @return [midex]          [description]
+     * @return [mixed]          [结果]
      * @author NewFuture
      * @example
      *  Config::getSecrect('encrypt') 获取取私密配置中的encrypt所有配置
@@ -36,15 +38,9 @@ class Config
      */
     public static function getSecret($name = '', $key = null)
     {
-        if ($path = self::getConfig()->get('secret_config_path')) {
-            $secretConfig = new Yaf_Config_Ini($path, $name);
-            return $key ? $secretConfig->get($key) : $secretConfig->toArray();
+        if (!$secret=&Config::$_secret) {
+            $secret = new Yaf_Config_Ini(Config::get('secret_config_path'));
         }
-    }
-
-    /*获取配置*/
-    private static function getConfig()
-    {
-        return self::$_config ?: (self::$_config = Yaf_Application::app()->getConfig());
+        return $key?$secret->get($name)->get($key):$secret->get($name);
     }
 }
