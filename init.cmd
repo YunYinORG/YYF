@@ -334,6 +334,7 @@ cd "$PROJECT_DIR"
 vagrant up
 CMD
 chmod +x start.cmd
+echo " "
 echo "          ------------------------------------------------------------"
 echo "          the 'start.cmd' script is created, to quickly STARTUP the VM"
 
@@ -346,10 +347,16 @@ chmod +x stop.cmd;
 echo "          ------------------------------------------------------------"
 echo "          the 'stop.cmd' script is created, to quickly SHUTDOWN the VM"
 echo "          ------------------------------------------------------------"
-
+echo " "
 if [ -d ".vagrant" ]; then
   vagrant halt;
 fi;
+}
+
+
+INSTALL_YAF(){
+echo "download from http://yyf.newfuture.cc/assets/code/yaf${1}.sh" 
+curl http://yyf.newfuture.cc/assets/code/yaf${1}.sh | bash
 }
 
 
@@ -361,13 +368,21 @@ while [ ! -f $PHP_PATH ]; do
  read PHP_PATH
 done;
 
+YAF_MODULES=$($PHP_PATH -m|grep -c -w yaf)
+if [ $YAF_MODULES -eq 0 ] ; then
+    echo "Yaf extension NOT EXIST!";
+    export PHP_PATH=$PHP_PATH
+    INSTALL_YAF ".dev"
+fi;
+
 echo "\"${PHP_PATH}\" -S 0.0.0.0:1122 -t \"${PROJECT_DIR}/public/\"">'server.cmd'
 chmod +x server.cmd
+echo " "
 echo "          ------------------------------------------------------------"
 echo "           the  'server.cmd'  is created, to quickly start dev server!"
 echo "          ------------------------------------------------------------"
+echo " "
 }
-
 
 START_PHP_SERVER(){
   echo "start the local PHP server..."
@@ -378,10 +393,12 @@ START_PHP_SERVER(){
 DISPLAY_CHOICE(){
 cat <<'EOF'
 
-select which development environment you want to use?
+select which environment you want to use?
   1) Use virtual Machine with vagrant;
-  2) Use local development (with PHP);
-  0) Exit (in Server or Manual);
+  2) Use php server (local development);
+  3) install yaf with DEV environ (local);
+  4) install yaf with PRODUCT environ (server);
+  0) Exit (Manual);
 
 EOF
 echo -n "Input your choice (default[ENTER] is 1):";
@@ -397,6 +414,11 @@ case "$CHOICE" in
    ;;
 "2") INIT_SERVER_BASH;
    START_PHP_SERVER;
+   ;;
+"3") INSTALL_YAF ".dev";
+    DISPLAY_CHOICE;
+   ;;
+"4") INSTALL_YAF;
    ;;
 "0") echo "Exit Development Environment Initialization." ;
    exit;
