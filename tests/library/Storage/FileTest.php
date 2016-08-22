@@ -24,9 +24,7 @@ class FileTest extends TestCase
     */
     public function testDirMode()
     {
-        $mode=('dev'===static::$env)?File::$mode:0700;
-        clearstatcache();
-        $this->assertSame(fileperms(static::$dir)&$mode, $mode);
+        $mode=static::assertMode(static::$dir, 0777);
     }
 
     public function testSet()
@@ -35,8 +33,7 @@ class FileTest extends TestCase
         static::$file->set($name, FileTest::TEST_STRING);
         $filename=static::$dir.$name.'.php';
         $this->assertFileExists($filename);
-        clearstatcache();
-        $this->assertSame(fileperms($filename)&File::$mode, File::$mode);
+        static::assertMode($filename);
         $this->assertStringEqualsFile($filename, FileTest::TEST_STRING);
         return $name;
     }
@@ -77,5 +74,20 @@ class FileTest extends TestCase
     {
         File::cleanDir(static::$dir);
         rmdir(static::$dir);
+    }
+
+    /**
+    * @requires OS Linux
+    */
+    public function assertMode($path, $base=0666)
+    {
+        $umask = Application::app()->getConfig()->umask;
+        if (null===$umask) {
+            $mode=0700&$base;
+        } else {
+            $mode= intval($umask, 8)&$base^$base;
+        }
+        clearstatcache();
+        $this->assertSame(fileperms($path)&$mode, $mode, $path.'文件权限与预设不符(file permission not the same)');
     }
 }

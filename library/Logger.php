@@ -2,20 +2,20 @@
 use Storage\File as File;
 
 /**
-* 日志记录
-* 遵循 https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
-* Logger::write($msg, $level = 'NOTICE')//快速写入
-* Logger::log($level, $message [, array $context = array()])
-*
-* Logger::emergency($message [,$context])
-* Logger::alert($message [,$context])
-* Logger::critical($message [,$context])
-* Logger::error($message [,$context])
-* Logger::warning($message [,$context])
-* Logger::warn($message [,$context])
-* Logger::notice($message [,$context])
-* Logger::info($message [,$context])
-* Logger::debug($message [,$context])
+ * 日志记录
+ * 遵循 https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
+ * Logger::write($msg, $level = 'NOTICE')//快速写入
+ * Logger::log($level, $message [, array $context = array()])
+ *
+ * Logger::emergency($message [,array $context=null])
+ * Logger::alert($message [,array $context=null])
+ * Logger::critical($message [,array $context=null])
+ * Logger::error($message [,array $context=null])
+ * Logger::warning($message [,array $context=null])
+ * Logger::warn($message [,array $context=null])
+ * Logger::notice($message [,array $context=null])
+ * Logger::info($message [,array $context=null])
+ * Logger::debug($message [,array $context=null])
  */
 class Logger
 {
@@ -24,15 +24,9 @@ class Logger
      * @var callable
      */
     public static $listener = null;
-    /**
-     * 日志和日志目录权限,默认只允许php读写
-     * @var callable
-     */
-    public static $mode     = 0700;
-
     private static $_conf   = null;
     private static $_files  = null;
-    
+
     /**
      * 写入日志
      * @method write
@@ -43,28 +37,28 @@ class Logger
      */
     public static function write($msg, $level = 'NOTICE')
     {
-        $level=strtoupper($level);
-        if ($listener=&Logger::$listener) {
+        $level = strtoupper($level);
+        if ($listener = &Logger::$listener) {
             //日志监控回调
             assert('is_callable($listener)', '[Logger::$listener] 应该是可执行的回调函数');
             call_user_func_array($listener, array(&$level, &$msg));
         }
 
-        if (!$config=&Logger::$_conf) {
+        if (!$config = &Logger::$_conf) {
             //读取配置信息
-            $config=Config::get('log')->toArray();
+            $config          = Config::get('log')->toArray();
             $config['type']  = strtolower($config['type']);
             $config['allow'] = explode(',', strtoupper($config['allow']));
         }
 
         if (in_array($level, $config['allow'])) {
             switch ($config['type']) {
-                case 'system':// 系统日志
-                    return error_log('['.$level .']:'. $msg);
-                case 'sae'://sae日志
-                    return sae_debug('['.$level .']:'. $msg);
-                case 'file'://文件日志
-                    $msg='[' . date('c') . '] ' . $msg . PHP_EOL;
+                case 'system': // 系统日志
+                    return error_log($level . ': ' . $msg);
+                case 'sae': //sae日志
+                    return sae_debug($level . ': ' . $msg);
+                case 'file': //文件日志
+                    $msg = date('[d-M-Y H:i:s e] ') . $msg . PHP_EOL;
                     return file_put_contents(Logger::getFile($level), $msg, FILE_APPEND);
                 default:
                     throw new Exception('未知日志类型' . $config['type']);
@@ -73,12 +67,17 @@ class Logger
     }
 
     /**
-    * 清空日志(仅对文件模式有效)
-    */
+     * 清空日志(仅对文件模式有效)
+     */
     public static function clear()
     {
-        if ('file'=== Config::get('log.type')) {
-            File::cleanDir(Config::get('runtime').DIRECTORY_SEPARATOR.'log'.DIRECTORY_SEPARATOR);
+        $type = Config::get('log.type');
+        if ('file' === $type) {
+            File::cleanDir(Config::get('runtime') . DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR);
+        } elseif ('system' == $type) {
+            if ($file = ini_get('error_log')) {
+                file_put_contents($file, '');
+            }
         }
     }
 
@@ -91,32 +90,25 @@ class Logger
      */
     private static function getFile($tag)
     {
-        $files=&Logger::$_files;
+        $files = &Logger::$_files;
         if (!isset($files[$tag])) {
             /*打开文件流*/
             if (!isset($files['_dir'])) {
                 //日志目录
-                $logdir = Config::get('runtime').DIRECTORY_SEPARATOR.'log';
+                umask(intval(Config::get('umask', 0077), 8));
+                $logdir =isset(Logger::$_conf['path'])?Logger::$_conf['path']:Config::get('runtime').'log';
                 if (!is_dir($logdir)) {
-                    $oldmask=umask(0);
-                    mkdir($logdir, Logger::$mode, true);
-                    umask($oldmask);
+                    mkdir($logdir, 0777, true);
                 }
                 date_default_timezone_set('PRC');
-                $files['_dir']=$logdir.DIRECTORY_SEPARATOR . date('y-m-d-');
+                $files['_dir'] = $logdir . DIRECTORY_SEPARATOR . date('y-m-d-');
             }
-
-            $file =  $files['_dir'] . $tag . '.log';
-            //检查权限
-            if (($mode= @fileperms($file))&&(($mode&Logger::$mode) !== Logger::$mode)) {
-                chmod($file, Logger::$mode);
-                clearstatcache();
-            }
-            $files[$tag] = $file ;
+            
+            $file        = $files['_dir'] . $tag . '.log';
+            $files[$tag] = $file;
         }
         return $files[$tag];
     }
-
 
     /**
      * System is unusable.
@@ -140,7 +132,7 @@ class Logger
      * @param array $context
      * @return boolean [写入状态]
      */
-    public static function alert($message, array $context = array())
+    public static function alert($message, array $context = null)
     {
         return static::log('ALERT', $message, $context);
     }
@@ -154,7 +146,7 @@ class Logger
      * @param array $context
      * @return boolean [写入状态]
      */
-    public static function critical($message, array $context = array())
+    public static function critical($message, array $context = null)
     {
         return static::log('CRITICAL', $message, $context);
     }
@@ -167,7 +159,7 @@ class Logger
      * @param array $context
      * @return boolean [写入状态]
      */
-    public static function error($message, array $context = array())
+    public static function error($message, array $context = null)
     {
         return static::log('ERROR', $message, $context);
     }
@@ -182,7 +174,7 @@ class Logger
      * @param array $context
      * @return boolean [写入状态]
      */
-    public static function warning($message, array $context = array())
+    public static function warning($message, array $context = null)
     {
         return static::log('WARN', $message, $context);
     }
@@ -197,10 +189,11 @@ class Logger
      * @param array $context
      * @return boolean [写入状态]
      */
-    public static function warn($message, array $context = array())
+    public static function warn($message, array $context = null)
     {
         return static::log('WARN', $message, $context);
     }
+
     /**
      * Normal but significant events.
      *
@@ -208,7 +201,7 @@ class Logger
      * @param array $context
      * @return null
      */
-    public static function notice($message, array $context = array())
+    public static function notice($message, array $context = null)
     {
         return static::log('NOTICE', $message, $context);
     }
@@ -222,7 +215,7 @@ class Logger
      * @param array $context
      * @return null
      */
-    public static function info($message, array $context = array())
+    public static function info($message, array $context = null)
     {
         return static::log('INFO', $message, $context);
     }
@@ -234,7 +227,7 @@ class Logger
      * @param array $context
      * @return null
      */
-    public static function debug($message, array $context = array())
+    public static function debug($message, array $context = null)
     {
         return static::log('DEBUG', $message, $context);
     }
@@ -247,18 +240,19 @@ class Logger
      * @param array $context
      * @return null
      */
-    public static function log($level, $message, array $context = array())
+    public static function log($level, $message, array $context = null)
     {
-        if (is_string($message)) {
+        if (!is_scalar($message)) {
+            $message = json_encode($message, 256); //256isJSON_UNESCAPED_UNICODE 兼容php5.3
+        } elseif ($context) {
+            //$context 不为空
             $replace = array();
             foreach ($context as $key => &$val) {
                 if (!is_array($val) && (!is_object($val) || method_exists($val, '__toString'))) {
                     $replace['{' . $key . '}'] = $val;
                 }
             }
-            $message=strtr($message, $replace);
-        } else {
-            $message=json_encode($mesage, JSON_UNESCAPED_UNICODE);
+            $message = strtr($message, $replace);
         }
         return Logger::write($message, $level);
     }

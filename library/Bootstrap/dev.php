@@ -129,21 +129,6 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
         }
     }
 
-
-     /**
-     * 文件权限
-     * @method _initMode
-     * @author NewFuture
-     */
-    public function _initMode()
-    {
-        if ($mode = Config::get('log.mode')) {
-            $mode = intval($mode, 8);
-            Logger::$mode = $mode;
-            File::$mode = $mode;
-        }
-    }
-
     /**
      * 加载插件
      * @method _initPlugin

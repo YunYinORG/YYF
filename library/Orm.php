@@ -183,7 +183,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
         /*字段过滤*/
         foreach ($data as $key => &$row) {
             if (Orm::fieldFilter($fields, $row)!==$fields) {
-                Logger::write('[Orm]这条数据在批量插入时被过滤掉:'.jso($row, JSON_UNESCAPED_UNICODE), 'INFO');
+                Logger::write('[Orm]这条数据在批量插入时被过滤掉:'.jso($row, 256), 'INFO');
                 unset($data[$key]);//不符合的数据将被过滤掉
                 continue;
             }
@@ -1527,7 +1527,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
                 break;
 
             default:
-                throw new Exception("where条件参数太多，无法解析." . json_decode($condition, JSON_UNESCAPED_UNICODE));
+                throw new Exception("where条件参数太多，无法解析." . json_encode($condition, 256));
                 break;
         }
         if (!$bind_value) {

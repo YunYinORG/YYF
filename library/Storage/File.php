@@ -1,7 +1,7 @@
 <?php
 namespace Storage;
 
-use \Logger as Log;
+use \Config as Config;
 
 /**
  *文件存取类
@@ -13,7 +13,7 @@ use \Logger as Log;
  */
 class File
 {
-    public static $mode    = 0700;  //文件权限
+    protected static $umask    = false;  //文件权限过滤
     protected $_dir        = null;  //文件目录
     protected $_serialized = false; //是否序列化存取
 
@@ -35,7 +35,7 @@ class File
         }
         assert('is_scalar($value)', '保存的数据应该是基本类型');
         $filename = $this->_dir . $name . '.php';
-        return file_put_contents($filename, $value)&&chmod($filename, File::$mode);
+        return file_put_contents($filename, $value);
     }
 
     /**
@@ -94,10 +94,12 @@ class File
      */
     public function __construct($dir, $serialized = false)
     {
+        if (false===File::$umask) {
+            umask(intval(Config::get('umask', 0077), 8));
+            File::$umask=true;
+        }
         if (!is_dir($dir)) {
-            $oldmask=umask(0);
-            mkdir($dir, File::$mode, true);
-            umask($oldmask);
+            mkdir($dir, 0777, true);
         }
         $this->_dir = $dir.DIRECTORY_SEPARATOR;
         $this->_serialized = $serialized;
