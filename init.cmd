@@ -356,7 +356,7 @@ fi;
 
 INSTALL_YAF(){
 echo "download from http://yyf.newfuture.cc/assets/code/yaf${1}.sh" 
-curl http://yyf.newfuture.cc/assets/code/yaf${1}.sh | bash
+curl -L http://yyf.newfuture.cc/assets/code/yaf${1}.sh | bash
 }
 
 
