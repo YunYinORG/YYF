@@ -416,7 +416,6 @@ case "$CHOICE" in
    START_PHP_SERVER;
    ;;
 "3") INSTALL_YAF ".dev";
-    DISPLAY_CHOICE;
    ;;
 "4") INSTALL_YAF;
    ;;

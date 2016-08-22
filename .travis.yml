@@ -7,12 +7,12 @@ php:
   # using major version aliases
   # aliased to a recent 7.x version
   - 7.0
-  # aliased to a recent 5.6.x version
-  - 5.6
-  # aliased to a recent 5.5.x version
-  - 5.5
-  # aliased to a recent 5.4.x version
-  - 5.4
+  # # aliased to a recent 5.6.x version
+  # - 5.6
+  # # aliased to a recent 5.5.x version
+  # - 5.5
+  # # aliased to a recent 5.4.x version
+  # - 5.4
   # aliased to 5.3.29
   - 5.3
 
@@ -29,16 +29,16 @@ env:
 #   #   - php: 5.3
 
 
-install:
+install: true
   #init tests environment
-  - ./tests/install-yaf.sh
+  # - ./tests/install-yaf.sh
 
 
 # execute any number of scripts before the test run, custom env's are available as variables
 before_script:
   #init YYF
-  - echo 0 | ./init.cmd
-  
+  - if [[ "$environ" == "dev" ]];then echo 3 | ./init.cmd ; else echo 4 | ./init.cmd ; fi;
+
 # omitting "script:" will default to phpunit
 # use the env variable to determine the phpunit.xml to use
 script: phpunit --coverage-text --configuration tests/phpunit.xml
