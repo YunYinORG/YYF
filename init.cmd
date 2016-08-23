@@ -355,24 +355,28 @@ fi;
 
 
 INSTALL_YAF(){
-echo "download from http://yyf.newfuture.cc/assets/code/yaf${1}.sh" 
-curl -L http://yyf.newfuture.cc/assets/code/yaf${1}.sh | bash
+echo ""
+echo "Install YAF from http://yyf.newfuture.cc/assets/code/yaf${1}.sh" 
+curl -#SL http://yyf.newfuture.cc/assets/code/yaf${1}.sh | bash
 }
 
 
 INIT_SERVER_BASH(){
-PHP_PATH='/usr/bin/php';
-while [ ! -f $PHP_PATH ]; do
- echo "${PHP_PATH} in NOT EXIST";
+
+PHP_PATH="php"
+while [ -z $(command -v "$PHP_PATH" 2>/dev/null) ]; do
+ echo "${PHP_PATH} in NOT EXIST command";
  echo -n "Input the PHP path:";
  read PHP_PATH
 done;
 
-YAF_MODULES=$($PHP_PATH -m|grep -c -w yaf)
+YAF_MODULES=$("$PHP_PATH" -m|grep -c -w "yaf")
 if [ $YAF_MODULES -eq 0 ] ; then
     echo "Yaf extension NOT EXIST!";
-    export PHP_PATH=$PHP_PATH
+    export PHP_PATH="$PHP_PATH"
     INSTALL_YAF ".dev"
+else
+    echo "Yaf has been installed";
 fi;
 
 echo "\"${PHP_PATH}\" -S 0.0.0.0:1122 -t \"${PROJECT_DIR}/public/\"">'server.cmd'
@@ -386,7 +390,7 @@ echo " "
 
 START_PHP_SERVER(){
   echo "start the local PHP server..."
-  sh server.cmd;
+  bash ./server.cmd;
 }
 
 
@@ -406,7 +410,7 @@ read CHOICE;
 if  [ ! -n "$CHOICE" ] ;then
  CHOICE=1;
 fi;
-
+echo ""
 case "$CHOICE" in
 "1") INIT_BASH_SCRIPT;
    INIT_VAGRANTFILE;
