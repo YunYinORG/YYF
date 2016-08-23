@@ -76,8 +76,13 @@ abstract class Model
         return $this->_orm->get();
     }
 
-
-    public function toJson($type=JSON_UNESCAPED_UNICODE)
+    /**
+     * 数据转成json
+     * @method toJson
+     * @param constant   JSON_ENCODE type
+     * @author NewFuture
+     */
+    public function toJson($type=256)//256isJSON_UNESCAPED_UNICODE
     {
         return json_encode($this->_orm->get(), $type);
     }
