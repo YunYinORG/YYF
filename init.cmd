@@ -38,8 +38,9 @@ IF "%CHOICE%"=="" SET CHOICE=1
 
 IF %CHOICE%==1 (
     COLOR B
-    CALL :INIT_BAT_SCRIPT
     CALL :INIT_VAGRANTFILE
+    CALL :CHECK_INSTALL
+    CALL :INIT_BAT_SCRIPT
     COLOR A
     CALL :RESTART
 )ELSE IF %CHOICE%==2 (
@@ -114,29 +115,80 @@ GOTO :EOF
 ::;create local php server batch
 
 :INIT_SERVER_BATCH
-CALL :IF_EXIST php.exe && SET PHP_PATH=php && GOTO CREATE_SERVER_CMD
+CALL :IF_EXIST php.exe && SET PHP_PATH=php&& GOTO CREATE_SERVER_CMD
 
 :READ_PHP_PATH
 ECHO.CAN NOT find the php.exe in path!
 SET /P PHP_PATH=Input the PATH of the PHP (just drag it here):
 
-IF EXIST %PHP_PATH%/php.exe (SET PHP_PATH="%PHP_PATH%\php.exe"
-)ELSE IF EXIST %PHP_PATH% (SET PHP_PATH="%PHP_PATH%"
+IF EXIST "%PHP_PATH%/php.exe" (SET PHP_PATH="%PHP_PATH%\php.exe"
+)ELSE IF EXIST "%PHP_PATH%" (SET PHP_PATH="%PHP_PATH%"
 )ELSE GOTO READ_PHP_PATH
 
 :CREATE_SERVER_CMD
-echo.@ECHO OFF>server.cmd
-echo.%PHP_PATH% -S 0.0.0.0:1122 -t "%~dp0public">>server.cmd
-echo          ------------------------------------------------------------
+ECHO.@ECHO OFF>server.cmd
+ECHO.%PHP_PATH% -S 0.0.0.0:1122 -t "%~dp0public">>server.cmd
+ECHO.
+ECHO          ------------------------------------------------------------
 
-echo           the  'server.cmd'  is created, to quickly start dev server!
+ECHO           the  'server.cmd'  is created, to quickly start dev server!
 
-echo          ------------------------------------------------------------
+ECHO          ------------------------------------------------------------
+ECHO.
+GOTO :EOF
 
+
+::;install virtual box
+:INSTALL_VIRTUAL_BOX
+SET VBOX_URL=http://download.virtualbox.org/virtualbox/5.1.4/VirtualBox-5.1.4-110228-Win.exe
+SET VBOX_PATH="%~dp0runtime\virtualbox.exe"
+IF NOT EXIST "%VBOX_PATH%" (
+ECHO. 
+ECHO.Downloading VirtualBox from %VBOX_URL%
+ECHO.Savig to %VBOX_PATH% ...
+POWERSHELL -Command "Import-Module BitsTransfer;Start-BitsTransfer %VBOX_URL% %VBOX_PATH%"
+ECHO.Done.
+)
+ECHO.Click [next] to finish the installation
+"%VBOX_PATH%"
+GOTO :CHECK_VBOX
+
+
+::;install vagrant
+:INSTALL_VAGRANT
+SET VAGRANT_URL=https://releases.hashicorp.com/vagrant/1.8.5/vagrant_1.8.5.msi
+ECHO.
+ECHO.Install vagrant from %VAGRANT_URL%
+msiexec /i %VAGRANT_URL% /log "%~dp0runtime\install.log"
+ECHO.Done.
 
 GOTO :EOF
 
-::;start local php server
+
+::;CHECK the virtual box and vagrant is EXISTs?=
+:CHECK_INSTALL
+
+:CHECK_VBOX
+CALL :IF_EXIST VBoxManage.exe && GOTO CHECK_VAGRANT
+IF EXIST "%ProgramFiles%\Oracle\VirtualBox\VBoxManage.exe" (GOTO CHECK_VAGRANT)
+IF EXIST "%ProgramFiles(x86)%\Oracle\VirtualBox\VBoxManage.exe" (GOTO CHECK_VAGRANT)
+ECHO.
+ECHO.virtual box is not installed press any key to install (or CTRL + C to exit)
+PAUSE
+CALL :INSTALL_VIRTUAL_BOX
+
+:CHECK_VAGRANT
+CALL :IF_EXIST vagrant.exe && GOTO :EOF
+IF EXIST "%SYSTEMDRIVE%\HashiCorp\Vagrant\bin\vagrant.exe" (GOTO :EOF)
+ECHO.
+ECHO.vagrant is not installed press any key to install (or CTRL + C to exit)
+PAUSE
+CALL :INSTALL_VAGRANT
+
+GOTO :EOF
+
+
+::;Start local php server
 
 :START_PHP_SERVER
 
