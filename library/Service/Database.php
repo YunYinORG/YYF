@@ -38,7 +38,7 @@ class Database extends PDO
     * @return array 查询结果
     * @author NewFuture
     */
-    public function query($sql, array $params = null, $fetchmode = PDO::FETCH_ASSOC)
+    public function query($sql, array $params = null, $fetchAll=true, $mode = PDO::FETCH_ASSOC)
     {
         if ($before=&Database::$before) {
             //执行前调用
@@ -48,7 +48,7 @@ class Database extends PDO
 
         $result=false;
         if ($statement = $this->execute($sql, $params)) {
-            $result = $statement->fetchAll($fetchmode);
+            $result = $fetchAll? $statement->fetchAll($mode) : $statement->fetch($mode);
             $statement->closeCursor();
         }
 

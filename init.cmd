@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 :;PROJECT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";
 :<<":START_MSG"
 
@@ -236,9 +236,14 @@ GOTO :EOF
 :START_MSG
 
 :;START_MSG(){ 
-echo _______________________________________________________________________________
 echo ===============================================================================
-echo ========================== INITIALIZE YYF ENVIRONMENT =========================
+echo -------------------------------------------------------------------------------
+
+echo __________________________ INITIALIZE YYF ENVIRONMENT _________________________
+echo ...............................................................................
+echo ----------- *_* goto [http://yyf.newfuture.cc/setup/] for help *_* ------------
+
+echo _______________________________________________________________________________
 echo ===============================================================================
 
 :;}
@@ -266,7 +271,7 @@ ssh_port    = 0    # the local port map to the  ssh port like 2333
 static_ip   = "192.168.23.33" # set the static ip of the virtual machine 
 use_pub_net = false # use the public network or not
 VERSION     = "2.4" # current version
-init_shell  = "echo $(date)>InitTime.txt" # the shell script in the virtual machine to init the VM at the fisrt time
+init_shell  = "mysql -uroot mysql</vagrant/tests/yyf.sql" # the shell script in the virtual machine to init the VM at the fisrt time
 box_name    = "newfuture/YYF"
 #########################################################
 
@@ -275,7 +280,7 @@ Vagrant.configure(2) do |config|
   config.vm.box_check_update = false
   config.vm.define "YYF" do |yyf|
   end
-  config.vm.synced_folder ".", "/vagrant", :mount_options =>["dmode=777,fmode=777"]
+  config.vm.synced_folder ".", "/vagrant", :mount_options =>["dmode=777,fmode=666"]
   ### APPLY THE NETWORK CONFIG ###
   if web_port>0
     config.vm.network "forwarded_port", guest: 80, host: web_port, auto_correct: true

@@ -28,6 +28,9 @@ env:
     - environ=dev
     - environ=product
 
+services:
+  - mysql
+
 # optionally set up exclutions and allowed failures in the matrix
 # matrix:
 #   # allow_failures:
@@ -46,14 +49,15 @@ before_script:
   - if [[ "$environ" == "product" ]];then echo 4|./init.cmd;fi;
   # in dev environment waited for the server.cmd is been created
   - if [[ "$environ" == "dev" && $TRAVIS_PHP_VERSION != "5.3" ]];then while [ ! -f "server.cmd" ];do sleep 1;done;echo "Initialized!";fi;
-
+  - mysql -uroot mysql<./tests/yyf.sql
+  
 # omitting "script:" will default to phpunit
 # use the env variable to determine the phpunit.xml to use
 script: 
   # test php
   - phpunit --configuration tests/phpunit.xml
   # test server
-  - if [[ "$environ" == "dev" && $TRAVIS_PHP_VERSION != "5.3" ]];then sleep 0.5;curl -SI localhost:1122 && curl -sS localhost:1122|grep -iPo '(?<=<title>)(.*)(?=</title>)';fi;
+  - if [[ "$environ" == "dev" && $TRAVIS_PHP_VERSION != "5.3" ]];then curl -SI localhost:1122 && curl -sS localhost:1122|grep -iPo '(?<=<title>)(.*)(?=</title>)';fi;
 
 #on fail
 after_failure:

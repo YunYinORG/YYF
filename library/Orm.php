@@ -93,14 +93,13 @@ class Orm implements \JsonSerializable, \ArrayAccess
         $this->limit(1);
         $sql= $this->buildSelect();
 
-        if ($result = $this->query($sql)) {
+        if ($result = $this->query($sql, false)) {
             if (true===$this->_debug) {
                 return $result; //调试输出
-            } elseif (isset($result[0])) {
-                //查询成功
-                $this->_data = $result[0];
-                return $this;
             }
+            //查询成功
+            $this->_data = $result;
+            return $this;
         }
         return null;
     }
@@ -1248,11 +1247,11 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @return [array]           [结果数组]
      * @author NewFuture
      */
-    protected function query($sql)
+    protected function query($sql, $fetchAll=true)
     {
         return true===$this->_debug ?
             array('sql'=>$sql,'param'=>$this->_param):
-            $this->getDb('_read')->query($sql, $this->_param);
+            $this->getDb('_read')->query($sql, $this->_param, $fetchAll);
     }
 
     /**

@@ -155,9 +155,9 @@ class Db
     * @return mixed 查询结果
     * @author NewFuture
     */
-    public static function query($sql, array $params=null, $fetchmode = PDO::FETCH_ASSOC)
+    public static function query($sql, array $params=null, $fetchAll=true, $fetchmode = PDO::FETCH_ASSOC)
     {
-        return Db::get('_read')->query($sql, $params, $fetchmode);
+        return Db::get('_read')->query($sql, $params, $fetchAll, $fetchmode);
     }
 
 
