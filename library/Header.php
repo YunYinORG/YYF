@@ -1,12 +1,12 @@
 <?php
 /**
  * 响应头输出调试信息
- * Head::log('some log info');
- * Head::warn('unexpected messages');
- * Head::error('error');
- * Head::dump('data');
+ * Header::log('some log info');
+ * Header::warn('unexpected messages');
+ * Header::error('error');
+ * Header::dump('data');
  * 支持链式调用
- * Head::warn('wrong message')->dump($data);
+ * Header::warn('wrong message')->dump($data);
  */
 class Head
 {
@@ -103,6 +103,7 @@ class Head
 	private function __construct()
 	{
 		header(self::HEADER_BASE . ': ' . Config::get('version'));
+		ob_start();
 	}
 
 	/**
@@ -149,5 +150,10 @@ class Head
 			$object_as_array[$type] = in_array($value, self::$_processed, true) ? '__CLASS__[' . get_class($value) . ']' : self::_convertObject($value);
 		}
 		return $object_as_array;
+	}
+
+	public function __destruct()
+	{
+		ob_end_flush();
 	}
 }
