@@ -86,7 +86,8 @@ class Orm implements \JsonSerializable, \ArrayAccess
         if (is_array($id)) {
             $this->where($id);
         } elseif ($id) {
-            $this->where($this->_pk, $id);
+            $pkey=$this->_joins?$this->$_pre.$this->_table.'.'.$this->_pk:$this->_pk;
+            $this->where($pkey, $id);//auto add table name if has other tables
         }
 
         $this->limit(1);

@@ -2,7 +2,6 @@
 namespace Service;
 
 use \PDO;
-use \Config;
 use \Logger as Log;
 
 /**
@@ -39,7 +38,7 @@ class Database extends PDO
     * @return array 查询结果
     * @author NewFuture
     */
-    public function query($sql, array $params = null, $fetchmode = \PDO::FETCH_ASSOC)
+    public function query($sql, array $params = null, $fetchmode = PDO::FETCH_ASSOC)
     {
         if ($before=&Database::$before) {
             //执行前调用
