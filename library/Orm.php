@@ -44,14 +44,15 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * 构造函数
      * @param string $table 数据库表名
      * @param [string] $pk    [主键，默认id]
-     * @param [string] $prefix [数据库表前缀]
+     * @param [string] $prefix [数据库表前缀,默认读取配置]
      */
     public function __construct($table, $pk = false, $prefix = true)
     {
-        $this->_pre = (true === $prefix) ? Config::getSecret('database', 'prefix') : strval($prefix);
-        $pk and $this->_pk = $pk;
         $this->_table = $table;
-        $this->_alias = $table;
+        $pk && ($this->_pk = $pk);
+        if ($this->_pre = (true === $prefix) ? Config::getSecret('database', 'prefix') : strval($prefix)) {
+            $this->_alias = $table;//有前缀时，直接使用无前缀作为别名
+        }
     }
 
     /**
@@ -1045,7 +1046,8 @@ class Orm implements \JsonSerializable, \ArrayAccess
             $sql{strlen($sql) - 1} = ' '; //最后的,换成空格
         } else {
             /*多表链接时加入表名*/
-            $sql .= empty($this->_joins) ? '*' : Orm::backQoute($this->_alias) . '.*';
+            $table=$this->_alias?:$this->_pre.$this->_table;
+            $sql .= empty($this->_joins) ? '*' : Orm::backQoute($table) . '.*';
         }
 
         $sql .= $this->buildFrom()
@@ -1065,11 +1067,12 @@ class Orm implements \JsonSerializable, \ArrayAccess
      */
     protected function buildDelete()
     {
-        $sql =  'DELETE '
-                . $this->buildFrom()
-                . $this->buildJoin()
-                . $this->buildWhere()
-                . $this->buildTail();
+        if ($alias = &$this->_alias) {
+            $sql = 'DELETE' . Orm::backQoute($alias);
+        } else {
+            $sql = 'DELETE ';
+        }
+        $sql.= $this->buildFrom().$this->buildJoin().$this->buildWhere().$this->buildTail();
         return $sql;
     }
 
@@ -1085,7 +1088,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
     {
         $name = $this->_pre . $this->_table;
         $from = 'FROM' . Orm::backQoute($name);
-        if (($alias = $this->_alias)&&($alias === $name)) {
+        if ($alias = $this->_alias) {
             $from .= 'AS' . Orm::backQoute($alias);
         }
         return $from;
@@ -1468,12 +1471,12 @@ class Orm implements \JsonSerializable, \ArrayAccess
         switch (count($condition)) {
             case 2: //两个值,相等条件
                 if ((null === $condition[1])) {
-                    assert('$bind_value', '[Orm::parseCondition]NULL值时不能设为字段');
+                    assert('!$bind_value', '[Orm::parseCondition]NULL值时不能设为字段');
                     $result[] = 'IS';
                     $result[] = 'NULL';
                 } else {
                     $result[] = '=';
-                    $result[] = $bind_value?$condition[1]:$$this->bindParam($condition[1]);
+                    $result[] = $bind_value? $this->bindParam($condition[1]): $condition[1];
                 }
                 break;
 
@@ -1483,7 +1486,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
                 if (null === $value) { //NULL值判断标准化
                     assert('in_array($condition[1],array("=","<>","!=","IS"))',
                      '[Orm::parseCondition]NULL值判读只允许 [等于] 或者[不等于]');
-                    assert('$bind_value', '[Orm::parseCondition]NULL值时不能设为字段');
+                    assert('!$bind_value', '[Orm::parseCondition]NULL值时不能设为字段');
                     $result[] = 'IS';
                     $result[] = (('=' === $operator)||('IS' === $operator)) ? 'NULL' : 'NOT NULL';
                 } else {
