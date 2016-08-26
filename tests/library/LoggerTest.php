@@ -5,6 +5,9 @@ use \Logger as Logger;
 use \Yaf_Application as Application;
 use \PHPUnit_Framework_TestCase as TestCase;
 
+/**
+ * @coversDefaultClass \Logger
+ */
 class LoggerTest extends TestCase
 {
     protected $message;
@@ -69,7 +72,9 @@ class LoggerTest extends TestCase
         $this->popAssert($level, $msg);
     }
 
-
+    /**
+    * @covers ::write
+    */
     public function testWrite()
     {
         Logger::clear();
@@ -174,6 +179,7 @@ class LoggerTest extends TestCase
 
     /**
     * @requires OS Linux
+    * @covers ::getFile
     */
     public function testDirMode()
     {

@@ -42,12 +42,12 @@ class Debug
             $message.='  [PARAMS] '.json_encode($data['P'], 256).PHP_EOL;
         }
         $message.='  [RESULT] '.json_encode($result, 256).PHP_EOL;
-        if ($db->errorCode()!=0) {
+        if (!$db->isOk()) {
             $data['E'] = $db->errorInfo();
             $message.='!![ERROR!] '.json_encode($db->errorInfo(), 256).PHP_EOL;
             Logger::debug("[SQL]({$id}) error!!!");
         }
-        $message.="  [INFORM] { ${data['T']} ms ( $name ) \n\r";
+        $message.="  [INFORM] ${data['T']} ms ( $name ) \n\r";
         Logger::write($message, 'SQL');
     }
 

@@ -5,6 +5,9 @@ use \Storage\File as File;
 use \Yaf_Application as Application;
 use \PHPUnit_Framework_TestCase as TestCase;
 
+/**
+ * @coversDefaultClass \Storage\File
+ */
 class FileTest extends TestCase
 {
     const TEST_STRING='yyf file storage test';
@@ -21,6 +24,7 @@ class FileTest extends TestCase
 
     /**
     * @requires OS Linux
+    * @covers ::__construct
     */
     public function testDirMode()
     {
@@ -60,6 +64,8 @@ class FileTest extends TestCase
 
     /**
     * @depends testDelete
+    * @covers ::cleanDir
+    * @covers ::delete
     */
     public function testFlush()
     {
