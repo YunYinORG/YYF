@@ -4,10 +4,16 @@ namespace tests\library;
 use \Config as Config;
 use \Yaf_Application as Application;
 
+/**
+ * @coversDefaultClass \Config
+ */
 class ConfigTest extends \PHPUnit_Framework_TestCase
 {
 
-    /*测试配置和配置文件是否一致*/
+    /**
+    *测试配置和配置文件是否一致
+    * @covers ::get
+    */
     public function testConfigConsistency()
     {
         $env=Application::app()->environ();

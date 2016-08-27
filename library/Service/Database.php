@@ -2,7 +2,7 @@
 namespace Service;
 
 use \PDO;
-use \Config;
+use \Exception;
 use \Logger as Log;
 
 /**
@@ -27,7 +27,7 @@ class Database extends PDO
     public static $after  = null;//执行后调用$after($this);
     public static $debug  = false;//调试输出
 
-    private $_errorCode = null;
+    private $_status = true;
     private $_errorInfo = null;
     
     /**
@@ -39,7 +39,7 @@ class Database extends PDO
     * @return array 查询结果
     * @author NewFuture
     */
-    public function query($sql, array $params = null, $fetchmode = \PDO::FETCH_ASSOC)
+    public function query($sql, array $params = null, $fetchAll=true, $mode = PDO::FETCH_ASSOC)
     {
         if ($before=&Database::$before) {
             //执行前调用
@@ -47,10 +47,11 @@ class Database extends PDO
             call_user_func_array($before, array(&$sql, &$params, 'query'));
         }
 
-        $result=false;
         if ($statement = $this->execute($sql, $params)) {
-            $result = $statement->fetchAll($fetchmode);
+            $result = $fetchAll? $statement->fetchAll($mode) : $statement->fetch($mode);
             $statement->closeCursor();
+        } else {
+            $result=false;
         }
 
         if ($after=&Database::$after) {
@@ -78,8 +79,8 @@ class Database extends PDO
             call_user_func_array($before, array(&$sql, &$params, 'exec'));
         }
         
-        $result=false;
         if (empty($params)) {
+            $this->_status=true;
             $result= parent::exec($sql);
             if (false===$result) {
                 $this->error();
@@ -87,6 +88,8 @@ class Database extends PDO
         } elseif ($statement = $this->execute($sql, $params)) {
             $result = $statement->rowCount();
             $statement->closeCursor();
+        } else {
+            $result=false;
         }
         
         if ($after=&Database::$after) {
@@ -111,11 +114,14 @@ class Database extends PDO
             assert('is_callable($before)', '[Database::$before] 应该是可执行的回调');
             call_user_func_array($before, array(&$sql, &$params, 'column'));
         }
-        $result=false;
+
         if ($statement = $this->execute($sql, $params)) {
             $result = $statement->fetchColumn();
             $statement->closeCursor();
+        } else {
+            $result=false;
         }
+
         if ($after=&Database::$after) {
             //执行完成调用
             assert('is_callable($after)', '[Database::$after] 应该是可执行的回调');
@@ -126,18 +132,18 @@ class Database extends PDO
     
     
     /**
-    * @method errorCode
-    * @return mixed    [错误码]
+    * @method isOk
+    * @return boolean    [上次查询状态]
     * @author NewFuture
     */
-    public function errorCode()
+    public function isOk()
     {
-        return $this->_errorCode ?: parent::errorCode();
+        return $this->_status;
     }
     
     /**
     * @method errorInfo
-    * @return array    [出错信息]
+    * @return array    [上次出错信息]
     * @author NewFuture
     */
     public function errorInfo()
@@ -149,28 +155,37 @@ class Database extends PDO
     * 事务封装
     * @method transact
     * @param callable $func，事务回调函数，参数是当前Database，回调返回false或者出现异常回滚，否则提交
+    * @param boolean $err_exp 错误抛出异常默认会自动设置并切换回来
     * @return 回调函数的返回值(执行异常自动回滚，返回false)
     * @author NewFuture
     */
-    public function transact(callable $func)
+    public function transact($func, $err_exp=true)
     {
+        assert('is_callable($func)');
+        if (true===$err_exp&&parent::getAttribute(PDO::ATTR_ERRMODE)!==PDO::ERRMODE_EXCEPTION) {
+            $errmode=parent::getAttribute(PDO::ATTR_ERRMODE);
+            parent::setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        }
         try {
             $this->beginTransaction();
             $result = $func($this);
             if (false===$result) {
                 //执行失败回滚
+                $this->_status = false;
                 $this->rollBack();
             } else {
                 //执行成功，提交
                 $this->commit();
-                return $result;
             }
         } catch (Exception $e) {
             //执行异常回滚
-           Log::write('[SQL] transact exception: '.$e->getMessage(), 'WARN');
             $this->rollBack();
+            $this->_status = false;
+            $result=false;
+            Log::write('[SQL] transact exception: '.$e->getMessage(), 'WARN');
         }
-        return false;
+        isset($errmode)&&parent::setAttribute(PDO::ATTR_ERRMODE, $errmode);
+        return $result;
     }
 
     /**
@@ -206,6 +221,7 @@ class Database extends PDO
     */
     private function execute($sql, &$params)
     {
+        $this->_status=true;
         $statement=false;
         if (empty($params)) {
             $statement = parent::query($sql); //无参数直接执行
@@ -233,9 +249,7 @@ class Database extends PDO
 
             if (!$statement->execute()) {
                 /*执行出错*/
-                $this->_errorCode = $statement->errorCode();
                 $this->_errorInfo = $statement->errorInfo();
-                
                 if (Database::$debug) {
                     //dump 查询错误
                     $statement->debugDumpParams();
@@ -255,6 +269,7 @@ class Database extends PDO
     /*错误处理*/
     private function error()
     {
+        $this->_status = false;
         Log::write('[SQL] execute ERROR: '.json_encode($this->errorInfo()), 'ERROR');
     }
 }

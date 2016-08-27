@@ -1,5 +1,5 @@
 <?php
-use Service\Database;
+use \Service\Database as Database;
 
 /**
  * 数据库管理类
@@ -155,9 +155,9 @@ class Db
     * @return mixed 查询结果
     * @author NewFuture
     */
-    public static function query($sql, array $params=null, $fetchmode = PDO::FETCH_ASSOC)
+    public static function query($sql, array $params=null, $fetchAll=true, $fetchmode = PDO::FETCH_ASSOC)
     {
-        return Db::get('_read')->query($sql, $params, $fetchmode);
+        return Db::get('_read')->query($sql, $params, $fetchAll, $fetchmode);
     }
 
 
@@ -177,7 +177,7 @@ class Db
     */
     public static function __callStatic($method, $params)
     {
-        assert('method_exists(Database,$method)', '[Db::Database]Database中不存在此方式:'.$method);
+        assert('method_exists("\Service\Database",$method)', '[Db::Database]Database中不存在此方式:'.$method);
         return call_user_func_array([Db::current(), $method], $params);
     }
 }

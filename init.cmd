@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 :;PROJECT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";
 :<<":START_MSG"
 
@@ -38,8 +38,9 @@ IF "%CHOICE%"=="" SET CHOICE=1
 
 IF %CHOICE%==1 (
     COLOR B
-    CALL :INIT_BAT_SCRIPT
     CALL :INIT_VAGRANTFILE
+    CALL :CHECK_INSTALL
+    CALL :INIT_BAT_SCRIPT
     COLOR A
     CALL :RESTART
 )ELSE IF %CHOICE%==2 (
@@ -114,29 +115,80 @@ GOTO :EOF
 ::;create local php server batch
 
 :INIT_SERVER_BATCH
-CALL :IF_EXIST php.exe && SET PHP_PATH=php && GOTO CREATE_SERVER_CMD
+CALL :IF_EXIST php.exe && SET PHP_PATH=php&& GOTO CREATE_SERVER_CMD
 
 :READ_PHP_PATH
 ECHO.CAN NOT find the php.exe in path!
 SET /P PHP_PATH=Input the PATH of the PHP (just drag it here):
 
-IF EXIST %PHP_PATH%/php.exe (SET PHP_PATH="%PHP_PATH%\php.exe"
-)ELSE IF EXIST %PHP_PATH% (SET PHP_PATH="%PHP_PATH%"
+IF EXIST "%PHP_PATH%/php.exe" (SET PHP_PATH="%PHP_PATH%\php.exe"
+)ELSE IF EXIST "%PHP_PATH%" (SET PHP_PATH="%PHP_PATH%"
 )ELSE GOTO READ_PHP_PATH
 
 :CREATE_SERVER_CMD
-echo.@ECHO OFF>server.cmd
-echo.%PHP_PATH% -S 0.0.0.0:1122 -t "%~dp0public">>server.cmd
-echo          ------------------------------------------------------------
+ECHO.@ECHO OFF>server.cmd
+ECHO.%PHP_PATH% -S 0.0.0.0:1122 -t "%~dp0public">>server.cmd
+ECHO.
+ECHO          ------------------------------------------------------------
 
-echo           the  'server.cmd'  is created, to quickly start dev server!
+ECHO           the  'server.cmd'  is created, to quickly start dev server!
 
-echo          ------------------------------------------------------------
+ECHO          ------------------------------------------------------------
+ECHO.
+GOTO :EOF
 
+
+::;install virtual box
+:INSTALL_VIRTUAL_BOX
+SET VBOX_URL=http://download.virtualbox.org/virtualbox/5.1.4/VirtualBox-5.1.4-110228-Win.exe
+SET VBOX_PATH="%~dp0runtime\virtualbox.exe"
+IF NOT EXIST "%VBOX_PATH%" (
+ECHO. 
+ECHO.Downloading VirtualBox from %VBOX_URL%
+ECHO.Savig to %VBOX_PATH% ...
+POWERSHELL -Command "Import-Module BitsTransfer;Start-BitsTransfer %VBOX_URL% %VBOX_PATH%"
+ECHO.Done.
+)
+ECHO.Click [next] to finish the installation
+"%VBOX_PATH%"
+GOTO :CHECK_VBOX
+
+
+::;install vagrant
+:INSTALL_VAGRANT
+SET VAGRANT_URL=https://releases.hashicorp.com/vagrant/1.8.5/vagrant_1.8.5.msi
+ECHO.
+ECHO.Install vagrant from %VAGRANT_URL%
+msiexec /i %VAGRANT_URL% /log "%~dp0runtime\install.log"
+ECHO.Done.
 
 GOTO :EOF
 
-::;start local php server
+
+::;CHECK the virtual box and vagrant is EXISTs?=
+:CHECK_INSTALL
+
+:CHECK_VBOX
+CALL :IF_EXIST VBoxManage.exe && GOTO CHECK_VAGRANT
+IF EXIST "%ProgramFiles%\Oracle\VirtualBox\VBoxManage.exe" (GOTO CHECK_VAGRANT)
+IF EXIST "%ProgramFiles(x86)%\Oracle\VirtualBox\VBoxManage.exe" (GOTO CHECK_VAGRANT)
+ECHO.
+ECHO.virtual box is not installed press any key to install (or CTRL + C to exit)
+PAUSE
+CALL :INSTALL_VIRTUAL_BOX
+
+:CHECK_VAGRANT
+CALL :IF_EXIST vagrant.exe && GOTO :EOF
+IF EXIST "%SYSTEMDRIVE%\HashiCorp\Vagrant\bin\vagrant.exe" (GOTO :EOF)
+ECHO.
+ECHO.vagrant is not installed press any key to install (or CTRL + C to exit)
+PAUSE
+CALL :INSTALL_VAGRANT
+
+GOTO :EOF
+
+
+::;Start local php server
 
 :START_PHP_SERVER
 
@@ -184,9 +236,14 @@ GOTO :EOF
 :START_MSG
 
 :;START_MSG(){ 
-echo _______________________________________________________________________________
 echo ===============================================================================
-echo ========================== INITIALIZE YYF ENVIRONMENT =========================
+echo -------------------------------------------------------------------------------
+
+echo __________________________ INITIALIZE YYF ENVIRONMENT _________________________
+echo ...............................................................................
+echo ----------- *_* goto [http://yyf.newfuture.cc/setup/] for help *_* ------------
+
+echo _______________________________________________________________________________
 echo ===============================================================================
 
 :;}
@@ -214,8 +271,15 @@ ssh_port    = 0    # the local port map to the  ssh port like 2333
 static_ip   = "192.168.23.33" # set the static ip of the virtual machine 
 use_pub_net = false # use the public network or not
 VERSION     = "2.4" # current version
-init_shell  = "echo $(date)>InitTime.txt" # the shell script in the virtual machine to init the VM at the fisrt time
 box_name    = "newfuture/YYF"
+# the shell script in the virtual machine to init the VM at the fisrt time
+init_shell  = "cd /vagrant/;
+ls tests/init_*.sh 2>/dev/null|xargs -n1 bash;
+if [ -f 'tests/yyf.sql' ];then
+sed '/^#SQLITE_START#/,/^#SQLITE_END#/d' tests/yyf.sql|mysql -uroot;
+sed '/^#MYSQL_START#/,/^#MYSQL_END#/d' tests/yyf.sql|sqlite3 runtime/yyf.db;
+fi;
+if [ -f 'tests/mysql.sql' ];then mysql -uroot mysql<tests/mysql.sql;fi;"
 #########################################################
 
 Vagrant.configure(2) do |config|
@@ -223,7 +287,7 @@ Vagrant.configure(2) do |config|
   config.vm.box_check_update = false
   config.vm.define "YYF" do |yyf|
   end
-  config.vm.synced_folder ".", "/vagrant", :mount_options =>["dmode=777,fmode=777"]
+  config.vm.synced_folder ".", "/vagrant", :mount_options =>["dmode=777,fmode=666"]
   ### APPLY THE NETWORK CONFIG ###
   if web_port>0
     config.vm.network "forwarded_port", guest: 80, host: web_port, auto_correct: true
@@ -355,24 +419,28 @@ fi;
 
 
 INSTALL_YAF(){
-echo "download from http://yyf.newfuture.cc/assets/code/yaf${1}.sh" 
-curl -L http://yyf.newfuture.cc/assets/code/yaf${1}.sh | bash
+echo ""
+echo "Install YAF from http://yyf.newfuture.cc/assets/code/yaf${1}.sh" 
+curl -#SL http://yyf.newfuture.cc/assets/code/yaf${1}.sh | bash
 }
 
 
 INIT_SERVER_BASH(){
-PHP_PATH='/usr/bin/php';
-while [ ! -f $PHP_PATH ]; do
- echo "${PHP_PATH} in NOT EXIST";
+
+PHP_PATH="php"
+while [ -z $(command -v "$PHP_PATH" 2>/dev/null) ]; do
+ echo "${PHP_PATH} in NOT EXIST command";
  echo -n "Input the PHP path:";
  read PHP_PATH
 done;
 
-YAF_MODULES=$($PHP_PATH -m|grep -c -w yaf)
+YAF_MODULES=$("$PHP_PATH" -m|grep -c -w "yaf")
 if [ $YAF_MODULES -eq 0 ] ; then
     echo "Yaf extension NOT EXIST!";
-    export PHP_PATH=$PHP_PATH
+    export PHP_PATH="$PHP_PATH"
     INSTALL_YAF ".dev"
+else
+    echo "Yaf has been installed";
 fi;
 
 echo "\"${PHP_PATH}\" -S 0.0.0.0:1122 -t \"${PROJECT_DIR}/public/\"">'server.cmd'
@@ -386,7 +454,7 @@ echo " "
 
 START_PHP_SERVER(){
   echo "start the local PHP server..."
-  sh server.cmd;
+  bash ./server.cmd;
 }
 
 
@@ -406,7 +474,7 @@ read CHOICE;
 if  [ ! -n "$CHOICE" ] ;then
  CHOICE=1;
 fi;
-
+echo ""
 case "$CHOICE" in
 "1") INIT_BASH_SCRIPT;
    INIT_VAGRANTFILE;

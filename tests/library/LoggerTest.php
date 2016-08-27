@@ -5,6 +5,9 @@ use \Logger as Logger;
 use \Yaf_Application as Application;
 use \PHPUnit_Framework_TestCase as TestCase;
 
+/**
+ * @coversDefaultClass \Logger
+ */
 class LoggerTest extends TestCase
 {
     protected $message;
@@ -69,7 +72,9 @@ class LoggerTest extends TestCase
         $this->popAssert($level, $msg);
     }
 
-
+    /**
+    * @covers ::write
+    */
     public function testWrite()
     {
         Logger::clear();
@@ -77,7 +82,6 @@ class LoggerTest extends TestCase
         $level[] = uniqid('test');
         $log1='test logger lower';
         $log2='isaverylongloggerstringfortesting';
-        $date=date('[d-M-Y H:i:s e] ');
         if ('file'===$this->type) {
             //文件存储形式
             foreach ($level as $l) {
@@ -85,7 +89,8 @@ class LoggerTest extends TestCase
                 Logger::write($log2, $l);
                 $file=static::getLogFile($l);
                 if (in_array($l, $this->allow)) {
-                    $message=$date.$log1.PHP_EOL.$date.$log2.PHP_EOL;
+                    $pre=date('[d-M-Y H:i:s e] (').getenv('REQUEST_URI').') ' ;
+                    $message=$pre.$log1.PHP_EOL.$pre.$log2.PHP_EOL;
                     $this->assertStringEqualsFile($file, $message);
                     static::assertMode($file);
                 } else {
@@ -99,6 +104,7 @@ class LoggerTest extends TestCase
                 Logger::write($log1, strtolower($l));
                 Logger::write($log2, $l);
                 if (in_array($l, $this->allow)) {
+                    $date=date('[d-M-Y H:i:s e] ');
                     $message.=$date."$l: $log1".PHP_EOL.$date."$l: $log2".PHP_EOL;
                 }
             }
@@ -173,6 +179,7 @@ class LoggerTest extends TestCase
 
     /**
     * @requires OS Linux
+    * @covers ::getFile
     */
     public function testDirMode()
     {

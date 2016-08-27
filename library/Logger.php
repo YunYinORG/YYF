@@ -58,7 +58,7 @@ class Logger
                 case 'sae': //sae日志
                     return sae_debug($level . ': ' . $msg);
                 case 'file': //文件日志
-                    $msg = date('[d-M-Y H:i:s e] ') . $msg . PHP_EOL;
+                    $msg = date('[d-M-Y H:i:s e] (').getenv('REQUEST_URI').') ' . $msg . PHP_EOL;
                     return file_put_contents(Logger::getFile($level), $msg, FILE_APPEND);
                 default:
                     throw new Exception('未知日志类型' . $config['type']);

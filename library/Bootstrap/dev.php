@@ -1,6 +1,7 @@
 <?php
 use \Storage\File as File;
 use \Logger as Logger;
+use \Service\Database as Database;
 
 /**
  * 调试启动加载
@@ -19,7 +20,6 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
     {
         $assert = Config::get('assert');
         if ($assert['active']) {
-            header('Content-type: text/html; charset=utf-8');
             if (version_compare(PHP_VERSION, '7.0.0', '>=')) { //for php7
 
                 //判断环境
@@ -41,14 +41,7 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
             assert_options(ASSERT_ACTIVE, true);
            
             //断言错误回调
-            $assert_callback = function ($script, $line, $code, $message = null) {
-                echo "\n断言错误触发：\n<br>",
-                     '<b><q>', $message, "</q></b><br>\n",
-                    "触发位置$script 第$line 行:<br>\n 判断逻辑<b><code> $code </code></b>\n<br/>",
-                    '(这里通常不是错误位置，是错误的调用方式或者参数引起的，请仔细检查)',
-                     "<br>\n<small>(tips:断言错误是在正常逻辑中不应出现的情况，生产环境关闭系统断言提高性能)</small>\n<br>";
-            };
-            assert_options(ASSERT_CALLBACK, $assert_callback);
+            assert_options(ASSERT_CALLBACK, 'Debug::assertCallback');
         } else {
             assert_options(ASSERT_ACTIVE, false);
         }
@@ -89,32 +82,13 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
 
     /**
      * 记录数据库查询
-     * @method _initSqlLog
+     * @method _initSqlListener
      * @author NewFuture
      */
-    public function _initSqlLog()
+    public function _initSqlListener()
     {
-        /*记录执行次数*/
-        Yaf_Registry::set('_sql_exec_id', 0);
-        /*执行前调用*/
-        \Service\Database::$before=function (&$sql, &$param, $name) {
-            $id=Yaf_Registry::get('_sql_exec_id');
-            Yaf_Registry::set('_sql_exec_id', $id+1);
-            Yaf_Registry::set('_sql_exec_t', microtime(true));
-            Logger::write('[SQL'. str_pad($id, 3, '0', STR_PAD_LEFT).'] '.$sql, 'SQL');
-            if ($param) {
-                Logger::write('[params] '.json_encode($param, JSON_UNESCAPED_UNICODE), 'SQL');
-            }
-        };
-        /*执行后调用*/
-        \Service\Database::$after=function (&$db, &$result, $name) {
-            Logger::write('[result] '.json_encode($result, JSON_UNESCAPED_UNICODE), 'SQL');
-            if ($db->errorCode()!=0) {
-                Logger::write('[ERROR!] '.json_encode($db->errorInfo(), JSON_UNESCAPED_UNICODE), 'SQL');
-            }
-            $timer=microtime(true)-Yaf_Registry::get('_sql_exec_t');
-            Logger::write('[inform] '.($timer*1000).' ms ('.$name. ") \n\r", 'SQL');
-        };
+        Database::$before = 'Debug::sqlBeforeListener';
+        Database::$after  = 'Debug::sqlAfterListener';
     }
 
     /**
