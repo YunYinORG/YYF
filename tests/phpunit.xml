@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<phpunit bootstrap="./init.php"
+<phpunit bootstrap="../library/Test/YafCase.php"
          backupGlobals="false"
          backupStaticAttributes="false"
          convertErrorsToExceptions="true"
@@ -9,20 +9,24 @@
          colors="true">
 
     <testsuites>
-
-        <testsuite name="Environment">
-            <file>EnvTest.php</file>
-        </testsuite>
-    
-        <testsuite name="Library">
+        <testsuite name="library">
             <directory>library</directory>
         </testsuite>
-        
     </testsuites>
 
+    <php>
+        <ini name="yaf.use_spl_autoload" value="ON"/>
+        <ini name="display_errors" value="ON"/>
+        <const name="TRACER_OFF" value="true"/>
+    </php>
+    
     <filter>
         <whitelist>
             <directory suffix=".php">../library</directory>
+             <exclude>
+                <directory>../library/Bootstrap/</directory>
+                <directory>../library/Test/</directory>
+            </exclude>
         </whitelist>
     </filter>
 

@@ -2,8 +2,7 @@
 namespace tests\library;
 
 use \Logger as Logger;
-use \Yaf_Application as Application;
-use \PHPUnit_Framework_TestCase as TestCase;
+use \Test\YafCase as TestCase;
 
 /**
  * @coversDefaultClass \Logger
@@ -19,8 +18,8 @@ class LoggerTest extends TestCase
     public function __construct()
     {
         parent::__construct();
-        $this->env=Application::app()->environ();
-        $conf=Application::app()->getConfig()->log;
+        $this->env=$this->app->environ();
+        $conf=$this->app->getConfig()->log;
         $this->type=$conf->type;
         $this->allow=explode(',', strtoupper($conf->allow));
         if ('system'===$conf->type) {
@@ -32,7 +31,7 @@ class LoggerTest extends TestCase
     public static function getLogFile($key=null)
     {
         if ($key) {
-            return Application::app()->getConfig()->runtime.'log/'. date('y-m-d-').strtoupper($key).'.log';
+            return static::app()->getConfig()->runtime.'log/'. date('y-m-d-').strtoupper($key).'.log';
         }
         return APP_PATH.'/runtime/test_error_log.txt';
     }
@@ -168,7 +167,7 @@ class LoggerTest extends TestCase
     public function testClear()
     {
         if ('file'===$this->type) {
-            $dir=Application::app()->getConfig()->runtime.'log/';
+            $dir=$this->app->getConfig()->runtime.'log/';
             Logger::write('test', "ERROR");
             Logger::write('test', 'ALERT');
             $this->assertGreaterThan(2, count(scandir($dir)));
@@ -196,7 +195,7 @@ class LoggerTest extends TestCase
     */
     public function assertMode($path, $base=0666)
     {
-        $umask = Application::app()->getConfig()->umask;
+        $umask = $this->app->getConfig()->umask;
         if (null===$umask) {
             $mode=0700&$base;
         } else {

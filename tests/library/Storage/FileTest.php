@@ -2,8 +2,7 @@
 namespace tests\library\Storage;
 
 use \Storage\File as File;
-use \Yaf_Application as Application;
-use \PHPUnit_Framework_TestCase as TestCase;
+use \Test\YafCase as TestCase;
 
 /**
  * @coversDefaultClass \Storage\File
@@ -19,7 +18,7 @@ class FileTest extends TestCase
     {
         static::$dir=APP_PATH.DIRECTORY_SEPARATOR.'runtime'.DIRECTORY_SEPARATOR.'tests'.DIRECTORY_SEPARATOR;
         static::$file=new File(static::$dir);
-        static::$env= Application::app()->environ();
+        static::$env= static::app()->environ();
     }
 
     /**
@@ -87,7 +86,7 @@ class FileTest extends TestCase
     */
     public function assertMode($path, $base=0666)
     {
-        $umask = Application::app()->getConfig()->umask;
+        $umask = $this->app->getConfig()->umask;
         if (null===$umask) {
             $mode=0700&$base;
         } else {

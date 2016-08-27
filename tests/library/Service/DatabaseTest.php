@@ -2,7 +2,7 @@
 namespace tests\library\Database;
 
 use \Service\Database as Database;
-use \PHPUnit_Framework_TestCase as TestCase;
+use \Test\YafCase as TestCase;
 
 /**
  * @coversDefaultClass \Service\Database
