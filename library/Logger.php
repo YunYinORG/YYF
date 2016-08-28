@@ -49,6 +49,7 @@ class Logger
             $config          = Config::get('log')->toArray();
             $config['type']  = strtolower($config['type']);
             $config['allow'] = explode(',', strtoupper($config['allow']));
+            isset($config['timezone']) && date_default_timezone_set($config['timezone']);
         }
 
         if (in_array($level, $config['allow'])) {
@@ -67,8 +68,9 @@ class Logger
     }
 
     /**
-     * 清空日志(仅对文件模式有效)
-     */
+    * 清空日志(仅对文件模式有效)
+    * @method write
+    */
     public static function clear()
     {
         $type = Config::get('log.type');
@@ -100,7 +102,6 @@ class Logger
                 if (!is_dir($logdir)) {
                     mkdir($logdir, 0777, true);
                 }
-                date_default_timezone_set('PRC');
                 $files['_dir'] = $logdir . DIRECTORY_SEPARATOR . date('y-m-d-');
             }
             
@@ -242,17 +243,15 @@ class Logger
      */
     public static function log($level, $message, array $context = null)
     {
-        if (!is_scalar($message)) {
-            $message = json_encode($message, 256); //256isJSON_UNESCAPED_UNICODE 兼容php5.3
-        } elseif ($context) {
-            //$context 不为空
+        if ($context) {
             $replace = array();
             foreach ($context as $key => &$val) {
-                if (!is_array($val) && (!is_object($val) || method_exists($val, '__toString'))) {
-                    $replace['{' . $key . '}'] = $val;
-                }
+                $replace['{' . $key . '}']=is_scalar($val)||method_exists($val, '__toString')?$val:json_endcode($val, 256);
             }
             $message = strtr($message, $replace);
+        } elseif (!(is_scalar($message) || method_exists($message, '__toString'))) {
+            //无法之间转成字符的数据json格式化
+            $message = json_encode($message, 256); //256isJSON_UNESCAPED_UNICODE 兼容php5.3
         }
         return Logger::write($message, $level);
     }

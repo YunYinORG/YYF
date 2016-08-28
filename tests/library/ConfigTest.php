@@ -10,6 +10,8 @@ use \Config as Config;
 class ConfigTest extends TestCase
 {
 
+    protected static $bootstrap = false;
+    
     /**
     * @covers ::get
     * 测试配置和配置文件是否一致

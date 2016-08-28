@@ -6,10 +6,15 @@
          convertErrorsToExceptions="true"
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
+         beStrictAboutTestsThatDoNotTestAnything="true"
          colors="true">
 
     <testsuites>
         <testsuite name="library">
+            <file>library/ConfigTest.php</file>
+            <file>library/LoggerTest.php</file>
+            <file>library/Storage/FileTest.php</file>
+            <file>library/KvTest.php</file>
             <directory>library</directory>
         </testsuite>
     </testsuites>
@@ -32,5 +37,6 @@
 
     <logging>
         <log type="coverage-text" target="php://stdout" showUncoveredFiles="false"/>
+        <log type="testdox-text" target="../runtime/phpunit/test.txt"/>
     </logging>
 </phpunit>

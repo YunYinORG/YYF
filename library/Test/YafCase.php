@@ -31,6 +31,14 @@ abstract class YafCase extends TestCase
                 $this->markTestSkipped('APP 启动失败！');
             }
         }
+        
+        if (!static::$bootstrap&&version_compare(PHP_VERSION, '5.4.8', '<')) {
+            //低版本(php5.3)关闭断言
+            assert_options(ASSERT_QUIET_EVAL, true);
+            assert_options(ASSERT_WARNING, false);
+            assert_options(ASSERT_BAIL, false);
+            assert_options(ASSERT_ACTIVE, false);
+        }
     }
 
     /**
@@ -53,5 +61,23 @@ abstract class YafCase extends TestCase
             }
             return $app;
         }
+    }
+
+    /**
+    * 检查文件权限，
+    * @param $base 基础值，文件0666 目录0777
+    * @param $umask
+    * @requires OS Linux
+    */
+    public function assertFileMode($path, $base=0666, $umask=null)
+    {
+        $umask =$umask ?: static::app()->getConfig()->umask;
+        if (null===$umask) {
+            $mode=0700&$base;
+        } else {
+            $mode= intval($umask, 8)&$base^$base;
+        }
+        clearstatcache();
+        $this->assertSame(fileperms($path)&$mode, $mode, $path.'文件权限与预设不符(file permission not the same)');
     }
 }

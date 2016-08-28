@@ -30,6 +30,9 @@ env:
 
 services:
   - mysql
+  - memcached
+  - redis-server
+  
 
 # optionally set up exclutions and allowed failures in the matrix
 # matrix:
@@ -43,15 +46,16 @@ install: true
 
 # execute any number of scripts before the test run, custom env's are available as variables
 before_script:
-  #use init.cmd YYF
-  #in dev test the server.cmd (php>=5.4)
+  # use init.cmd YYF ( test the server.cmd, when php>=5.4)
   - if [[ "$environ" == "dev" ]];then if [[ $TRAVIS_PHP_VERSION = "5.3" ]];then echo 3|./init.cmd;else(echo 2 | ./init.cmd &);fi;fi;
   - if [[ "$environ" == "product" ]];then echo 4|./init.cmd;fi;
-  # sqlite database
+  # init Sqlite database
   - sed '/^#MYSQL_START#/,/^#MYSQL_END#/d' tests/yyf.sql|sqlite3 runtime/yyf.db;
-  # mysql database
+  # init MySQL database
   - sed '/^#SQLITE_START#/,/^#SQLITE_END#/d' tests/yyf.sql|mysql -uroot;
-  # in dev environment waiting for the server start
+  # Enable redis.so
+  - echo "extension = redis.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  # Waiting for the php dev server to start
   - if [[ "$environ" == "dev" && $TRAVIS_PHP_VERSION != "5.3" ]];then while [ ! -f "server.cmd" ];do sleep 1;done;echo "Initialized!";fi; 
 
 # omitting "script:" will default to phpunit
@@ -66,6 +70,7 @@ script:
 after_failure:
   - if [[ "$environ" == "dev" && $TRAVIS_PHP_VERSION != "5.3" ]];then cat server.cmd ;fi;
   - cat runtime/log/*.log
+  - cat runtime/phpunit/test.txt
 
 # configure notifications (email, IRC, campfire etc)
 # notifications:

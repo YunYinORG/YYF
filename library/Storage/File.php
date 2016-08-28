@@ -51,7 +51,7 @@ class File
         if (is_file($filename)) {
             $content = file_get_contents($filename);
         } else {
-            return null; /*不存在返回null*/
+            return false; /*不存在返回null*/
         }
 
         if ($this->_serialized) {
@@ -84,7 +84,7 @@ class File
      */
     public function flush()
     {
-        File::cleanDir($this->_dir);
+        return File::cleanDir($this->_dir);
     }
 
     /**
@@ -113,12 +113,17 @@ class File
     public static function cleanDir($dir)
     {
         /*获取全部文件*/
+        if (!is_dir($dir)) {
+            return true;
+        }
         $files = scandir($dir);
         unset($files[0]);
         unset($files[1]);
+        $result=true;
         foreach ($files as &$f) {
-            @unlink($dir . $f);
+            $result=$result&&@unlink($dir . $f);
         }
         unset($files);
+        return $result;
     }
 }
