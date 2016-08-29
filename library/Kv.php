@@ -24,22 +24,53 @@ class Kv
      * @param  mixed $expire [有效时间]
      * @author NewFuture
      */
-    public static function set($name, $value)
+    public static function set($name, $value=null)
     {
-        return Kv::Handler()->set($name, $value);
+        $handler=Kv::handler();
+        if (is_array($name)) {
+            //数组设置
+            assert('null===$value', '[Kv::set]数组同步设置时,只支持一个参数');
+            if ('redis'===Kv::$type) {
+                return $handler->mset($name);
+            } else {
+                $result=0;
+                foreach ($name as $key => &$v) {
+                    $result+=$handler->set($key, $v);
+                }
+                return $result;
+            }
+        } else {
+            assert('is_scalar($value)', '[Kv::set]只支持保存字符串');
+            return $handler->set($name, $value);
+        }
     }
 
     /**
      * 读取缓存数据
      * @method get
-     * @param  [string] $name [缓存名称]
+     * @param  [string|array] $name [缓存名称]
      * @return [mixed]       [获取值]
      * @author NewFuture
      */
     public static function get($name, $default=false)
     {
-        $v = Kv::Handler()->get($name);
-        return (false===$v)? $default: $v;
+        $handler=Kv::handler();
+        if (is_array($name)) {
+            //数组获取
+            assert('false===$default', '[Kv::get]数组获取时，不能设置默认值');
+            if ('file'===Kv::$type) {
+                $result=array();
+                foreach ($name as &$k) {
+                    $result[]=$handler->get($k);
+                }
+                return $result;
+            } else {
+                return $handler->mget($name);
+            }
+        } else {
+            $result = $handler->get($name);
+            return (false===$result)? $default: $result;
+        }
     }
 
     /**
@@ -48,7 +79,7 @@ class Kv
      */
     public static function del($name)
     {
-        return Kv::Handler()->delete($name);
+        return Kv::handler()->delete($name);
     }
 
     /**
@@ -60,7 +91,7 @@ class Kv
      */
     public static function delete($name)
     {
-        return Kv::Handler()->delete($name);
+        return Kv::handler()->delete($name);
     }
 
     /**
@@ -70,7 +101,7 @@ class Kv
      */
     public static function flush()
     {
-        $handler=Kv::Handler();
+        $handler=Kv::handler();
         if ('redis'===Kv::$type) {
             return $handler->flushDB();
         } elseif ('sae'===Kv::$type) {
@@ -102,7 +133,7 @@ class Kv
      * @return $_handler
      * @author NewFuture
      */
-    public static function Handler()
+    public static function handler()
     {
         if ($handler = &Kv::$_handler) {
             return $handler;

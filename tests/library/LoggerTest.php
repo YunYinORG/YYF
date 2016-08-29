@@ -54,51 +54,6 @@ class LoggerTest extends TestCase
         }
     }
 
-    public function testWrite()
-    {
-        Logger::clear();
-        $level = static::$LEVEL;
-        $level[] = uniqid('test');
-        $log1='test logger lower';
-        $log2='isaverylongloggerstringfortesting';
-        if ('file'===static::$type) {
-            //文件存储形式
-            foreach ($level as $l) {
-                $file=static::getLogFile($l);
-                if (in_array($l, static::$allow)) {
-                    $this->assertEquals(true, Logger::write($log1, strtolower($l)));
-                    $this->assertEquals(true, Logger::write($log2, $l));
-                    $pre=date('[d-M-Y H:i:s e] (').getenv('REQUEST_URI').') ' ;
-                    $message=$pre.$log1.PHP_EOL.$pre.$log2.PHP_EOL;
-                    $this->assertStringEqualsFile($file, $message, $file);
-                    $this->assertFileMode($file);
-                } else {
-                    $this->assertEquals(false, Logger::write($log1, strtolower($l)));
-                    $this->assertEquals(false, Logger::write($log2, $l));
-                    $this->assertFileNotExists($file);
-                }
-            }
-        } elseif ('system'===static::$type) {
-            //系统日志
-            $message='';
-            foreach ($level as $l) {
-                $r1=Logger::write($log1, strtolower($l));
-                $r2=Logger::write($log2, $l);
-                if (in_array($l, static::$allow)) {
-                    $date=date('[d-M-Y H:i:s e] ');
-                    $message.=$date."$l: $log1".PHP_EOL.$date."$l: $log2".PHP_EOL;
-                    $this->assertEquals(true, $r1);
-                    $this->assertEquals(true, $r2);
-                } else {
-                    $this->assertEquals(false, $r1);
-                    $this->assertEquals(false, $r2);
-                }
-            }
-            $file=static::getLogFile();
-            $this->assertStringEqualsFile($file, $message);
-        }
-    }
-
     public function testListener()
     {
         $level='NOTICE';
@@ -111,7 +66,52 @@ class LoggerTest extends TestCase
         Logger::write($msg, $level);
         $this->assertPop($level, $msg);
     }
- 
+
+
+    public function testWrite()
+    {
+        $level = static::$LEVEL;
+        $level[] = uniqid('test');
+        $log1='test logger lower';
+        $log2='isaverylongloggerstringfortesting';
+        if ('file'===static::$type) {
+            //文件存储形式
+            foreach ($level as $l) {
+                $file=static::getLogFile($l);
+                if (in_array($l, static::$allow)) {
+                    $this->assertEquals(true, Logger::write($l.$log1, strtolower($l)));
+                    $this->assertEquals(true, Logger::write($l.$log2, $l));
+                    $pre=date('[d-M-Y H:i:s e] (').getenv('REQUEST_URI').') ' ;
+                    $message=$pre.$l.$log1.PHP_EOL.$pre.$l.$log2.PHP_EOL;
+                    $this->assertStringEqualsFile($file, $message);
+                    $this->assertFileMode($file);
+                } else {
+                    $this->assertEquals(false, Logger::write($log1, strtolower($l)));
+                    $this->assertEquals(false, Logger::write($log2, $l));
+                    $this->assertFileNotExists($file);
+                }
+            }
+        } elseif ('system'===static::$type) {
+            //系统日志
+            $message='';
+            foreach ($level as $l) {
+                $r1=Logger::write($l.$log1, strtolower($l));
+                $r2=Logger::write($l.$log2, $l);
+                if (in_array($l, static::$allow)) {
+                    $date=date('[d-M-Y H:i:s e] ');
+                    $message.=$date."$l: ${l}${log1}".PHP_EOL.$date."$l: ${l}${log2}".PHP_EOL;
+                    $this->assertEquals(true, $r1);
+                    $this->assertEquals(true, $r2);
+                } else {
+                    $this->assertEquals(false, $r1);
+                    $this->assertEquals(false, $r2);
+                }
+            }
+            $file=static::getLogFile();
+            $this->assertStringEqualsFile($file, $message);
+        }
+    }
+
     /**
     * @depends testListener
     */
