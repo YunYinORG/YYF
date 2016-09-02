@@ -77,9 +77,9 @@ class Kv
      * delete 别名
      * @author NewFuture
      */
-    public static function del($name)
+    public static function del($name, $time=0)
     {
-        return Kv::handler()->delete($name);
+        return Kv::handler()->delete($name, $time);
     }
 
     /**
@@ -89,9 +89,9 @@ class Kv
      * @return [bool]
      * @author NewFuture
      */
-    public static function delete($name)
+    public static function delete($name, $time=0)
     {
-        return Kv::handler()->delete($name);
+        return Kv::handler()->delete($name, $time);
     }
 
     /**
@@ -104,7 +104,7 @@ class Kv
         $handler=Kv::handler();
         if ('redis'===Kv::$type) {
             return $handler->flushDB();
-        } elseif ('sae'===Kv::$type) {
+        } elseif ('kvdb'===Kv::$type) {
             /*sae KVDB 逐个删除*/
             while ($ret = $handler->pkrget('', 100)) {
                 foreach ($ret as $k => &$v) {
@@ -156,7 +156,7 @@ class Kv
                $handler = new Storage\File(Config::get('runtime') . 'kv', false);
                break;
 
-            case 'sae':    //sae KVdb
+            case 'kvdb':    //sae KVdb
                 $handler = new \SaeKV();
                 if (!$handler->init()) {
                     Logger::write('SAE KV cannot init'.$handler->errmsg(), 'ERROR');
