@@ -2,6 +2,7 @@
 use \Storage\File as File;
 use \Logger as Logger;
 use \Service\Database as Database;
+use \Debug\Assertion as Assertion;
 
 /**
  * 调试启动加载
@@ -18,37 +19,8 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
      */
     public function _initAssert()
     {
-        $assert = Config::get('assert');
-        if ($assert['active']) {
-            if (version_compare(PHP_VERSION, '7.0.0', '>=')) { //for php7
-
-                //判断环境
-                if (-1 == ini_get('zend.assertions')) {
-                    exit("调试环境，请开启php7的断言，以便更早发现问题！\n<br>(<u>在php.ini 中的设置 zend.assertions = 1 开启断言【推荐】</u>;或者在 conf/app.ini 中设置 assert.active = 0 关闭此警告【不推荐】。)\n<br>In development environment, please open assertion for php7 to debug ! \n<br> (set 'zend.assertions = 1' in [php.ini][recommended]; or set 'assert.active = 0' in [conf/app.ini] to ignore this [not recommender].)");
-                }
-                //PHP7配置
-                ini_set('zend.assertions', 1);//开启断言
-                ini_set('assert.exception', 0);//关闭异常
-            } elseif (version_compare(PHP_VERSION, '5.4.8', '<')) {
-                //低版本(php5.3)关闭断言
-                assert_options(ASSERT_QUIET_EVAL, true);
-                assert_options(ASSERT_WARNING, false);
-                assert_options(ASSERT_BAIL, false);
-                assert_options(ASSERT_ACTIVE, false);
-                return;
-            }
-
-            assert_options(ASSERT_ACTIVE, true);
-           
-            //断言错误回调
-            assert_options(ASSERT_CALLBACK, 'Debug::assertCallback');
-        } else {
-            assert_options(ASSERT_ACTIVE, false);
-        }
-
-        assert_options(ASSERT_QUIET_EVAL, false);//关闭在断言表达式求值时禁用error_reporting
-        assert_options(ASSERT_WARNING, $assert['warning']);//为每个失败的断言产生一个 PHP 警告（warning)
-        assert_options(ASSERT_BAIL, $assert['bail']);//在断言失败时中止执行
+        $config = Config::get('assert')->toArray();
+        Assertion::init($config);
     }
 
     /**

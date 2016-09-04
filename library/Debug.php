@@ -51,14 +51,4 @@ class Debug
         Logger::write($message, 'SQL');
     }
 
-    /*断言出错回调*/
-    public static function assertCallback($script, $line, $code, $message = null)
-    {
-        header('Content-type: text/html; charset=utf-8');
-        echo "\n断言错误触发：\n<br>",
-        '<b><q>', $message, "</q></b><br>\n",
-        "触发位置$script 第$line 行:<br>\n 判断逻辑<b><code> $code </code></b>\n<br/>",
-        '(这里通常不是错误位置，是错误的调用方式或者参数引起的，请仔细检查)',
-        "<br>\n<small>(tips:断言错误是在正常逻辑中不应出现的情况，生产环境关闭系统断言提高性能)</small>\n<br>";
-    }
 }

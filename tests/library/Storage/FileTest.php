@@ -9,6 +9,7 @@ use \Test\YafCase as TestCase;
  */
 class FileTest extends TestCase
 {
+    const PRE='<?php //';
     const TEST_STRING='yyf file storage test';
     protected static $env;
     protected static $dir;
@@ -37,7 +38,7 @@ class FileTest extends TestCase
         $filename=static::$dir.$name.'.php';
         $this->assertFileExists($filename);
         $this->assertFileMode($filename);
-        $this->assertStringEqualsFile($filename, FileTest::TEST_STRING);
+        $this->assertStringEqualsFile($filename,FileTest::PRE.FileTest::TEST_STRING);
         return $name;
     }
 
