@@ -21,39 +21,86 @@ class Cache
     /**
      * 设置缓存
      * @method set
-     * @param  [type]  $name   [description]
-     * @param  [type]  $value  [description]
-     * @param  mixed $expire [有效时间]
+     * @param  string|array  $name   键
+     * @param  [mixed]  $value  值
+     * @param  int $expire [缓存时间]
      * @author NewFuture
      */
-    public static function set($name, $value, $expire = 0)
+    public static function set($name, $value = 0, $expire = 0)
     {
         $handler = Cache::handler();
-        if ('memcache'=== Cache::$type) {
-            return $handler->set($name, $value, null, $expire);
+
+        if (is_array($name)) {
+            //数组批量设置
+            assert(func_num_args()<3, '[Cache::set]第一个参数为数组时(批量设置)，最多两个参数');
+            assert('is_numeric($value)', '[Cache::set]批量设置时，第二个参数时间必须为数字');
+            $expire = $value > 0 ? $_SERVER['REQUEST_TIME']+$value : 0;
+            
+            switch (Cache::$type) {
+                case 'memcached':
+                    return $handler->setMulti($name, $expire);
+
+                case 'file':
+                    return $handler->mset($name, $expire);
+                
+                case 'memcache':
+                    $result = false;
+                    foreach ($name as $k => &$v) {
+                        $result = $result && $handler->set($k, $v, null, $value);//memcache 原始时间
+                    }
+                    return $result;
+            }
         } else {
-            $expire = $expire > 0 ? $_SERVER['REQUEST_TIME'] + $expire : 0;
-            return  $handler->set($name, $value, $expire);
+            //单条设置
+            assert(func_num_args()>1, '[Cache::set]第一个参数为数组时(批量设置)，最多两个参数');
+            if ('memcache'=== Cache::$type) {
+                return $handler->set($name, $value, null, $expire);
+            } else {
+                $expire = $expire > 0 ? $_SERVER['REQUEST_TIME']+$expire : 0;
+                return  $handler->set($name, $value, $expire);
+            }
         }
     }
 
     /**
      * 读取缓存数据
      * @method get
-     * @param  [type] $name [description]
-     * @return [type]       [description]
+     * @param  string|array $name [description]
+     * @param  [mixed] $default [默认值false]
+     * @return mixed       [获取结果]
      * @author NewFuture
      */
     public static function get($name, $default=false)
     {
-        $value = Cache::handler()->get($name);
-        return false===$value?$default:$value;
+        $handler = Cache::handler();
+        if (is_array($name)) {
+            //数组批量获取
+            assert(func_num_args()===1, '[Cache::get]参数为数组时(批量设置)，只能有一个参数');
+            switch (Cache::$type) {
+                case 'memcached':
+                    return $handler->getMulti($name);
+
+                case 'file':
+                    return $handler->mget($name);
+                
+                case 'memcache':
+                    $result = array();
+                    foreach ($name as &$key) {
+                        $result[$key] = $handler->get($key);//memcache 原始时间
+                    }
+                    return $result;
+            }
+        } else {
+            $value = $handler->get($name);
+            return false===$value? $default:$value;
+        }
     }
 
     /**
      * 删除缓存数据
      * @method del
-     * @param  [type] $name [description]
+     * @param  string $name 键值
+     * @param  [int] $time [设置延迟时间,对文件类型无效]
      * @return [bool]
      * @author NewFuture
      */

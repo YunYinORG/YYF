@@ -10,11 +10,18 @@
          colors="true">
 
     <testsuites>
-        <testsuite name="library">
+        <testsuite name="config">
             <file>library/ConfigTest.php</file>
+        </testsuite>
+        <testsuite name="log">
             <file>library/LoggerTest.php</file>
+         </testsuite>
+         <testsuite name="storage">
             <file>library/Storage/FileTest.php</file>
             <file>library/KvTest.php</file>
+            <file>library/CacheTest.php</file>
+        </testsuite>
+        <testsuite name="library">
             <directory>library</directory>
         </testsuite>
     </testsuites>

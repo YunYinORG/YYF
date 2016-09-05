@@ -12,7 +12,8 @@ class KvTest extends TestCase
     protected static $DATA=array(
         '_test_key_s'=>'test_value',
         '_test_key_n'=>123,
-        '_test_key_l'=>'ss'
+        '_test_key_l'=>'ss',
+        '_test_key_null'=>null,
     );
 
     protected static $mDATA=array(
@@ -20,11 +21,6 @@ class KvTest extends TestCase
         '_test_kv2_n'=>22123,
         '_test_kv2_l'=>'222ss'
     );
-
-    public static function setUpBeforeClass()
-    {
-        Kv::flush();
-    }
 
     public static function tearDownAfterClass()
     {
@@ -34,14 +30,14 @@ class KvTest extends TestCase
     public function testSet()
     {
         foreach (KvTest::$DATA as $key => &$value) {
-            $this->assertEquals(true, Kv::set($key, $value));
+            $this->assertTrue(Kv::set($key, $value));
         }
     }
 
-    public function testMset()
+    public function testMSet()
     {
         //mset
-        $this->assertGreaterThan(0, Kv::set(static::$mDATA));
+        $this->assertTrue(Kv::set(static::$mDATA));
     }
 
     /**
@@ -64,34 +60,35 @@ class KvTest extends TestCase
         //mget
         $data=static::$mDATA;
         $keys=array_keys($data);
-        $data=array_values($data);
         $this->assertEquals($data, Kv::get($keys));
         //mget with
-        $keys[0]='_no.ttkv_key1_.'.rand();
-        $data[0]=false;
-        $keys[]='_no_testkv_key_'.rand();
-        $data[]=false;
+        $key='_no.ttkv_key1_.'.rand();
+        $keys[] = $key;
+        $data[$key] = false;
+        $key = '_no_testkv_key_'.rand();
+        $keys[] = $key;
+        $data[$key] = false;
         $this->assertEquals($data, Kv::get($keys));
     }
 
     /**
     * @depends testSet
     */
-    public function testDelete()
+    public function testDel()
     {
         $key=uniqid('_t_kv_d');
         Kv::Handler()->set($key, 'value');
         $this->assertEquals(true, Kv::del($key));
         $this->assertFalse(Kv::get($key));
 
-        $key='new'.$key;
-        Kv::Handler()->set($key, 'value for delete');
-        $this->assertEquals(true, Kv::delete($key));
-        $this->assertFalse(Kv::get($key));
+        // $key='new'.$key;
+        // Kv::Handler()->set($key, 'value for delete');
+        // $this->assertEquals(true, Kv::delete($key));
+        // $this->assertFalse(Kv::get($key));
     }
 
     /**
-    * @depends testDelete
+    * @depends testDel
     */
     public function testFlush()
     {

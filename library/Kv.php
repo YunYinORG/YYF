@@ -29,18 +29,19 @@ class Kv
         $handler=Kv::handler();
         if (is_array($name)) {
             //数组设置
-            assert('null===$value', '[Kv::set]数组同步设置时,只支持一个参数');
-            if ('redis'===Kv::$type) {
-                return $handler->mset($name);
-            } else {
-                $result=0;
+            assert(func_num_args() === 1, '[Kv::set]数组同步设置时,只支持一个参数');
+            if ('kvdb'===Kv::$type) {
+                //for sae
+                $result = true;
                 foreach ($name as $key => &$v) {
-                    $result+=$handler->set($key, $v);
+                    $result = $result && $handler->set($key, $v);
                 }
                 return $result;
+            } else {
+                return $handler->mset($name);
             }
         } else {
-            assert('is_scalar($value)', '[Kv::set]只支持保存字符串');
+            assert('is_scalar($value)||is_null($value)', '[Kv::set]只支持保存字符串');
             return $handler->set($name, $value);
         }
     }
@@ -59,15 +60,12 @@ class Kv
             //数组获取
             assert('false===$default', '[Kv::get]数组获取时，不能设置默认值');
             if ('file'===Kv::$type) {
-                $result=array();
-                foreach ($name as &$k) {
-                    $result[]=$handler->get($k);
-                }
-                return $result;
-            } else {
                 return $handler->mget($name);
+            } else {
+                return array_combine($name, $handler->mget($name));
             }
         } else {
+            //单个值获取
             $result = $handler->get($name);
             return (false===$result)? $default: $result;
         }
@@ -78,18 +76,6 @@ class Kv
      * @author NewFuture
      */
     public static function del($name, $time=0)
-    {
-        return Kv::handler()->delete($name, $time);
-    }
-
-    /**
-     * 删除缓存数据
-     * @method del
-     * @param  [string] $name [缓存名称]
-     * @return [bool]
-     * @author NewFuture
-     */
-    public static function delete($name, $time=0)
     {
         return Kv::handler()->delete($name, $time);
     }

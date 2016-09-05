@@ -20,9 +20,9 @@ abstract class YafCase extends TestCase
 
     protected $app=null;
 
-    public function __construct()
+    public function __construct($name=null, array $data=array(), $dataName='')
     {
-        parent::__construct();
+        call_user_func_array('parent::__construct', func_get_args());
         if (!extension_loaded('yaf')) {
             $this->markTestSkipped('YAF扩展未加载[not YAF extension]');
         }
