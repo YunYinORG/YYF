@@ -126,7 +126,6 @@ class Header
         $verion = Config::get('version');
         $env = ini_get('yaf.environ');
         header(strtoupper(static::HEADER_BASE). ": $verion,$env");
-        ob_start();
     }
 
     /**
@@ -168,10 +167,5 @@ class Header
             $object_as_array[$type] = in_array($value, static::$_processed, true) ? '__CLASS__[' . get_class($value) . ']' : static::_convertObject($value);
         }
         return $object_as_array;
-    }
-
-    public function __destruct()
-    {
-        ob_end_flush();
     }
 }

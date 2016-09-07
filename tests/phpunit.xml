@@ -29,7 +29,6 @@
     <php>
         <ini name="yaf.use_spl_autoload" value="ON"/>
         <ini name="display_errors" value="ON"/>
-        <const name="TRACER_OFF" value="true"/>
     </php>
     
     <filter>
@@ -38,6 +37,7 @@
              <exclude>
                 <directory>../library/Bootstrap/</directory>
                 <directory>../library/Test/</directory>
+                <directory>../library/Debug/</directory>
             </exclude>
         </whitelist>
     </filter>

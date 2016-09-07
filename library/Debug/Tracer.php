@@ -17,7 +17,6 @@ class Tracer extends Plugin
     protected static $observer = array();
     protected static $_instance = null;
 
-
     public static function Instance()
     {
         return static::$_instance?:(static::$_instance=new static);
@@ -38,12 +37,6 @@ class Tracer extends Plugin
         $this->time['routerstartup'] = microtime(true) * 1000;
     }
 
-    //路由结束之后触发，此时路由一定正确完成, 否则这个事件不会触发
-    // public function routerShutdown(Yaf_Request_Abstract $request, Yaf_Response_Abstract $response)
-    // {
-    // 	$this->time['routershutdown'] = microtime(true) * 1000;
-    // }
-
     //分发循环开始之前被触发
     public function dispatchLoopStartup(Request $request, Response $response)
     {
@@ -52,28 +45,11 @@ class Tracer extends Plugin
         $this->mem['dispatch']             = memory_get_usage() / 1024;
     }
 
-    //分发之前触发	如果在一个请求处理过程中, 发生了forward, 则这个事件会被触发多次
-    // 	public function preDispatch(Yaf_Request_Abstract $request, Yaf_Response_Abstract $response)
-    // 	{
-    // 		$this->time['predispatch'] = microtime(true) * 1000;
-    // 	}
-
     //分发结束之后触发，此时动作已经执行结束, 视图也已经渲染完成. 和preDispatch类似, 此事件也可能触发多次
     public function postDispatch(Request $request, Response $response)
     {
         $this->time['postdispatch'] = microtime(true) * 1000;
     }
-
-    //分发循环结束之后触发，此时表示所有的业务逻辑都已经运行完成, 但是响应还没有发送
-    // public function dispatchLoopShutdown(Yaf_Request_Abstract $request, Yaf_Response_Abstract $response)
-    // {
-    // 	$this->time['dispatchloopshutdown'] = microtime(true) * 1000;
-    // }
-
-    // public function preResponse(Yaf_Request_Abstract $request, Yaf_Response_Abstract $response)
-    // {
-    // 	$this->time['preresponse'] = microtime(true) * 1000;
-    // }
 
     /**
     * 添加统计观察者
