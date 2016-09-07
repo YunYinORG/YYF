@@ -56,11 +56,16 @@ class Logger
             switch ($config['type']) {
                 case 'system': // 系统日志
                     return error_log($level . ': ' . $msg);
+
+                case 'file': //文件日志
+                    return file_put_contents(
+                                Logger::getFile($level),
+                                date('[d-M-Y H:i:s e] (').$_SERVER['REQUEST_URI'].') ' . $msg . PHP_EOL,
+                                FILE_APPEND);
+
                 case 'sae': //sae日志
                     return sae_debug($level . ': ' . $msg);
-                case 'file': //文件日志
-                    $msg = date('[d-M-Y H:i:s e] (').getenv('REQUEST_URI').') ' . $msg . PHP_EOL;
-                    return file_put_contents(Logger::getFile($level), $msg, FILE_APPEND);
+
                 default:
                     throw new Exception('未知日志类型' . $config['type']);
             }
@@ -103,6 +108,9 @@ class Logger
                     mkdir($logdir, 0777, true);
                 }
                 $files['_dir'] = $logdir . DIRECTORY_SEPARATOR . date('y-m-d-');
+                
+                //如果没有设置REQUEST_URI[命令行模式],自动补为null
+                isset($_SERVER['REQUEST_URI']) || $_SERVER['REQUEST_URI'] = null;
             }
             
             $file        = $files['_dir'] . $tag . '.log';

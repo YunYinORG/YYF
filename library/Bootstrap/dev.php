@@ -1,17 +1,30 @@
 <?php
-use \Storage\File as File;
+use \Yaf_Bootstrap_Abstract as Bootstrap_Abstract;
 use \Logger as Logger;
 use \Service\Database as Database;
 use \Debug\Assertion as Assertion;
+use \Debug\Tracer as Tracer;
+
+define('YYF_INIT_TIME', microtime(true)); //启动时间
+define('YYF_INIT_MEM', memory_get_peak_usage()); //启动内存峰值
 
 /**
  * 调试启动加载
  */
-define('YYF_INIT_TIME', microtime(true)); //启动时间
-define('YYF_INIT_MEM', memory_get_peak_usage()); //启动内存峰值
-
-class Bootstrap extends Yaf_Bootstrap_Abstract
+class Bootstrap extends Bootstrap_Abstract
 {
+    /**
+     * 添加路由
+     * @method _initRoute
+     * @author NewFuture
+     */
+    public function _initRoute(Yaf_Dispatcher $dispatcher)
+    {
+        if ($routes = Config::get('routes')) {
+            $dispatcher->getRouter()->addConfig($routes);
+        }
+    }
+
     /**
      * 断言设置
      * @method _initAssert
@@ -30,7 +43,7 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
      */
     public function _initDebug()
     {
-        if ($debug = Config::get('debug.type')) {
+        if ($debug = Config::get('debug.error')) {
             error_reporting(E_ALL); //错误回传
             switch (strtolower($debug)) {
 
@@ -47,8 +60,17 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
                     exit("未知调试类型设置,请检查[conf/app.ini]中的debug.type参数配置\n<br>unkown debug type: $debug . check 'debug.type' setting in [conf/app.ini]");
             }
         }
-        if (Config::get('debug.dumpsql')) {
-            \Service\Database::$debug=true;
+    }
+
+    /**
+     * 开启日志监控
+     * @method _initLogListener
+     * @author NewFuture
+     */
+    public function _initLogListener()
+    {
+        if ($listen=Config::get('debug.listen')) {
+            Debug::instance()->listenLog($listen);
         }
     }
 
@@ -59,35 +81,27 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
      */
     public function _initSqlListener()
     {
-        Database::$before = 'Debug::sqlBeforeListener';
-        Database::$after  = 'Debug::sqlAfterListener';
-    }
-
-    /**
-     * 添加路由
-     * @method _initRoute
-     * @author NewFuture
-     */
-    public function _initRoute(Yaf_Dispatcher $dispatcher)
-    {
-        if ($routes = Config::get('routes')) {
-            $dispatcher->getRouter()->addConfig($routes);
+        if ($config=Config::get('debug.sql')) {
+            if ($output=$config->get('output')) {
+                Debug::instance()->initSQL($output, $config->get('result'));
+            }
+            if ($config->get('dumpdo')) {
+                \Service\Database::$debug=true;
+            }
         }
     }
 
     /**
-     * 加载插件
-     * @method _initPlugin
+     * 加载统计插件
+     * @method _initTracer
      * @param  Yaf_Dispatcher $dispatcher [description]
-     * @return [type]                     [description]
-     * @access private
      * @author NewFuture
      */
-    public function _initPlugin(Yaf_Dispatcher $dispatcher)
+    public function _initTracer(Yaf_Dispatcher $dispatcher)
     {
-        if (false===defined('TRACER_OFF')) {
-            $tracer = new TracerPlugin();
-            $dispatcher->registerPlugin($tracer);
+        if ($tacerdebug=Config::get('debug.tracer')) {
+            $dispatcher->registerPlugin(Tracer::Instance());
+            Debug::instance()->initTracer($tacerdebug);
         }
     }
 }
