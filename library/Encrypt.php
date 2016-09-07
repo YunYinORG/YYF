@@ -479,10 +479,9 @@ class Encrypt
 	{
 		if (null == self::$_config)
 		{
-			$path          = Config::get('secret_config_path');
-			self::$_config = (new Yaf_Config_Ini($path, 'encrypt'))->toArray();
+			self::$_config = Config::getSecret('encrypt');
 		}
-		return self::$_config[$key];
+		return self::$_config->get($key);
 	}
 
 }

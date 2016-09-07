@@ -1,4 +1,7 @@
 <?php
+use \Yaf_Application as Application;
+use \Yaf_Config_Ini as Ini;
+
 /**
  * 对应用配置的封装，方便读取
  * Config::get('config')
@@ -16,13 +19,13 @@ class Config
      * @return [mixed]         	 [返回结果]
      * @author NewFuture
      */
-    public static function get($key = null, $default = null)
+    public static function get($key, $default = null)
     {
-        if (!$config=&Config::$_config) {
-            $config=Yaf_Application::app()->getConfig();
+        if (!$config = &Config::$_config) {
+            $config = Application::app()->getConfig();
         }
-        $value = $config -> get($key);
-        return null===$value ? $default : $value;
+        $value = $config->get($key);
+        return null === $value ? $default : $value;
     }
 
     /**
@@ -36,11 +39,11 @@ class Config
      *  Config::getSecrect('encrypt') 获取取私密配置中的encrypt所有配置
      *  Config::getSecrect('encrypt'，'key') 获取取私密配置中的encrypt配置的secret值
      */
-    public static function getSecret($name = '', $key = null)
+    public static function getSecret($name, $key = null)
     {
-        if (!$secret=&Config::$_secret) {
-            $secret = new Yaf_Config_Ini(Config::get('secret_config_path'));
+        if (!$secret = &Config::$_secret) {
+            $secret = new Ini(Config::get('secret_path'));
         }
-        return $key?$secret->get($name)->get($key):$secret->get($name);
+        return $key ? $secret->get($name)->get($key) : $secret->get($name);
     }
 }

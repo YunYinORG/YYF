@@ -49,7 +49,7 @@ class ConfigTest extends TestCase
      */
     public function testSecretPath()
     {
-        $secret_ini=Config::get('secret_config_path');
+        $secret_ini=Config::get('secret_path');
         $this->assertFileExists($secret_ini, $secret_ini.' Config cannot find');
         return $secret_ini;
     }
