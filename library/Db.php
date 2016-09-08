@@ -1,5 +1,6 @@
 <?php
 use \Service\Database as Database;
+use \Orm as Orm;
 
 /**
  * 数据库管理类
@@ -34,32 +35,39 @@ class Db
         }
         $username = isset($config['username']) ? $config['username'] : null;
         $password = isset($config['password']) ? $config['password'] : null;
-        $options  = isset($config['options']) ? $config['options']:array();
-        
-        $options[PDO::ATTR_EMULATE_PREPARES]=false;
-        if (Config::getSecret('database', 'exception')) {
-            //执行出错抛出异常
-            $options [PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
+     
+        $options = Config::getSecret('database', 'options')->toArray();
+        if (isset($config['options'])) {
+            assert('is_array($config["options"])', '[Db::connect]数据库连接参数options配置应是数组');
+            $options = array_merge($options, $config['options']);
         }
 
         try {
             return Db::$_dbpool[$key]=new Database($config['dsn'], $username, $password, $options);
         } catch (Exception $e) {
-            Logger::log('ALERT', '[Db::connect]数据库[{KEY}]({DSN})无法连接:{MSG}',
-                    array('KEY'=>$key, 'DSN'=>$config['dsn'], 'MSG'=>$e->getMessage()));
+            Logger::log(
+                'ALERT',
+                '[Db::connect]数据库[{KEY}]({DSN})无法连接:{MSG}',
+                array('KEY'=>$key, 'DSN'=>$config['dsn'], 'MSG'=>$e->getMessage())
+            );
             throw $e;
         }
     }
 
     /**
-    * 获取当前数据库连接,如果没有数据库事例将读取默认配置
+    * 获取或者设置当前数据库连接,如果没有数据库事例将读取默认配置
     * @method current
+    * @param  Database  $db  要设定的数据库，空返回当前数据库
     * @return [object] Database
     * @author NewFuture
     */
-    public static function current()
+    public static function current(Database $db = null)
     {
-        return Db::$current?:(Db::$current=Db::connect());
+        if (null === $db) {
+            return Db::$current?:(Db::$current=Db::connect());
+        } else {
+            return Db::$current=$db;
+        }
     }
 
     /**
@@ -78,10 +86,9 @@ class Db
     }
 
     /**
-    * 指定并切换数据库
-    * 之后DB直接查询将使用此数据库
+    * 设定换数据库,可以覆盖默认数据库配置
     * @method set
-    * @param string $name 设置名称
+    * @param string $name 设置名称，‘_’,'_read','_write'
     * @param mixed  $config 配置名称
     * @return [object] Database
     * @author NewFuture
@@ -92,7 +99,7 @@ class Db
         switch (func_num_args()) {
             case 2://一个参数，对象，数组，配置名或者dsn
                 if ($config instanceof Database) {
-                    return Db::$current=$config;
+                    return Db::$_dbpool[$name]=$config;
                 }
                 if (is_string($config)&&strpos($config, ':')>0) {
                     $conf['dsn']=&$config;
@@ -155,7 +162,7 @@ class Db
     * @return mixed 查询结果
     * @author NewFuture
     */
-    public static function query($sql, array $params=null, $fetchAll=true, $fetchmode = PDO::FETCH_ASSOC)
+    public static function query($sql, array $params=null, $fetchAll=true, $fetchmode=null)
     {
         return Db::get('_read')->query($sql, $params, $fetchAll, $fetchmode);
     }

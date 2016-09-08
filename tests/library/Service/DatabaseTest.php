@@ -3,7 +3,7 @@ namespace tests\library\Database;
 
 use \Service\Database as Database;
 use \Test\YafCase as TestCase;
-
+use \PDO as PDO;
 /**
  * @coversDefaultClass \Service\Database
  */
@@ -17,10 +17,14 @@ class DatabaseTest extends Testcase
         if (!isset(static::$db['mysql'])) {
             $dsn='mysql:host=localhost;port=3306;dbname=yyf;charset=utf8';
             static::$db['mysql']=new Database($dsn, 'root');
+            static::$db['mysql']->setAttribute(PDO::ATTR_EMULATE_PREPARES,false);
+            static::$db['mysql']->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);
         }
         if (!isset(static::$db['sqlite'])) {
             $dsn='sqlite:'. APP_PATH.'/runtime/yyf.db';
             static::$db['sqlite']=new Database($dsn);
+            static::$db['sqlite']->setAttribute(PDO::ATTR_EMULATE_PREPARES,false);
+            static::$db['sqlite']->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);
         }
     }
 
@@ -98,17 +102,17 @@ class DatabaseTest extends Testcase
         $this->assertCount(2, $db->query('SELECT * FROM user'));
         $dataset=array(
             array(
-                'id'=>'1',
+                'id'=>1,
                 'account'=>'newfuture',
                 'name'=>'New Future',
             )
         );
         $user=$db->query('SELECT id,account,name FROM user WHERE id=?', array(1));
-        $this->assertSame($dataset, $user);
+        $this->assertEquals($dataset, $user);
         $user=$db->query('SELECT id,account,name FROM user WHERE id=:id', array(':id'=>1));
-        $this->assertSame($dataset, $user);
+        $this->assertEquals($dataset, $user);
         $user=$db->query('SELECT id,account,name FROM user WHERE id=:id LIMIT 1', array('id'=>1), false);
-        $this->assertSame($dataset[0], $user);
+        $this->assertEquals($dataset[0], $user);
     }
 
     public function columnAssert($db)

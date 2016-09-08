@@ -15,13 +15,17 @@
         </testsuite>
         <testsuite name="log">
             <file>library/LoggerTest.php</file>
-         </testsuite>
-         <testsuite name="storage">
+        </testsuite>
+        <testsuite name="storage">
             <file>library/Storage/FileTest.php</file>
             <file>library/KvTest.php</file>
             <file>library/CacheTest.php</file>
         </testsuite>
-        <testsuite name="library">
+        <testsuite name="database">
+            <file>library/Service/DatabaseTest.php</file>
+            <file>library/DbTest.php</file>
+        </testsuite>
+        <testsuite name="others">
             <directory>library</directory>
         </testsuite>
     </testsuites>
