@@ -34,14 +34,13 @@ class Cache
             //数组批量设置
             assert(func_num_args()<3, '[Cache::set]第一个参数为数组时(批量设置)，最多两个参数');
             assert('is_numeric($value)', '[Cache::set]批量设置时，第二个参数时间必须为数字');
-            $expire = $value > 0 ? $_SERVER['REQUEST_TIME']+$value : 0;
             
             switch (Cache::$type) {
                 case 'memcached':
-                    return $handler->setMulti($name, $expire);
+                    return $handler->setMulti($name, $value);
 
                 case 'file':
-                    return $handler->mset($name, $expire);
+                    return $handler->mset($name, $value);
                 
                 case 'memcache':
                     $result = false;
@@ -53,10 +52,9 @@ class Cache
         } else {
             //单条设置
             assert(func_num_args()>1, '[Cache::set]第一个参数为数组时(批量设置)，最多两个参数');
-            if ('memcache'=== Cache::$type) {
+            if ('memcache' === Cache::$type) {
                 return $handler->set($name, $value, null, $expire);
             } else {
-                $expire = $expire > 0 ? $_SERVER['REQUEST_TIME']+$expire : 0;
                 return  $handler->set($name, $value, $expire);
             }
         }

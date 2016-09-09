@@ -29,6 +29,7 @@ class File
     {
         if ($this->_serialized) {
             //序列化写入文件
+            $expire = $expire > 0 ? $_SERVER['REQUEST_TIME']+$expire : 0;
             $value  = serialize(array($value, $expire));
         }
         assert('is_scalar($value)||is_null($value)', '保存的数据应该是基本类型');
@@ -49,8 +50,9 @@ class File
         $result = true;
         if ($this->_serialized) {
             //序列化写入文件
+            $expire = $expire > 0 ? $_SERVER['REQUEST_TIME']+$expire : 0;
             foreach ($data as $key => &$value) {
-                $result == $result && file_put_contents($dir.$key.'.php', '<?php //'.serialize(array($value, $expire)));
+                $result = $result && file_put_contents($dir.$key.'.php', '<?php //'.serialize(array($value, $expire)));
             }
         } else {
             foreach ($data as $key => &$value) {

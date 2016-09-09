@@ -33,7 +33,7 @@ class CacheTest extends TestCase
                 array('_mkey2_s'=>'test_value2','_mkey2bool'=>true),
             ),
             array(
-                array('_mkey3_a'=>array('test_value2',122),'_mkey3_bool'=>true),2
+                array('_mkey3_a'=>array('test_value2',122),'_mkey3_bool'=>true),1
             ),
         );
     }
@@ -60,11 +60,12 @@ class CacheTest extends TestCase
                 $_SERVER['REQUEST_TIME'] += $exp + 0.1;
                 $this->assertFalse(Cache::get($key), $key);
             } elseif ($exp < 10) {
-                sleep($exp);
+                static::sleep($exp);
                 $this->assertFalse(Cache::get($key), $key);
             }
         }
     }
+
 
     /**
     * @dataProvider multiProvider
@@ -73,7 +74,6 @@ class CacheTest extends TestCase
     {
         $this->assertTrue(call_user_func_array(array('Cache', 'set'), func_get_args()));
     }
-
 
     /**
     * @dataProvider multiProvider
@@ -95,7 +95,7 @@ class CacheTest extends TestCase
                 $this->assertSame($data, Cache::get($keys));
             } elseif ($exp < 10) {
                 //内存存储
-                sleep($exp);
+                static::sleep($exp);
                 $this->assertSame($data, Cache::get($keys));
             }
         }
@@ -125,5 +125,15 @@ class CacheTest extends TestCase
         $this->assertEquals(true, Cache::handler()->set($key, 'test value'));
         $this->assertNotFalse(Cache::flush());
         $this->assertFalse(Cache::get($key));
+    }
+
+    protected static function sleep($time)
+    {
+        usleep($time*1000000+10000);
+    //    time_sleep_until(time()+$time+0.2);
+        // $time = $_SERVER['REQUEST_TIME_FLOAT']+$time+0.3;
+        // if ($time>time()) {
+        //     time_sleep_until($time);
+        // }
     }
 }
