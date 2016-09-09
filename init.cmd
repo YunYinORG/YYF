@@ -419,9 +419,10 @@ fi;
 
 
 INSTALL_YAF(){
+INSTALL_URL="https://yyf.newfuture.cc/assets/code/yaf${1}.sh"
 echo ""
-echo "Install YAF from http://yyf.newfuture.cc/assets/code/yaf${1}.sh" 
-curl -#SL http://yyf.newfuture.cc/assets/code/yaf${1}.sh | bash
+echo "Install YAF from $INSTALL_URL " 
+curl -#SL $INSTALL_URL |bash
 }
 
 
