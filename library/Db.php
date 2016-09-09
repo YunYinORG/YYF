@@ -185,6 +185,6 @@ class Db
     public static function __callStatic($method, $params)
     {
         assert('method_exists("\Service\Database",$method)', '[Db::Database]Database中不存在此方式:'.$method);
-        return call_user_func_array([Db::current(), $method], $params);
+        return call_user_func_array(array(Db::current(), $method), $params);
     }
 }

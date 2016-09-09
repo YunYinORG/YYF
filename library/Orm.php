@@ -559,15 +559,16 @@ class Orm implements \JsonSerializable, \ArrayAccess
      */
     public function limit($maxsize, $offset = 0)
     {
-        if (empty($limit=&$this->_limit)) { //第一次设置
-            $limit = array(
-                        $this->bindParam(intval($maxsize)),
-                        $this->bindParam(intval($offset))
-                    );
-        } else {
+        if ($limit=&$this->_limit) {
             /*再次设置，直接修改参数*/
             $this->_param[$limit[0]] = intval($maxsize);
             $this->_param[$limit[1]] = intval($offset);
+        } else {
+            //第一次设置
+             $limit = array(
+                        $this->bindParam(intval($maxsize)),
+                        $this->bindParam(intval($offset))
+                    );
         }
         return $this;
     }

@@ -78,7 +78,12 @@ class Cache
             assert(func_num_args()===1, '[Cache::get]参数为数组时(批量设置)，只能有一个参数');
             switch (Cache::$type) {
                 case 'memcached':
-                    return $handler->getMulti($name);
+                    $default = $handler->getMulti($name);
+                    if (count($default)===count($name)) {
+                        return $default;
+                    } else {
+                        return array_merge(array_fill_keys($name, false), $default);
+                    }
 
                 case 'file':
                     return $handler->mget($name);
@@ -132,7 +137,7 @@ class Cache
         }
 
         switch (Cache::$type=Config::get('cache.type')) {
-            case 'memcahed':    //redis 存储
+            case 'memcached':    //redis 存储
                   $config = Config::getSecret('memcached');
                   $config = $config->get('cache')?:$config->get('_');
                   if ($mcid=$config->get('mcid')) {

@@ -95,7 +95,7 @@ class Assertion
         "<br>\n<small>(tips:断言错误是在正常逻辑中不应出现的情况，生产环境关闭系统断言提高性能)</small>\n<br>";
 
         echo "<br><hr>函数调用栈【call stack】<br><hr><ol>";
-        foreach (array_reverse($trace) as $i =>&$t) {
+        foreach (array_reverse($trace) as $i => $t) {
             echo '<li><pre>';
             if ($arg=$t['args']) {
                 $arg='('.array_reduce($arg, function ($s, &$v) {

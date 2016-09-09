@@ -18,7 +18,7 @@ class CacheTest extends TestCase
             'string_value' => array('_test_key_s','test_value',0),
             'Number Value' => array('_test_key_n',1234577),
             'bool Value'   => array('_test_key_bool',true,1),
-            'array Value'  => array('_test_key_array',['a',2,'c'=>3],2),
+            'array Value'  => array('_test_key_array',array('a',2,'c'=>3),60),
         );
     }
 
@@ -27,13 +27,13 @@ class CacheTest extends TestCase
     {
         return array(
             array(
-                array('_mkey1_s'=>'test_value','_mkey1_i'=>10),null
+                array('_mkey1_s'=>'test_value','_mkey1_i'=>10),0
             ),
             array(
                 array('_mkey2_s'=>'test_value2','_mkey2bool'=>true),
             ),
             array(
-                array('_mkey3_a'=>array('test_value2',122),'_mkey2_bool'=>true),1
+                array('_mkey3_a'=>array('test_value2',122),'_mkey3_bool'=>true),2
             ),
         );
     }
@@ -60,7 +60,7 @@ class CacheTest extends TestCase
                 $_SERVER['REQUEST_TIME'] += $exp + 0.1;
                 $this->assertFalse(Cache::get($key), $key);
             } elseif ($exp < 10) {
-                sleep($exp+0.1);
+                sleep($exp);
                 $this->assertFalse(Cache::get($key), $key);
             }
         }
@@ -68,11 +68,10 @@ class CacheTest extends TestCase
 
     /**
     * @dataProvider multiProvider
-    * @depends testGet
     */
     public function testMSet($data, $exp=0)
     {
-        $this->assertTrue(Cache::set($data, $exp));
+        $this->assertTrue(call_user_func_array(array('Cache', 'set'), func_get_args()));
     }
 
 
@@ -87,15 +86,17 @@ class CacheTest extends TestCase
         
         //测试过期失效
         if ($exp > 0) {
+            foreach ($data as &$value) {
+                $value=false;
+            }
             if ($this->app->getConfig()->get('cache.type') === 'file') {
+                //文件存储
                 $_SERVER['REQUEST_TIME']  += $exp + 0.1;
-                foreach ($data as &$value) {
-                    $value=false;
-                }
                 $this->assertSame($data, Cache::get($keys));
             } elseif ($exp < 10) {
-                sleep($exp + 0.1);
-                $this->assertFalse(Cache::get($keys));
+                //内存存储
+                sleep($exp);
+                $this->assertSame($data, Cache::get($keys));
             }
         }
     }
@@ -126,28 +127,3 @@ class CacheTest extends TestCase
         $this->assertFalse(Cache::get($key));
     }
 }
-
-
-  // public function testMset()
-    // {
-    //     //mset
-    //     $this->assertGreaterThan(0, Cache::set(static::$mDATA));
-    // }
-
-    // /**
-    // * @depends testSet
-    // */
-    // public function testMget()
-    // {
-    //     //mget
-    //     $data=static::$mDATA;
-    //     $keys=array_keys($data);
-    //     $data=array_values($data);
-    //     $this->assertEquals($data, Cache::get($keys));
-    //     //mget with
-    //     $keys[0]='_no.ttkv_key1_.'.rand();
-    //     $data[0]=false;
-    //     $keys[]='_no_testkv_key_'.rand();
-    //     $data[]=false;
-    //     $this->assertEquals($data, Cache::get($keys));
-    // }

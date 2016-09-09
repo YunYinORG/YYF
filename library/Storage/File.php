@@ -31,7 +31,7 @@ class File
             //序列化写入文件
             $value  = serialize(array($value, $expire));
         }
-        assert('is_scalar($value)', '保存的数据应该是基本类型');
+        assert('is_scalar($value)||is_null($value)', '保存的数据应该是基本类型');
         $filename = $this->_dir . $name . '.php';
         return file_put_contents($filename, '<?php //'.$value) > 0;
     }
