@@ -124,7 +124,11 @@ class Header
     protected function __construct()
     {
         $verion = Config::get('version');
-        $env = ini_get('yaf.environ');
+        if ($app = Application::app()) {
+            $env = $app->environ();
+        } else {
+            $env = ini_get('yaf.environ');
+        }
         header(strtoupper(static::HEADER_BASE). ": $verion,$env");
     }
 
