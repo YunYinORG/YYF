@@ -1,29 +1,48 @@
-YYF 2.4
-====================
-Yunyin Yaf Framework
+YYF-Yunyin Yaf Framework
+============================
 
-云印Yaf(yet another framework)框架
-------
+基于YAF扩展,构建安全高性能RESTful后端PHP框架。
 
-开发文档[yyf-book(更新中)](http://yyf.newfuture.cc/)
+YYF致力于提高生产环境下的运行性能和开发环境下的开发效率。
 
-基于PHP的YAF扩展构建的**高效**,**安全**,**简单**,**优雅**的框架
+[核心库](library/)高效封装常用库和操作,兼容php5.3及以上,并对php7做最大优化。
 
-借鉴内流行的ThinkPHP框架和国际流行的Laravel框架的使用习惯
 
-兼顾程序性能和代码优雅
+## 云印Yaf框架
+
+* YYF开发文档yyf-book(正在更新中) [http://yyf.newfuture.cc](http://yyf.newfuture.cc/)
+* 稳定版(master分支)演示[生产环境] [https://yyf.yunyin.org](https://yyf.yunyin.org/)
+* 最新版(develop分支)演示[开发环境] [http://yyf.yunyin.org](http://yyf.yunyin.org/)
+
+
+## 安装使用
+
+可以键配置开发环境和部署生成环境。
+
+详细安装方法查看文档 [http://yyf.newfuture.cc/setup/](http://yyf.newfuture.cc/setup/)
+
+简明过程:
+
+1. 下载解压，或者clone仓库 `git clone https://github.com/YunYinORG/YYF.git`
+2. 运行 `init.cmd` (windows下双击即可)
+3. 使用yyf虚拟机开发环境或者配置服务器环境
+
+
 
 ## 目录结构
+
+框架文件结构如下
+
 >
 ```
 │  .htaccess    Apache开发环境和SAE重定向url
-|  init.cmd     开发环境初始化通用脚本 
+│  .travis.yml  travis-ci测试配置
+│  init.cmd     开发环境初始化通用脚本 
 │  LICENSE      Apache 2.0 许可证
 │  README.MD
 │  
 ├─app  
-│  │  Bootstrap.php     生产环境入口 
-│  │  Bootstrap.dev.php 开发环境入口
+│  │
 │  │  README.MD
 │  │  
 │  ├─controllers     控制器目录【添加代码的主战场】
@@ -36,15 +55,12 @@ Yunyin Yaf Framework
 │  ├─models          数据模型目录
 │  │      README.md
 │  │      
-│  ├─plugins         插件目录
-│  │      Tracer.php 调试信息统计插件
-│  │      
 │  └─views           视图目录
 │      └─index
 │              index.phtml
 │              
 ├─conf      配置目录
-│      app.ini       基础配置
+│      app.ini            基础配置
 │      secret.common.ini  示例私密配置
 │      secret.product.ini 生产环境私密配置
 │ 
@@ -52,15 +68,15 @@ Yunyin Yaf Framework
 │  │  Cache.php    缓存管理类
 │  │  Config.php   配置读取类
 │  │  Cookie.php   安全Cookie接口
-|  |  Db.php       数据库操作封装
+│  │  Db.php       数据库操作封装
+│  │  Debug.php    调试类
 │  │  Encrypt.php  加密库
-│  │  Head.php     调试header输出库
 │  │  Input.php    输入过滤接口
 │  │  Kv.php       key-value存取类
-│  │  Logger.php      日志管理类
+│  │  Logger.php   日志管理类
 │  │  Mail.php     邮件发送
 │  │  Model.php    基础model
-|  |  Orm.php      ORM数据库对象映射
+│  │  Orm.php      ORM数据库对象映射
 │  │  Random.php   随机字符生成类
 │  │  README.md
 │  │  Rest.php     基础REST类
@@ -69,12 +85,22 @@ Yunyin Yaf Framework
 │  │  Session.php  session管理接口
 │  │  Validate.php 类型验证类
 │  │  Wechat.php   微信登录接口库类
-│  │  
+│  │
+│  │
+│  ├─Bootstrap 启动加载
+│  │      dev.php       开发环境启动加载
+│  │      product.php   生产环境启动加载
+│  │
+│  ├─Debug 调试相关库(开发环境)
+│  │      Assertion.php 断言处理类
+│  │      Header.php    header头输出类
+│  │      Listener.php  日志监听类
+│  │      Tracer.php    消耗统计类
+│  │ 
 │  ├─Parse 格式解析
 │  │      Filter.php
 │  │      Xml.php
-│  │      
-│  │          
+│  │               
 │  ├─Service 系统基础服务
 │  │      Api.php
 │  │      Database.php
@@ -83,111 +109,23 @@ Yunyin Yaf Framework
 │  │      README.MD
 │  │      Smtp.php
 │  │      Ucpaas.php
+│  │ 
+│  ├─Storage 存储驱动
+│  │      File.php      文件缓存类
 │  │      
-│  └─Storage 存储服务
-│          File.php
+│  └─Test 单元测试库
+│         YafTest.php   Yaf框架测试基类
 │          
 ├─public 公共目录【前端资源目录，生产环境根目录】
-│      .htaccess     url重写
+│      .htaccess    url重写
 │      favicon.ico
 │      index.php    入口文件
 │      robots.txt
 │      
-└─runtime 文件缓存日志临时文件夹【保证程序具有可读写权限】
+├─runtime 默认缓存日志临时文件夹【保证程序具有可读写权限】
+│
+│
+└─tests   单元测试目录
 ```
 >
-            
 
-## [核心库](library/)
-
-
-数据库
--------
-安全PDO预处理查询,从最底层防止注入
-
-Model 简单高效的数据库模型 如
-```php
-$User =new Model('User');
-$User->where('id','<',10)->selecet('name AS user');
-```
-FacadeModel 提供优雅方便的查询接口
-```php
-UserModel::where('name','LIKE','%future%')->count();//静态化调用
-$Info=InfoModel::find(1);//查找id为1的
-$Info->set('time',time())->save();
-```
-
-[详细使用说明](app/models)
-
-REST控制器
------
-* 对 get,put,post,delete等路由到特定控制器处理
-* 绑定ID参数,
-* 支持json和xml数据输出
-
-实例
-在controllers下建一个 Test.php
-```php
-class TestController extends Rest
-{
-	function GET_indexAction(){
-		$this->response=['method'=>'get'];
-	}//处理GET
-	function POST_indexAction(){
-		$this->response['data']=$this->_request->getPost();
-	}//处理POST
-}
-```
-
-GET 请求测试
-`curl -X GET localhost/test/`  响应 `{'metod':'get'}`
-
-POST 请求测试
-`curl -X POST -d "key=value" localhost/test/` 响应 `{"data":{"key":"value"}}` 
-
-数据存取
-------
-* Cache   缓存管理
-* Cookie  安全Cookie管理(数据加密，防js获取)
-* Kv      键值对存取
-* Session 封装Session接口
-
-```php
-#写
-Cookie::set('user',['id'=>1,'name'=>'YYF']);
-#读
-Cache::get('key')
-#删
-Session::del('key')
-#清
-Kv::flush()
-```
-
-加密
-------
-* AES 对称加密
-* RSA 非对称加密
-* phone和email格式保留加密解密
-
-常用扩展
--------
-* 支持YAF的所有接口
-* Input  输入过滤扩展
-* Random 随机数生成库
-* Log    日志管理
-
-其他服务
------
-* Mail  简单邮件发送
-* Debug 支持日志，header和
-* Qiniu 七牛文件管理
-
-开发环境
------
-
-支持本机和虚拟机开发
-
-为团队开发和服务器配置提供统一解决方案
-
-
-详细参照文档[配置开发文档](http://yyf.newfuture.cc/setup/develop.html)

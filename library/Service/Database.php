@@ -35,11 +35,12 @@ class Database extends PDO
     * 查询数据库,返回数组或者null
     * @param  string $sql
     * @param  array  $params
-    * @param  int    $fetchmode
+    * @param  bool   $fetchAll 全部查询模式fetchAll，false 使用fetch
+    * @param  int    $fetchmode 默认读取配置
     * @return array 查询结果
     * @author NewFuture
     */
-    public function query($sql, array $params = null, $fetchAll=true, $mode = PDO::FETCH_ASSOC)
+    public function query($sql, array $params = null, $fetchAll = true, $mode = null)
     {
         if ($before=&Database::$before) {
             //执行前调用

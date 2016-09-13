@@ -419,9 +419,10 @@ fi;
 
 
 INSTALL_YAF(){
+INSTALL_URL="http://yyf.newfuture.cc/assets/code/yaf${1}.sh"
 echo ""
-echo "Install YAF from http://yyf.newfuture.cc/assets/code/yaf${1}.sh" 
-curl -#SL http://yyf.newfuture.cc/assets/code/yaf${1}.sh | bash
+echo "Install YAF from $INSTALL_URL " 
+curl -#SL $INSTALL_URL |bash
 }
 
 
@@ -438,7 +439,7 @@ YAF_MODULES=$("$PHP_PATH" -m|grep -c -w "yaf")
 if [ $YAF_MODULES -eq 0 ] ; then
     echo "Yaf extension NOT EXIST!";
     export PHP_PATH="$PHP_PATH"
-    INSTALL_YAF ".dev"
+    if [ "$(uname)" != "Darwin" ]; then INSTALL_YAF ".dev" ;fi;
 else
     echo "Yaf has been installed";
 fi;
@@ -459,6 +460,21 @@ START_PHP_SERVER(){
 
 
 DISPLAY_CHOICE(){
+
+if [ "$(uname)" == "Darwin" ]; then 
+#MAC
+
+cat <<'EOF'
+
+select which environment you want to use?
+  1) Use virtual Machine with vagrant;
+  2) Use php server (local development);
+  0) Exit (Manual);
+
+EOF
+
+else # LINUX
+
 cat <<'EOF'
 
 select which environment you want to use?
@@ -469,6 +485,9 @@ select which environment you want to use?
   0) Exit (Manual);
 
 EOF
+
+fi;
+
 echo -n "Input your choice (default[ENTER] is 1):";
 read CHOICE;
 if  [ ! -n "$CHOICE" ] ;then

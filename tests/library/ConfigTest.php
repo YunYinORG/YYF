@@ -1,22 +1,24 @@
 <?php
 namespace tests\library;
 
+use \Test\YafCase as TestCase;
 use \Config as Config;
-use \Yaf_Application as Application;
 
 /**
  * @coversDefaultClass \Config
  */
-class ConfigTest extends \PHPUnit_Framework_TestCase
+class ConfigTest extends TestCase
 {
 
+    protected static $bootstrap = false;
+    
     /**
-    *测试配置和配置文件是否一致
     * @covers ::get
+    * 测试配置和配置文件是否一致
     */
     public function testConfigConsistency()
     {
-        $env=Application::app()->environ();
+        $env=$this->app->environ();
         $config=parse_ini_file(APP_PATH.'/conf/app.ini', true);
         $current=$config[$env.':common']+$config['common'];
 
@@ -41,16 +43,20 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    /*测试secret路径是否存在*/
+
+    /**
+     * @depends testConfigConsistency
+     */
     public function testSecretPath()
     {
-        $secret_ini=Config::get('secret_config_path');
+        $secret_ini=Config::get('secret_path');
         $this->assertFileExists($secret_ini, $secret_ini.' Config cannot find');
         return $secret_ini;
     }
 
     /**
      * @depends testSecretPath
+     * @covers ::getSecret
      */
     public function testSecret($path)
     {
@@ -72,7 +78,7 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
     /*检测sceret空值*/
     public function testSecretEmpty()
     {
-        $key=uniqid('_tse_', true);
+        $key=uniqid('_ts_', true);
         $this->assertSame(Config::getSecret('database', $key), null);
     }
 }

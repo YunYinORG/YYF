@@ -1,50 +1,28 @@
 <?php
+use Yaf_Controller_Abstract as Controller_Abstract;
+
 /**
  * REST 控制器
  */
-abstract class Rest extends Yaf_Controller_Abstract
+abstract class Rest extends Controller_Abstract
 {
-    // private $response_type = 'json'; //返回数据格式
-
+    /**
+     * 响应数据
+     * @var array
+     */
     protected $response = false; //自动返回数据
+
+    /**
+     * 响应状态码
+     * @var integer
+     */
     protected $code = 200;
 
     /**
-     * @method corsHeader
-     * CORS 跨域请求响应头处理
-     * @author NewFuture
+     * 配置信息
+     * @var array
      */
-    public static function corsHeader()
-    {
-        $from = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : null);
-
-        if ($from) {
-            $cors    = Config::get('cors');
-            $domains = $cors['Access-Control-Allow-Origin'];
-            if ($domains !== '*') {
-                $domain = strtok($domains, ',');
-                while ($domain) {
-                    if (strpos($from, rtrim($domain, '/')) === 0) {
-                        $cors['Access-Control-Allow-Origin'] = $domain;
-                        break;
-                    }
-                    $domain = strtok(',');
-                }
-                if (!$domain) {
-                    /*非请指定的求来源,自动终止响应*/
-                    header('Forbid-Origin:' . $from);
-                    // exit;
-                    return;
-                }
-            } elseif ($cors['Access-Control-Allow-Credentials'] === 'true') {
-                /*支持多域名和cookie认证,此时修改源*/
-                $cors['Access-Control-Allow-Origin'] = $from;
-            }
-            foreach ($cors as $key => $value) {
-                header($key . ':' . $value);
-            }
-        }
-    }
+    private $_config;
 
     /**
      * 初始化 REST 路由
@@ -58,8 +36,8 @@ abstract class Rest extends Yaf_Controller_Abstract
         $request = $this->_request;
 
         /*请求来源，跨站cors响应*/
-        if (Config::get('cors.Access-Control-Allow-Origin')) {
-            self::corsHeader();
+        if ($cors = Config::get('cors')) {
+            $this->corsHeader($cors->toArray());
         }
 
         /*请求操作判断*/
@@ -84,14 +62,14 @@ abstract class Rest extends Yaf_Controller_Abstract
         }
 
         /*Action路由*/
-        $action = $request->getActionName();
+        $action        = $request->getActionName();
+        $this->_config = Config::get('rest')->toArray();
         if (is_numeric($action)) {
             /*数字id绑定参数*/
-            $request->setParam(Config::get('application.num_param'), intval($action));
-            //$_SERVER['PATH_INFO']不存在使用REQUEST_URI
+            $request->setParam($this->_config['param'], intval($action));
             $path   = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : strstr($_SERVER['REQUEST_URI'] . '?', '?', true);
             $path   = substr(strstr($path, $action), strlen($action) + 1);
-            $action = $path ? strstr($path . '/', '/', true) : Config::get('application.num_action');
+            $action = $path ? strstr($path . '/', '/', true) : $this->_config['action'];
         }
 
         $rest_action = $method . '_' . $action; //对应REST_Action
@@ -102,17 +80,58 @@ abstract class Rest extends Yaf_Controller_Abstract
             $request->setActionName($rest_action);
         } elseif (!method_exists($this, $action . 'Action')) {
             /*action和REST_action 都不存在*/
-            $this->response(-8, array(
-                'error'      => '未定义操作',
-                'method'     => $method,
-                'action'     => $action,
-                'controller' => $request->getControllerName(),
-                'module'     => $request->getmoduleName(),
-            ));
-            exit;
+            if (method_exists($this, $this->_config['none'].'Action')) {
+                $request->setActionName($this->_config['none']);
+            } else {
+                $this->response(-8,
+                    array(
+                        'error'      => '未定义操作',
+                        'method'     => $method,
+                        'action'     => $action,
+                        'controller' => $request->getControllerName(),
+                        'module'     => $request->getmoduleName(),
+                    ),
+                    404);
+                exit;
+            }
         } elseif ($action !== $request->getActionName()) {
-            /*绑定参数默认控制器*/
+            /*修改后的$action存在而$rest_action不存在,绑定参数默认控制器*/
             $request->setActionName($action);
+        }
+    }
+
+    /**
+     * @method corsHeader
+     * CORS 跨域请求响应头处理
+     * @author NewFuture
+     */
+    private function corsHeader(array $cors)
+    {
+        $from = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : null);
+
+        if ($from) {
+            $domains = $cors['Access-Control-Allow-Origin'];
+            if ($domains !== '*') {
+                $domain = strtok($domains, ',');
+                while ($domain) {
+                    if (strpos($from, rtrim($domain, '/')) === 0) {
+                        $cors['Access-Control-Allow-Origin'] = $domain;
+                        break;
+                    }
+                    $domain = strtok(',');
+                }
+                if (!$domain) {
+                    /*非请指定的求来源,自动终止响应*/
+                    header('Forbid-Origin:' . $from);
+                    return;
+                }
+            } elseif ($cors['Access-Control-Allow-Credentials'] === 'true') {
+                /*支持多域名和cookie认证,此时修改源*/
+                $cors['Access-Control-Allow-Origin'] = $from;
+            }
+            foreach ($cors as $key => $value) {
+                header($key . ':' . $value);
+            }
         }
     }
 
@@ -124,10 +143,14 @@ abstract class Rest extends Yaf_Controller_Abstract
      * @return [type]           [description]
      * @author NewFuture
      */
-    protected function response($status, $info = '', $code=null)
+    protected function response($status, $info = '', $code = null)
     {
-        $this->response = ['status' => $status, 'info' => $info];
-        ($code>0) && $this->code=$code;
+        $this->response = array(
+            $this->_config['status'] => $status,
+            $this->_config['data']   => $info,
+        );
+
+        ($code > 0) && $this->code = $code;
         exit;
     }
 
@@ -141,7 +164,7 @@ abstract class Rest extends Yaf_Controller_Abstract
     {
         if ($this->response !== false) {
             header('Content-Type: application/json; charset=utf-8', true, $this->code);
-            echo json_encode($this->response, 256); //256isJSON_UNESCAPED_UNICODE,unicode不转码
+            echo json_encode($this->response, $this->_config['json']);
         }
     }
 }

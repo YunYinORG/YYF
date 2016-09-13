@@ -1,32 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<phpunit bootstrap="./init.php"
+<phpunit bootstrap="../library/Test/YafCase.php"
          backupGlobals="false"
          backupStaticAttributes="false"
          convertErrorsToExceptions="true"
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
+         beStrictAboutTestsThatDoNotTestAnything="true"
          colors="true">
 
     <testsuites>
-
-        <testsuite name="Environment">
-            <file>EnvTest.php</file>
+        <testsuite name="config">
+            <file>library/ConfigTest.php</file>
         </testsuite>
-    
-        <testsuite name="Library">
+        <testsuite name="log">
+            <file>library/LoggerTest.php</file>
+        </testsuite>
+        <testsuite name="storage">
+            <file>library/Storage/FileTest.php</file>
+            <file>library/KvTest.php</file>
+            <file>library/CacheTest.php</file>
+        </testsuite>
+        <testsuite name="database">
+            <file>library/Service/DatabaseTest.php</file>
+            <file>library/DbTest.php</file>
+        </testsuite>
+        <testsuite name="others">
             <directory>library</directory>
         </testsuite>
-        
     </testsuites>
 
+    <php>
+        <ini name="yaf.use_spl_autoload" value="ON"/>
+        <ini name="display_errors" value="ON"/>
+    </php>
+    
     <filter>
         <whitelist>
             <directory suffix=".php">../library</directory>
+             <exclude>
+                <directory>../library/Bootstrap/</directory>
+                <directory>../library/Test/</directory>
+                <directory>../library/Debug/</directory>
+            </exclude>
         </whitelist>
     </filter>
 
     <logging>
         <log type="coverage-text" target="php://stdout" showUncoveredFiles="false"/>
+        <log type="testdox-text" target="../runtime/phpunit/test.txt"/>
     </logging>
 </phpunit>
