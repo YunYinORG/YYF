@@ -129,8 +129,8 @@ class CacheTest extends TestCase
 
     protected static function sleep($time)
     {
-        usleep($time*1000000+10000);
-    //    time_sleep_until(time()+$time+0.2);
+        usleep($time*1000000+100000);
+        // time_sleep_until(time()+$time+0.2);
         // $time = $_SERVER['REQUEST_TIME_FLOAT']+$time+0.3;
         // if ($time>time()) {
         //     time_sleep_until($time);

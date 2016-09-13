@@ -4,7 +4,8 @@ YYF核心库
 * Cache.php : 缓存管理类(Cache)
 * Config.php : 配置读取类(Config)
 * Cookie.php : 安全Cookie操作类(Cookie)
-* Db.php : 数据相关操作辅助封装
+* Db.php : 数据相关操作辅助封装(Db)
+* Debug.php :   调试类(Debug)
 * Encrypt.php : 安全加密类(Encrypt)
 * Input.php : 输入管理类(Input)
 * Kv.php : 键值对存储类(Kv)
@@ -47,6 +48,14 @@ Cookie::set($name, $value, $path='/',$expire = false) #设置cookie
 Cookie::get($name)   #读取cookie
 Cookie::del($name)   #删除cookie
 Cookie::flush()      #清空cookie
+```
+
+Db
+------
+Db数据常用操作静态封装
+```php
+Db::table('user')->where('id',2)->get('name');
+Db::query('select * from user where id=:id',['id'=>2]);
 ```
 
 Encrypt
@@ -95,7 +104,7 @@ Cache::flush()          #清空
 
 Logger
 -------
-日志记录类
+日志记录类,兼容psr3日志接口
 $level 日志标签,配置中开启的则记录
 ```
 Logger::write($msg, $level = 'NOTICE')
@@ -117,7 +126,7 @@ Orm 和 Model
 未非静态封装(这样比静态化封装的效率要高)
 在**Model**则进行静态化处理
 ```php
-$User = new Model('user');#创建model参数表名和主键
+$User = new Orm('user');#创建model参数表名和主键
 $User->find(123);#查找id为123的用户
 $User->set('time',time())->save();#保存
 $User->Insert(['name'=>'test']);新建用户
