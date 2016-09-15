@@ -71,7 +71,7 @@ class Assertion
      */
     public static function callback($file, $line, $code, $message = null)
     {
-        header('Content-type: text/html; charset=utf-8');
+        header('Content-type: text/html; charset=utf-8', true, 500);
         $trace=debug_backtrace(false);
         array_shift($trace);
         array_shift($trace);
