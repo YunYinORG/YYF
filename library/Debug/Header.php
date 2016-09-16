@@ -30,8 +30,12 @@ class Header
         assert('ctype_alnum($key)', 'header 键必须是字符或数字组合');
         switch (gettype($value)) {
             case 'string':
-                $key = '-S-'.$key;//字符串
-                $value = urlencode($value);
+                if (ctype_print($value) && (strpos($value, "\n") === false)) {
+                    $key = '-S-'.$key;//字符串
+                } else {
+                    $key = '-E-'.$key;//编码字符串
+                    $value = rawurlencode($value);
+                }
                 break;
 
             case 'integer':
@@ -55,13 +59,13 @@ class Header
                 //对象
                 $key = '-O-'.$key;
                 static::$_processed = array();
-                $value            = json_encode(static::_convertObject($value));
+                $value = json_encode(static::_convertObject($value));
                 break;
 
             case 'unkown':
             default:
                 $key = '-U-'.$key;
-                $value = urlencode(str_replace('    ', "\t", print_r($value, true)));
+                $value = rawurlencode(str_replace('    ', "\t", print_r($value, true)));
                 $value = str_replace(array('+', '%3D', '%3E', '%28', '%29', '%5B', '%5D', '%3A'), array(' ', '=', '>', '(', ')', '[', ']', ':'), $value);
 
         }
@@ -85,7 +89,7 @@ class Header
             }
             $info=json_encode($info, 64);//64 JSON_UNESCAPED_SLASHES
         }
-        header(static::HEADER_BASE . "-$type: $info");
+        header(static::HEADER_BASE . "-$type: $info", false);
         return $this;
     }
 

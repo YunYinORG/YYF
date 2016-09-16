@@ -43,7 +43,7 @@ class Listener
         );
         if ($param) {
             //param
-            static::$_sql_data[$id]['P']=$param;
+            static::$_sql_data['P']=$param;
         }
         Debug::log("[SQL]({$id}) {$name} called");
         ++$id;
