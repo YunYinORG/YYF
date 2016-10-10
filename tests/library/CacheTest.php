@@ -11,10 +11,6 @@ class CacheTest extends TestCase
         Cache::flush();
     }
 
-    public function setUp()
-    {
-        echo(strtok($this->getName(), ' '));
-    }
 
     //单组测试数据
     public function singleProvider()
@@ -41,6 +37,11 @@ class CacheTest extends TestCase
                 array('_mkey2_s' => 'test_value2','_mkey2bool' => true),
             ),
         );
+    }
+
+    public function setUp()
+    {
+        $_SERVER['REQUEST_TIME_FLOAT'] = microtime(true);
     }
 
     /**
@@ -115,7 +116,7 @@ class CacheTest extends TestCase
             $data = array_fill_keys($keys, false);
             if ($this->app->getConfig()->get('cache.type') === 'file') {
                 //文件存储
-                $_SERVER['REQUEST_TIME']  += $exp + 0.1;
+                $_SERVER['REQUEST_TIME'] += $exp + 0.1;
             } else {
                 //内存存储
                 static::sleep($exp);
@@ -132,7 +133,7 @@ class CacheTest extends TestCase
     {
         $result = Cache::del($key);
         if ($exp == 0) {
-            $this->assertTrue($result);
+            $this->assertNotFalse($result);
         }
         $this->assertFalse(Cache::get($key));
     }
@@ -153,9 +154,9 @@ class CacheTest extends TestCase
     protected static function sleep($time)
     {
         // usleep($time * 1000000 + 100000);
-        $time = $_SERVER['REQUEST_TIME'] + $time + 1;
-        if ($time > microtime(true)) {
-            time_sleep_until($time);
+        $end_time = $_SERVER['REQUEST_TIME_FLOAT'] + $time;
+        if ($end_time > microtime(true)) {
+            time_sleep_until($end_time);
         }
     }
 }
