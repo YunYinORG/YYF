@@ -428,7 +428,7 @@ curl -#SL $INSTALL_URL |bash
 
 INIT_SERVER_BASH(){
 
-PHP_PATH="php"
+PHP_PATH=${PHP_PATH:="php"}
 while [ -z $(command -v "$PHP_PATH" 2>/dev/null) ]; do
  echo "${PHP_PATH} in NOT EXIST command";
  echo -n "Input the PHP path:";

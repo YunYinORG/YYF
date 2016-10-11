@@ -121,7 +121,7 @@ class Cookie
 	{
 		if (!$config = self::$_config)
 		{
-			$config = Config::get('cookie');
+			$config = Config::get('cookie')->toArray();
 
 			$config['key'] = self::key();
 			self::$_config = $config;

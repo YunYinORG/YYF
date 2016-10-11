@@ -3,16 +3,16 @@ namespace Debug;
 
 class Assertion
 {
-    protected static $instance=null;
-    protected static $assertion=null;
+    protected static $instance = null;
+    protected static $assertion = null;
 
     public static function init(array $config)
     {
         if (!static::$instance) {
-            $active=isset($config['active'])?$config['active']:true;
-            $warning=isset($config['warning'])?$config['warning']:false;
-            $bail=isset($config['bail'])?$config['bail']:true;
-            static::$instance=new static($active, $warning, $bail);
+            $active = isset($config['active']) ? $config['active'] : true;
+            $warning = isset($config['warning']) ? $config['warning'] : false;
+            $bail = isset($config['bail']) ? $config['bail'] : true;
+            static::$instance = new static($active, $warning, $bail);
         }
     }
 
@@ -31,7 +31,7 @@ class Assertion
                 ini_set('assert.exception', 0);//关闭断言异常
             } elseif (version_compare(PHP_VERSION, '5.4.8', '<')) {
                 //低版本(php5.3)断言
-                set_error_handler(array(__CLASS__, 'php5_3'), E_WARNING);
+                set_error_handler(array(__CLASS__, 'php53'), E_WARNING);
             }
 
             assert_options(ASSERT_ACTIVE, true);
@@ -47,43 +47,44 @@ class Assertion
     }
 
     /**
-    * 兼容PHP5.3的assert(只支持一个参数)
-    * 参数表$number, $message, $file, $line, $context
-    * 为了不影响恢复断言环境，此方法内避免使用任何局部参数或变量
-    */
-    public static function php5_3()
+     * 兼容PHP5.3的assert(只支持一个参数)
+     * 参数表$number, $message, $file, $line, $context
+     * 为了不影响恢复断言环境，此方法内避免使用任何局部参数或变量
+     */
+    public static function php53()
     {
-        if (func_get_arg(1)!=='assert() expects at most 1 parameters, 2 given') {
+        if (func_get_arg(1) !== 'assert() expects at most 1 parameters, 2 given') {
             return false;  //非断言参数错误继续传递
         }
-        static::$assertion=debug_backtrace(false, 2)[1];//从trace栈获取assert参数内容
+        static::$assertion = debug_backtrace(false, 2)[1];//从trace栈获取assert参数内容
         extract(func_get_arg(4));//恢复assert上下文环境
         assert(static::$assertion['args'][0]);//运行断言
         /*清除断言数据*/
-        static::$assertion=null;
+        static::$assertion = null;
         return true;
     }
 
     /**
      * Assertion Handler
      * 断言错误回调
+     *
      * @method callback
      */
     public static function callback($file, $line, $code, $message = null)
     {
-        header('Content-type: text/html; charset=utf-8');
-        $trace=debug_backtrace(false);
+        header('Content-type: text/html; charset=utf-8', true, 500);
+        $trace = debug_backtrace(false);
         array_shift($trace);
         array_shift($trace);
         array_pop($trace);
 
-        if ($assertion=&static::$assertion) {
-            //php5_3 assert 双参数回调
-            $file=$assertion['file'];
-            $line=$assertion['line'];
-            $code=$assertion['args'][0];
+        if ($assertion = &static::$assertion) {
+            //php53 assert 双参数回调
+            $file = $assertion['file'];
+            $line = $assertion['line'];
+            $code = $assertion['args'][0];
             if (isset($assertion['args'][1])) {
-                $message=$assertion['args'][1];
+                $message = $assertion['args'][1];
             }
             array_shift($trace);
         }
@@ -94,16 +95,16 @@ class Assertion
         '(这里通常不是错误位置，是错误的调用方式或者参数引起的，请仔细检查)',
         "<br>\n<small>(tips:断言错误是在正常逻辑中不应出现的情况，生产环境关闭系统断言提高性能)</small>\n<br>";
 
-        echo "<br><hr>函数调用栈【call stack】<br><hr><ol>";
+        echo '<br><hr>函数调用栈【call stack】<br><hr><ol>';
         foreach (array_reverse($trace) as $i => $t) {
             echo '<li><pre>';
-            if ($arg=$t['args']) {
-                $arg='('.array_reduce($arg, function ($s, &$v) {
-                   return $s.print_r($v, true).',';
+            if ($arg = $t['args']) {
+                $arg = '('.array_reduce($arg, function ($s, &$v) {
+                    return $s.print_r($v, true).',';
                 });
-                $arg[strlen($arg)-1]=')';
+                $arg[strlen($arg) - 1] = ')';
             } else {
-                $arg='()';
+                $arg = '()';
             }
             if (isset($t['class'])) {
                 echo "${t['class']}${t['type']}${t['function']}$arg;\n";

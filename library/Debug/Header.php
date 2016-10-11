@@ -22,6 +22,7 @@ class Header
 
     /**
      * 通过http header dump数据
+     *
      * @param string $key   [description]
      * @param [type] $value [description]
      */
@@ -30,8 +31,12 @@ class Header
         assert('ctype_alnum($key)', 'header 键必须是字符或数字组合');
         switch (gettype($value)) {
             case 'string':
-                $key = '-S-'.$key;//字符串
-                $value = urlencode($value);
+                if (ctype_print($value) && (strpos($value, "\n") === false)) {
+                    $key = '-S-'.$key;//字符串
+                } else {
+                    $key = '-E-'.$key;//编码字符串
+                    $value = rawurlencode($value);
+                }
                 break;
 
             case 'integer':
@@ -55,13 +60,13 @@ class Header
                 //对象
                 $key = '-O-'.$key;
                 static::$_processed = array();
-                $value            = json_encode(static::_convertObject($value));
+                $value = json_encode(static::_convertObject($value));
                 break;
 
             case 'unkown':
             default:
                 $key = '-U-'.$key;
-                $value = urlencode(str_replace('    ', "\t", print_r($value, true)));
+                $value = rawurlencode(str_replace('    ', "\t", print_r($value, true)));
                 $value = str_replace(array('+', '%3D', '%3E', '%28', '%29', '%5B', '%5D', '%3A'), array(' ', '=', '>', '(', ')', '[', ']', ':'), $value);
 
         }
@@ -71,21 +76,22 @@ class Header
 
     /**
      * 添加header调试信息
+     *
      * @param string $type   字段名
      * @param array|string  $info [输出的调试信息]
      * @param int $N=3  数字保留精度0不处理(压缩数字小数点后数据减小header数据量)
      */
-    public function debugInfo($type, $info, $N=3)
+    public function debugInfo($type, $info, $N = 3)
     {
         if (is_array($info)) {
             if ($N > 0) {
                 array_walk_recursive($info, function (&$v) use ($N) {
-                    is_numeric($v) && $v=round($v, $N);
+                    is_numeric($v) && $v = round($v, $N);
                 });
             }
-            $info=json_encode($info, 64);//64 JSON_UNESCAPED_SLASHES
+            $info = json_encode($info, 64);//64 JSON_UNESCAPED_SLASHES
         }
-        header(static::HEADER_BASE . "-$type: $info");
+        header(static::HEADER_BASE . "-$type: $info", false);
         return $this;
     }
 
@@ -114,6 +120,7 @@ class Header
 
     /**
      * 获取事例
+     *
      * @return [type] [description]
      */
     public static function instance()
@@ -134,7 +141,9 @@ class Header
 
     /**
      * 转换object->array
+     *
      * @param  [type] $object [description]
+     *
      * @return array
      */
     private static function _convertObject($object)

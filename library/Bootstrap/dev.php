@@ -15,7 +15,9 @@ class Bootstrap extends Bootstrap_Abstract
 {
     /**
      * 添加路由
+     *
      * @method _initRoute
+     *
      * @author NewFuture
      */
     public function _initRoute(Yaf_Dispatcher $dispatcher)
@@ -27,7 +29,9 @@ class Bootstrap extends Bootstrap_Abstract
 
     /**
      * 断言设置
+     *
      * @method _initAssert
+     *
      * @author NewFuture
      */
     public function _initAssert()
@@ -38,7 +42,9 @@ class Bootstrap extends Bootstrap_Abstract
 
     /**
      * 开启调试输出
+     *
      * @method _initDebug
+     *
      * @author NewFuture
      */
     public function _initDebug()
@@ -64,44 +70,50 @@ class Bootstrap extends Bootstrap_Abstract
 
     /**
      * 开启日志监控
+     *
      * @method _initLogListener
+     *
      * @author NewFuture
      */
     public function _initLogListener()
     {
-        if ($listen=Config::get('debug.listen')) {
-            Debug::instance()->listenLog($listen);
+        if ($listen = Config::get('debug.listen')) {
+            Debug::instance()->initLog($listen);
         }
     }
 
     /**
      * 记录数据库查询
+     *
      * @method _initSqlListener
+     *
      * @author NewFuture
      */
     public function _initSqlListener()
     {
-        if ($config=Config::get('debug.sql')) {
-            if ($output=$config->get('output')) {
+        if ($config = Config::get('debug.sql')) {
+            if ($output = $config->get('output')) {
                 Debug::instance()->initSQL($output, $config->get('result'));
             }
             if ($config->get('dumpdo')) {
-                \Service\Database::$debug=true;
+                \Service\Database::$debug = true;
             }
         }
     }
 
     /**
      * 加载统计插件
+     *
      * @method _initTracer
-     * @param  Yaf_Dispatcher $dispatcher [description]
+     *
+     * @param  Yaf_Dispatcher $dispatcher
+     *
      * @author NewFuture
      */
     public function _initTracer(Yaf_Dispatcher $dispatcher)
     {
-        if ($tacerdebug=Config::get('debug.tracer')) {
-            $dispatcher->registerPlugin(Tracer::Instance());
-            Debug::instance()->initTracer($tacerdebug);
+        if ($tacerdebug = Config::get('debug.tracer')) {
+            $dispatcher->registerPlugin(Tracer::Instance($tacerdebug));
         }
     }
 }
