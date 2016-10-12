@@ -55,13 +55,14 @@ class SqlListener
         $data = array(
             'T' => microtime(true),//time
             'Q' => $sql,//sql query
+            'N' => $name,
         );
         if ($param) {
             //param
             $data['P'] = $param;
         }
         $id = &static::$_sql_id;
-        Debug::log("[SQL]({$id}) {$name} called\n$sql\n".json_encode($param));
+        Debug::log("[SQL]({$id}) {$name} called\n${sql}}\n".json_encode($param, 256));
         ++$id;
     }
 
@@ -76,13 +77,14 @@ class SqlListener
     {
         $data = &$this->_data;
         $data['T'] = (microtime(true) - $data['T']) * 1000;
-        $data['R'] = $result;
         $error = null;
-        if (!$db->isOk()) {
-            $data['E'] = $db->errorInfo();
-            $error = $db->errorInfo();
+        if ($db->isOk() && $name !== 'error') {
+            $data['R'] = $result;
+        } else {
+            $error = $result;
+            $data['E'] = $result[0];
         }
-        $this->flush($error, $name);
+        $this->flush($error);
     }
 
     public function __destruct()
@@ -94,7 +96,7 @@ class SqlListener
     /**
      * 输出数据
      */
-    protected function flush($error = null, $name = null)
+    protected function flush($error = null)
     {
         $id = static::$_sql_id;
         $data = &$this->_data;
@@ -104,17 +106,19 @@ class SqlListener
             if (isset($data['P'])) {
                 $message .= '  [PARAMS] '.json_encode($data['P'], 256).PHP_EOL;
             }
-            
-            $message .= '  [RESULT] '.json_encode($data['R'], 256).PHP_EOL;
+            if (isset($data['R'])) {
+                $message .= '  [RESULT] '.json_encode($data['R'], 256).PHP_EOL;
+            }
             if ($error) {
                 $message .= '!![ERROR!] '.json_encode($error, 256).PHP_EOL;
                 Debug::log("[SQL]({$id}) error!!!");
             }
-            $message .= "  [INFORM] ${data['T']} ms ( $name ) \n\r";
+            $message .= "  [INFORM] ${data['T']} ms (${data['N']})\n\r";
             Debug::log($message, 'SQL');
         }
 
         if (in_array('HEADER', static::$sql_output)) {
+            unset($data['N']);
             if (!static::$show_detail_in_header && isset($data['R'])) {
                 $data['R'] = count($data['R']);
             }

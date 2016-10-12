@@ -1,37 +1,34 @@
 # http://about.travis-ci.org/docs/user/languages/php/
 dist: trusty
 sudo: false
-
 language: php
-
 
 # list any PHP version
 php:
   # using major version aliases
   # aliased to a recent 7.x version
   - 7.0
-  # aliased to a recent 5.6.x version
   - 5.6
-  # aliased to a recent 5.5.x version
   - 5.5
-  # aliased to a recent 5.4.x version
   - 5.4
-  # aliased to 5.3.29
   - 5.3
-
-git:
-  depth: 3
-
-# https://docs.travis-ci.com/user/environment-variables/
-# optionally specify a list of environments
-env:
-  - environ=dev
-  - environ=product
 
 services:
   - mysql
   - memcached
   - redis-server
+
+git:
+  depth: 2
+
+# https://docs.travis-ci.com/user/environment-variables/
+# optionally specify a list of environments
+env:
+  # global:
+
+  matrix:
+    - environ=dev
+    - environ=product
   
 
 # optionally set up exclutions and allowed failures in the matrix
@@ -40,23 +37,40 @@ services:
 #   #   - php: 5.3
 
 
-install: true
-  #init tests environment
+#init tests environment
+install: 
+  # use init.cmd YYF ( test the server.cmd, when php>=5.4)
+  - if [[ "$environ" == "dev" ]];then 
+      if [[ $TRAVIS_PHP_VERSION = "5.3" ]];then 
+        echo 3 |./init.cmd;
+      else
+        echo 2 |./init.cmd &
+      fi;
+    else
+      echo 4 |./init.cmd;
+    fi;
+  - export PHP_CONF="$(dirname ~/ss)/.phpenv/versions/$(phpenv version-name)/etc"
+  # Enable redis.so and memcached.so
+  - if [[ "$environ" == "product" ]];then
+       echo -e "extension = redis.so\nextension = memcached.so">> $PHP_CONF/php.ini;
+    fi;
+  # allow yaf autoload
+  - echo 'yaf.use_spl_autoload = 1' >> $PHP_CONF/php.ini
 
 
 # execute any number of scripts before the test run, custom env's are available as variables
 before_script:
-  # use init.cmd YYF ( test the server.cmd, when php>=5.4)
-  - if [[ "$environ" == "dev" ]];then if [[ $TRAVIS_PHP_VERSION = "5.3" ]];then echo 3|./init.cmd;else(echo 2 | ./init.cmd &);fi;fi;
-  - if [[ "$environ" == "product" ]];then echo 4|./init.cmd;fi;
-  # Enable redis.so and memcached.so
-  - if [[ "$environ" == "product" ]];then echo -e "extension = redis.so\nextension = memcached.so">>~/.phpenv/versions/$(phpenv version-name)/etc/php.ini;fi;
   # init MySQL database
   - sed '/^#SQLITE_START#/,/^#SQLITE_END#/d' tests/yyf.sql|mysql -uroot;
   # init Sqlite database
   - sed '/^#MYSQL_START#/,/^#MYSQL_END#/d' tests/yyf.sql|sqlite3 runtime/yyf.db;
   # Waiting for the php dev server to start
-  - if [[ "$environ" == "dev" && $TRAVIS_PHP_VERSION != "5.3" ]];then while [ ! -f "server.cmd" ];do sleep 0.5;done;echo "Initialized!";fi; 
+  - if [[ "$environ" == "dev" && $TRAVIS_PHP_VERSION != "5.3" ]];then
+      while [ ! -f "$PHP_CONF/conf.d/yaf.ini" ];do
+        sleep 0.5;
+      done;
+      echo "Initialized!";
+    fi; 
 
 # omitting "script:" will default to phpunit
 # use the env variable to determine the phpunit.xml to use
@@ -64,17 +78,23 @@ script:
   # test php
   - phpunit -c tests/phpunit.xml
   # test server
-  - if [[ "$environ" == "dev" && $TRAVIS_PHP_VERSION != "5.3" ]];then curl -sS localhost:1122|grep -iPo '(?<=<title>)(.*)(?=</title>)';fi;
+  - if [[ "$environ" == "dev" && $TRAVIS_PHP_VERSION != "5.3" ]];then
+      curl -sS localhost:1122|grep -iPo '(?<=<title>)(.*)(?=</title>)';
+    fi;
+
 
 #on fail
 after_failure:
   - if [[ "$environ" == "dev" && $TRAVIS_PHP_VERSION != "5.3" ]];then cat server.cmd ;fi;
   - cat runtime/log/*.log
+  - test -f runtime/error* && cat runtime/error*
 
 #on success
 after_success:
   - cat runtime/phpunit/test.txt
 
 # configure notifications (email, IRC, campfire etc)
-# notifications:
-#   email: false
+notifications:
+  email:
+    on_failure: change
+    on_success: change

@@ -936,6 +936,27 @@ class Orm implements \JsonSerializable, \ArrayAccess
     public function increment($field, $step = 1)
     {
         $data = $this->_data;
+        if (empty($this->_where) && isset($data[$this->_pk])) {
+            //空条件且设置了主键，使用主键作为更新参数
+            $this->where($this->_pk, $data[$this->_pk]);
+            unset($data[$this->_pk]);
+        }
+        if ($fields = &$this->_fields) {
+            if ($origin_field = array_search($key, $fields, true) && is_string($origin_field)) {
+                //别名 alias
+                $field = $origin_field;
+            }
+            $fields = Orm::fieldFilter($fields, $data); //字段过滤
+        }
+        if (isset($data[$field])) {
+            $this->_data[$field] = $data[$field] + $step;
+            unset($data[$field]);
+        }
+        //bind value
+        foreach ($data as &$value) {
+            $value = $this->bindParam($value);
+        }
+        unset($value);
         $data[$field] = $this->qouteField($field) . '+'.$this->bindParam(intval($step));
         $sql = $this->buildUpdate($data);
         return $this->execute($sql);
@@ -1042,7 +1063,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
      */
     public function safe($enable = true)
     {
-        $this->_safe = boolval($enable);
+        $this->_safe = (bool) $enable;
         return $this;
     }
 
@@ -1050,7 +1071,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 自动查询完自动清空
      *
-     * @method clear
+     * @method autoClear
      *
      * @param  [boolean] $clear [默认开启]
      *
@@ -1058,9 +1079,9 @@ class Orm implements \JsonSerializable, \ArrayAccess
      *
      * @author NewFuture
      */
-    public function auotClear($clear)
+    public function autoClear($clear)
     {
-        $this->_clear = boolval($clear);
+        $this->_clear = (bool) $clear;
         return $this;
     }
 
@@ -1078,7 +1099,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
      */
     public function debug($enable = true)
     {
-        $this->_debug = boolval($enable);
+        $this->_debug = (bool) $enable;
         return $this;
     }
 
@@ -1198,6 +1219,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
         }
         $sql{strlen($sql) - 1} = ')'; //去掉最后的，
         $sql .= 'VALUES';
+        reset($data);
         if (is_string(key($data))) {
             assert('is_array($data)&&count($fields)===count($data)', '[Orm::buildInsert] $data 应该是数组');
             $sql .= '('.implode(',', $data).'),';
@@ -1235,7 +1257,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
         $sql{strlen($sql) - 1} = ' ';
         $sql .= $this->buildJoin()
                 . $this->buildWhere()
-                . $this->buildTail();
+                . $this->buildTail(false);
         return $sql;
     }
 
@@ -1425,7 +1447,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
      *
      * @author NewFuture
      */
-    protected function buildTail()
+    protected function buildTail($offset = true)
     {
         $sql = '';
         if ($order = &$this->_order) {
@@ -1436,7 +1458,12 @@ class Orm implements \JsonSerializable, \ArrayAccess
             $sql{strlen($sql) - 1} = ' ';
         }
         if ($limit = &$this->_limit) {
-            $sql .= 'LIMIT ' . $limit[0] . ' OFFSET ' . $limit[1] . ' ';
+            if ($offset && isset($this->_param[$limit[1]])) {
+                $sql .= 'LIMIT ' . $limit[0] . ' OFFSET ' . $limit[1] . ' ';
+            } else {
+                $sql .= ' LIMIT ' . $limit[0];
+                unset($this->_param[$limit[1]]);
+            }
         }
         if ($unions = &$this->_unions) {
             $sql .= implode(' ', $unions);

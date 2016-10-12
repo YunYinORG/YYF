@@ -17,7 +17,7 @@ class CacheTest extends TestCase
     {
         return array(
             'Number Value' => array('_test_key_n',1234577),
-            'bool Value'   => array('_test_key_bool',true,1),
+            'bool Value'   => array('_test_key_bool',true,2),
             'string_value' => array('_test_key_s','test_value',0),
             'array Value'  => array('_test_key_array',array('a',2,'c' => 3),60),
         );
@@ -31,7 +31,7 @@ class CacheTest extends TestCase
                 array('_mkey1_s' => 'test_value','_mkey1_i' => 10),0
             ),
             array(
-                array('_mkey3_a' => array('test_value2',122),'_mkey3_bool' => true),1
+                array('_mkey3_a' => array('test_value2',122),'_mkey3_bool' => true),2
             ),
             array(
                 array('_mkey2_s' => 'test_value2','_mkey2bool' => true),

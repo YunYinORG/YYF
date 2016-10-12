@@ -40,7 +40,7 @@ class Logger
         $level = strtoupper($level);
         if ($listener = &Logger::$listener) {
             //日志监控回调
-            assert('is_callable($listener)', '[Logger::$listener] 应该是可执行的回调函数');
+            assert('is_callable($listener)');
             call_user_func_array($listener, array(&$level, &$msg));
         }
 

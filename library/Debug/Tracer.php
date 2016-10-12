@@ -29,8 +29,9 @@ class Tracer extends Plugin
     {
         ob_start();
         $this->output =  explode(',', strtoupper($type));
-        $this->time['request'] = $_SERVER['REQUEST_TIME_FLOAT'] * 1000;
-        $this->time['start']   = YYF_INIT_TIME * 1000;
+        $this->time['request'] = isset($_SERVER['REQUEST_TIME_FLOAT']) ?
+                            $_SERVER['REQUEST_TIME_FLOAT'] : $_SERVER['REQUEST_TIME'];
+        $this->time['start']   = YYF_INIT_TIME;
         $this->mem['startm']   = YYF_INIT_MEM / 1024; //启动内存，包括调试插件占用
         $this->mem['start']    = memory_get_usage() / 1024; //启动内存，包括调试插件占用
     }
@@ -38,13 +39,13 @@ class Tracer extends Plugin
     //在路由之前触发，这个是7个事件中, 最早的一个. 但是一些全局自定的工作, 还是应该放在Bootstrap中去完成
     public function routerStartup(Request $request, Response $response)
     {
-        $this->time['routerstart'] = microtime(true) * 1000;
+        $this->time['routerstart'] = microtime(true);
     }
 
     //分发循环开始之前被触发
     public function dispatchLoopStartup(Request $request, Response $response)
     {
-        $this->time['dispatchstart'] = microtime(true) * 1000;
+        $this->time['dispatchstart'] = microtime(true);
         $this->mem['dispatchm'] = memory_get_peak_usage() / 1024;
         $this->mem['dispatch'] = memory_get_usage() / 1024;
     }
@@ -52,7 +53,7 @@ class Tracer extends Plugin
     //分发结束之后触发，此时动作已经执行结束, 视图也已经渲染完成. 和preDispatch类似, 此事件也可能触发多次
     public function postDispatch(Request $request, Response $response)
     {
-        $this->time['postdispatch'] = microtime(true) * 1000;
+        $this->time['postdispatch'] = microtime(true);
     }
 
     /**
@@ -75,6 +76,10 @@ class Tracer extends Plugin
      */
     public function dispaly(array $mem, array $time, array $files)
     {
+        if (!isset($time['dispatchstart'])) {
+            return false;
+        }
+        
         if (in_array('LOG', $this->output)) {
             $header = (isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : getenv('REQUEST_METHOD'))
                 . ' 资源消耗统计:' . PHP_EOL;
@@ -131,8 +136,12 @@ class Tracer extends Plugin
         $time = &$this->time;
         
         $mem['max']  = memory_get_peak_usage() / 1024;
-        $time['end'] = microtime(true) * 1000;
+        $time['end'] = microtime(true);
 
+        foreach ($time as &$t) {
+            $t *= 1000;
+        }
+        
         /*传递回调*/
         foreach (static::$observer as &$callback) {
             call_user_func($callback, $mem, $time, $files);

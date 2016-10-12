@@ -21,8 +21,9 @@
 #MYSQL_START#
 /*MySQL重建数据库*/
 DROP DATABASE IF EXISTS `yyf`;
-CREATE DATABASE IF NOT EXISTS `yyf` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ;
+CREATE DATABASE `yyf` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `yyf`;
+SET storage_engine = InnoDB ;
 #MYSQL_END#
 
 /* 通用部分 */

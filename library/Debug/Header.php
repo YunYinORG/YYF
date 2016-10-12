@@ -70,7 +70,7 @@ class Header
                 $value = str_replace(array('+', '%3D', '%3E', '%28', '%29', '%5B', '%5D', '%3A'), array(' ', '=', '>', '(', ')', '[', ']', ':'), $value);
 
         }
-        header(static::HEADER_BASE . $key . ': ' . $value, false);
+        headers_sent() || header(static::HEADER_BASE . $key . ': ' . $value, false);
         return $this;
     }
 
@@ -91,7 +91,7 @@ class Header
             }
             $info = json_encode($info, 64);//64 JSON_UNESCAPED_SLASHES
         }
-        header(static::HEADER_BASE . "-$type: $info", false);
+        headers_sent() || header(static::HEADER_BASE . "-$type: $info", false);
         return $this;
     }
 

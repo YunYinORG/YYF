@@ -53,10 +53,11 @@ class Assertion
      */
     public static function php53()
     {
-        if (func_get_arg(1) !== 'assert() expects at most 1 parameters, 2 given') {
+        if (func_get_arg(1) !== 'assert() expects exactly 1 parameter, 2 given') {
             return false;  //非断言参数错误继续传递
         }
-        static::$assertion = debug_backtrace(false, 2)[1];//从trace栈获取assert参数内容
+        static::$assertion = debug_backtrace(false);
+        static::$assertion = static::$assertion[1];//从trace栈获取assert参数内容
         extract(func_get_arg(4));//恢复assert上下文环境
         assert(static::$assertion['args'][0]);//运行断言
         /*清除断言数据*/

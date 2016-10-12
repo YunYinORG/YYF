@@ -241,7 +241,7 @@ echo ---------------------------------------------------------------------------
 
 echo __________________________ INITIALIZE YYF ENVIRONMENT _________________________
 echo ...............................................................................
-echo ----------- *_* goto [http://yyf.newfuture.cc/setup/] for help *_* ------------
+echo ----------- *_* goto [https://yyf.newfuture.cc/setup/] for help *_* -----------
 
 echo _______________________________________________________________________________
 echo ===============================================================================
@@ -419,7 +419,7 @@ fi;
 
 
 INSTALL_YAF(){
-INSTALL_URL="http://yyf.newfuture.cc/assets/code/yaf${1}.sh"
+INSTALL_URL="https://yyf.newfuture.cc/assets/code/yaf${1}.sh"
 echo ""
 echo "Install YAF from $INSTALL_URL " 
 curl -#SL $INSTALL_URL |bash
