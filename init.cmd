@@ -273,13 +273,15 @@ use_pub_net = false # use the public network or not
 VERSION     = "2.4" # current version
 box_name    = "newfuture/YYF"
 # the shell script in the virtual machine to init the VM at the fisrt time
-init_shell  = "cd /vagrant/;
+init_shell  = %q{
+cd /vagrant/;
 ls tests/init_*.sh 2>/dev/null|xargs -n1 bash;
 if [ -f 'tests/yyf.sql' ];then
-sed '/^#SQLITE_START#/,/^#SQLITE_END#/d' tests/yyf.sql|mysql -uroot;
-sed '/^#MYSQL_START#/,/^#MYSQL_END#/d' tests/yyf.sql|sqlite3 runtime/yyf.db;
+  sed '/^\/\*MYSQL/d;/MYSQL\*\//d' tests/yyf.sql|mysql -uroot;
+  sed '/^\/\*SQLITE/d;/SQLITE\*\//d' tests/yyf.sql|sqlite3 runtime/yyf.db;
 fi;
-if [ -f 'tests/mysql.sql' ];then mysql -uroot mysql<tests/mysql.sql;fi;"
+if [ -f 'tests/mysql.sql' ];then mysql -uroot mysql<tests/mysql.sql;fi;
+}
 #########################################################
 
 Vagrant.configure(2) do |config|

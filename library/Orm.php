@@ -1,4 +1,6 @@
 <?php
+use \Logger as Logger;
+
 /**
  * 数据库表
  * ORM
@@ -221,7 +223,9 @@ class Orm implements \JsonSerializable, \ArrayAccess
             //清理后无有效数据
              return false;
         }
-        $sql = $this->buildInsert($data);
+        $db = $this->getDb('_write');
+        $is_sqlite = 'sqlite' === $db->getAttribute(PDO::ATTR_DRIVER_NAME) && version_compare('3.7.11', $db->getAttribute(PDO::ATTR_SERVER_VERSION), '>');
+        $sql = $this->buildInsert($data, $is_sqlite);
         return $this->execute($sql);
     }
 
@@ -359,10 +363,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
         }
 
         $data = &$this->_data;
-        if (empty($this->_where) && isset($data[$this->_pk])) {
-            //空条件且设置了主键，使用主键作为更新参数
-            $this->where($this->_pk, $data[$this->_pk]);
-        }
         $sql = $this->buildUpdate($update);
         $result = $this->execute($sql);
         if ($result !== false) {
@@ -1207,31 +1207,42 @@ class Orm implements \JsonSerializable, \ArrayAccess
      *
      * @author NewFuture
      *
-     * @todo sql语句缓存
+     * @todo sql语句缓存,insertAll 使用事务
      */
-    protected function buildInsert(array &$data)
+    protected function buildInsert(array &$data, $is_sqlite = false)
     {
-        $fields = &$this->_fields;
-
+        reset($data);
         $sql = 'INSERT INTO' . Orm::backQoute($this->_pre.$this->_table). '(';
+        $fields = &$this->_fields;
         foreach ($fields as $field => $alias) {
             $sql .= Orm::backQoute(is_int($field) ? $alias : $field) . ',';
         }
         $sql{strlen($sql) - 1} = ')'; //去掉最后的，
-        $sql .= 'VALUES';
-        reset($data);
-        if (is_string(key($data))) {
-            assert('is_array($data)&&count($fields)===count($data)', '[Orm::buildInsert] $data 应该是数组');
-            $sql .= '('.implode(',', $data).'),';
-        } else {
-            assert('is_array($data[0])&&count($fields)===count($data[0])', '[Orm::buildInsert] $data 应该是一个二维数组,其中每个数组是一条记录');
-            foreach ($data as &$row) {
-                $sql .= '('.implode(',', $row).'),';
-            }
-            unset($row);
-        }
 
-        $sql{strlen($sql) - 1} = ' ';
+        if ($is_sqlite) {
+            $sql .= 'SELECT ';
+            foreach (current($data) as $key => $value) {
+                $sql .= $value.' AS'.Orm::backQoute($key) . ',';
+            }
+            $sql{strlen($sql) - 1} = PHP_EOL;
+            while ($next = next($data)) {
+                $sql .= 'UNION ALL SELECT '.implode(',', $next).PHP_EOL;
+            }
+        } else {
+            $sql .= 'VALUES';
+            // reset($data);
+            if (is_string(key($data))) {
+                assert('is_array($data)&&count($fields)===count($data)', '[Orm::buildInsert] $data 应该是数组');
+                $sql .= '('.implode(',', $data).'),';
+            } else {
+                assert('is_array($data[0])&&count($fields)===count($data[0])', '[Orm::buildInsert] $data 应该是一个二维数组,其中每个数组是一条记录');
+                foreach ($data as &$row) {
+                    $sql .= '('.implode(',', $row).'),';
+                }
+                unset($row);
+            }
+            $sql{strlen($sql) - 1} = ' ';
+        }
         return $sql;
     }
 
@@ -1255,9 +1266,37 @@ class Orm implements \JsonSerializable, \ArrayAccess
             $sql .= Orm::backQoute($key) . '='.$v.',';
         }
         $sql{strlen($sql) - 1} = ' ';
-        $sql .= $this->buildJoin()
-                . $this->buildWhere()
-                . $this->buildTail(false);
+        $sql .= $this->buildJoin();
+
+        /*where conditions*/
+        if (empty($this->_where) && isset($this->_data[$this->_pk])) {
+            //空条件且设置了主键，使用主键作为更新参数
+           $this->Where($this->_pk, $this->_data[$this->_pk]);
+        }
+        $sql .= $this->buildWhere();
+
+        /*order limit*/
+        $db = $this->getDb('_write');
+        if ('sqlite' !== $db->getAttribute(PDO::ATTR_DRIVER_NAME)) {
+            //mysql
+            $sql .= $this->buildTail(false);
+        } elseif (in_array(array('compile_option' => 'ENABLE_UPDATE_DELETE_LIMIT'), $db->query('PRAGMA compile_options'))) {
+            //sqlite with ENABLE_UPDATE_DELETE_LIMIT
+            $sql .= $this->buildTail();
+        } elseif (($limit = $this->_limit) && isset($this->_param[$limit[0]])) {
+            if ($this->_param[$limit[0]] > 1) {
+                Logger::error('[ORM] 当前SQLITE不支持update with limit, limit条件('.$limit.')已被自动忽略!(重新编译sqlite加上参数 ENABLE_UPDATE_DELETE_LIMIT)');
+            }
+            unset($this->_param[$limit[0]]);
+            
+            if (isset($limit[1]) && isset($this->_param[$limit[1]])) {
+                if ($this->_param[$limit[1]] > 1) {
+                    Logger::error('[ORM] 当前SQLITE不支持update 不支持offset,已自动忽略');
+                }
+                unset($this->_param[$limit[1]]);
+            }
+        }
+        
         return $sql;
     }
 
@@ -1393,9 +1432,9 @@ class Orm implements \JsonSerializable, \ArrayAccess
      *
      * @author NewFuture
      */
-    protected function buildWhere()
+    protected function buildWhere($where = false)
     {
-        if ($where = &$this->_where) {
+        if ($where || $where = &$this->_where) {
             return $this->buildCondition($where, 'WHERE');
         } else {
             return '';
