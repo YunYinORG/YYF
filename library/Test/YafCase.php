@@ -86,12 +86,6 @@ abstract class YafCase extends TestCase
         $this->assertSame(fileperms($path) & $mode, $mode, $path.'文件权限与预设不符(file permission not the same)');
     }
 
-    public function tearDown()
-    {
-        // unset($this->app);
-        // $this->app = null;
-    }
-
     public function __sleep()
     {
         $keys = array();

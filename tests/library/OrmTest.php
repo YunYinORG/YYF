@@ -22,7 +22,6 @@ class OrmTest extends TestCase
     public function tearDown()
     {
         unset($this->User);
-        parent::tearDown();
     }
     
     protected function User()
@@ -85,7 +84,6 @@ class OrmTest extends TestCase
      */
     public function testInsert($data)
     {
-        test_log('insert: '.json_encode($data));
         $id = $this->User()->insert($data);
         $this->assertEquals($data['id'], $id);
         return $id;
@@ -97,7 +95,6 @@ class OrmTest extends TestCase
      */
     public function testDelete($data)
     {
-        test_log('delete: '.json_encode($data));
         $result = $this->User()->delete($data['id']);
         $this->assertEquals(1, $result);
     }
