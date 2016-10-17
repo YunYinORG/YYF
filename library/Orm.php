@@ -336,6 +336,32 @@ class Orm implements \JsonSerializable, \ArrayAccess
     }
 
     /**
+     * 获取字段真名
+     *
+     * @method getTrueField
+     *
+     * @param  string  $key [键值]
+     *
+     * @return 操作结果 真实键名
+     *
+     * @author NewFuture
+     */
+    protected function getTrueField($key)
+    {
+        if ($fields = &$this->_fields) {
+            //字段检查
+            if ($field = array_search($key, $fields, true)) {
+                if (is_string($field)) {
+                    $key = $field; //别名
+                }
+            } elseif (!isset($fields[$key])) {
+                return false;//无此字段
+            }
+        }
+        return $key;
+    }
+
+    /**
      * 修改并写入数据 对set和save的简化
      *
      * @method put
@@ -349,26 +375,15 @@ class Orm implements \JsonSerializable, \ArrayAccess
      */
     public function put($key, $value)
     {
-        $update = array($key => $this->bindParam($value));
-        if ($fields = &$this->_fields) {
-            //字段检查
-            if ($field = array_search($key, $fields, true)) {
-                if (is_string($field)) {
-                    //别名
-                    $update = array($field => current($update));
-                }
-            } elseif (!isset($field[$key])) {
-                return false;//无此字段
+        if ($key = $this->getTrueField($key)) {
+            $update = array($key => $this->bindParam($value));
+            $sql = $this->buildUpdate($update);
+            $result = $this->execute($sql);
+            if ($result !== false) {
+                $this->_data[$key] = $value;//写入数据
             }
+            return $result;
         }
-
-        $data = &$this->_data;
-        $sql = $this->buildUpdate($update);
-        $result = $this->execute($sql);
-        if ($result !== false) {
-            $data[$key] = $value;//写入数据
-        }
-        return $result;
     }
 
     /**
@@ -933,33 +948,17 @@ class Orm implements \JsonSerializable, \ArrayAccess
      *
      * @author NewFuture
      */
-    public function increment($field, $step = 1)
+    public function increment($key, $step = 1)
     {
-        $data = $this->_data;
-        if (empty($this->_where) && isset($data[$this->_pk])) {
-            //空条件且设置了主键，使用主键作为更新参数
-            $this->where($this->_pk, $data[$this->_pk]);
-            unset($data[$this->_pk]);
-        }
-        if ($fields = &$this->_fields) {
-            if ($origin_field = array_search($key, $fields, true) && is_string($origin_field)) {
-                //别名 alias
-                $field = $origin_field;
+        if ($key = $this->getTrueField($key)) {
+            $data = array(
+                $key => $this->qouteField($key) .'+'. $this->bindParam(intval($step)),
+             );
+            if ($result = $this->execute($this->buildUpdate($data)) && isset($this->_data[$key])) {
+                $this->_data[$key] += $step;
             }
-            $fields = Orm::fieldFilter($fields, $data); //字段过滤
+            return $result;
         }
-        if (isset($data[$field])) {
-            $this->_data[$field] = $data[$field] + $step;
-            unset($data[$field]);
-        }
-        //bind value
-        foreach ($data as &$value) {
-            $value = $this->bindParam($value);
-        }
-        unset($value);
-        $data[$field] = $this->qouteField($field) . '+'.$this->bindParam(intval($step));
-        $sql = $this->buildUpdate($data);
-        return $this->execute($sql);
     }
 
 

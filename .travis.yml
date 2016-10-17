@@ -53,6 +53,7 @@ install:
   # Enable redis.so and memcached.so
   - if [[ "$environ" == "product" ]];then
        echo -e "extension = redis.so\nextension = memcached.so">> $PHP_CONF/php.ini;
+       sed -i'' 's/options.3  = 2/options.3  = 0/' conf/secret.*.ini;
     else
        sed -i'' -e 's/db\._\./db.default./' -e 's/db\.test\./db._./' conf/secret.common.ini;
        sed -i'' 's/db\.default\./db.test./' conf/secret.common.ini;

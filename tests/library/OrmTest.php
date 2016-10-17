@@ -4,11 +4,6 @@ namespace tests\library;
 use \Orm as Orm;
 use \Test\YafCase as TestCase;
 
-/**
- * @runTestsInSeparateProcesses
- * @preserveGlobalState disabled
- * @backupGlobals disabled
- */
 class OrmTest extends TestCase
 {
     const USER_AMOUNT = 2 ;
@@ -205,10 +200,10 @@ class OrmTest extends TestCase
      */
     public function testDecrement($id)
     {
-        $User = $this->User->find($id);
-        $status = $User->status;
-        $this->assertEquals(1, $User->decrement('status'));
-        $this->assertEquals($status - 1, $User->get('status'));
+        $User = $this->User->where('id', $id);
+        $status = $User->get('status');
+        $this->assertEquals(1, $User->decrement('status'), "id:$id");
+        $this->assertEquals($status - 1, $User->get('status'), "id:$id");
     }
 
     public function testCount()
