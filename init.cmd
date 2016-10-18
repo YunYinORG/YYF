@@ -172,6 +172,7 @@ GOTO :EOF
 CALL :IF_EXIST VBoxManage.exe && GOTO CHECK_VAGRANT
 IF EXIST "%ProgramFiles%\Oracle\VirtualBox\VBoxManage.exe" (GOTO CHECK_VAGRANT)
 IF EXIST "%ProgramFiles(x86)%\Oracle\VirtualBox\VBoxManage.exe" (GOTO CHECK_VAGRANT)
+IF EXIST "%VBOX_MSI_INSTALL_PATH%\VBoxManage.exe" (GOTO CHECK_VAGRANT)
 ECHO.
 ECHO.virtual box is not installed press any key to install (or CTRL + C to exit)
 PAUSE
