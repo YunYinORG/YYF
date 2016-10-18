@@ -9,8 +9,7 @@ use \Test\YafCase as TestCase;
  */
 class LoggerTest extends TestCase
 {
-    
-    protected static $LEVEL=array('EMERGENCY','ALERT','CRITICAL','ERROR','WARN','NOTICE','INFO','DEBUG','SQL','TRACER');
+    protected static $LEVEL = array('EMERGENCY','ALERT','CRITICAL','ERROR','WARN','NOTICE','INFO','DEBUG','SQL','TRACER');
     protected static $bootstrap = false;
     
     protected $message;
@@ -21,12 +20,12 @@ class LoggerTest extends TestCase
     
     public static function setUpBeforeClass()
     {
-        static::$env= static::app()->environ();
+        static::$env = static::app()->environ();
 
-        $conf=static::app()->getConfig()->log;
-        static::$allow=explode(',', strtoupper($conf->allow));
-        static::$type=$conf->type;
-        if ('system'===$conf->type) {
+        $conf = static::app()->getConfig()->log;
+        static::$allow = explode(',', strtoupper($conf->allow));
+        static::$type = $conf->type;
+        if ('system' === $conf->type) {
             //拦截系统日志
             ini_set('error_log', static::getLogFile());
         }
@@ -35,34 +34,42 @@ class LoggerTest extends TestCase
 
     public static function tearDownAfterClass()
     {
+        clearstatcache();
         Logger::clear();
-        if (is_file($file=static::getLogFile())) {
+        if (is_file($file = static::getLogFile())) {
             unlink($file);
         }
     }
 
     public function setUp()
     {
-        $m=&$this->message;
-        $m=array();
-        Logger::$listener=function (&$level, &$msg) use (&$m) {
-            $m[]=array($level=>$msg);
+        $m = &$this->message;
+        $m = array();
+        Logger::$listener = function (&$level, &$msg) use (&$m) {
+            $m[] = array($level => $msg);
         };
         Logger::clear();
-        if (is_file($file=static::getLogFile())) {
+        if (is_file($file = static::getLogFile())) {
             unlink($file);
         }
     }
 
+    public function tearDown()
+    {
+
+        Logger::clear();
+    }
+
+
     public function testListener()
     {
-        $level='NOTICE';
-        $msg="test message";
+        $level = 'NOTICE';
+        $msg = 'test message';
         Logger::write($msg, $level);
         $this->assertPop($level, $msg);
 
-        $level='ssssa';
-        $msg="message";
+        $level = 'ssssa';
+        $msg = 'message';
         Logger::write($msg, $level);
         $this->assertPop($level, $msg);
     }
@@ -72,56 +79,56 @@ class LoggerTest extends TestCase
     {
         $level = static::$LEVEL;
         $level[] = uniqid('test');
-        $log1='test logger lower';
-        $log2='isaverylongloggerstringfortesting';
-        if ('file'===static::$type) {
+        $log1 = 'test logger lower';
+        $log2 = 'isaverylongloggerstringfortesting';
+        if ('file' === static::$type) {
             //文件存储形式
             foreach ($level as $l) {
-                $file=static::getLogFile($l);
+                $file = static::getLogFile($l);
                 if (in_array($l, static::$allow)) {
-                    $this->assertEquals(true, Logger::write($l.$log1, strtolower($l)));
-                    $this->assertEquals(true, Logger::write($l.$log2, $l));
-                    $pre=date('[d-M-Y H:i:s e] (').getenv('REQUEST_URI').') ' ;
-                    $message=$pre.$l.$log1.PHP_EOL.$pre.$l.$log2.PHP_EOL;
+                    $this->assertNotFalse(Logger::write($l.$log1, strtolower($l)));
+                    $this->assertNotFalse(Logger::write($l.$log2, $l));
+                    $pre = date('[d-M-Y H:i:s e] (').getenv('REQUEST_URI').') ' ;
+                    $message = $pre.$l.$log1.PHP_EOL.$pre.$l.$log2.PHP_EOL;
                     $this->assertStringEqualsFile($file, $message);
                     $this->assertFileMode($file);
                 } else {
-                    $this->assertEquals(false, Logger::write($log1, strtolower($l)));
-                    $this->assertEquals(false, Logger::write($log2, $l));
+                    $this->assertNotTrue(Logger::write($log1, strtolower($l)));
+                    $this->assertNotTrue(Logger::write($log2, $l));
                     $this->assertFileNotExists($file);
                 }
             }
-        } elseif ('system'===static::$type) {
+        } elseif ('system' === static::$type) {
             //系统日志
-            $message='';
+            $message = '';
             foreach ($level as $l) {
-                $r1=Logger::write($l.$log1, strtolower($l));
-                $r2=Logger::write($l.$log2, $l);
+                $r1 = Logger::write($l.$log1, strtolower($l));
+                $r2 = Logger::write($l.$log2, $l);
                 if (in_array($l, static::$allow)) {
-                    $date=date('[d-M-Y H:i:s e] ');
-                    $message.=$date."$l: ${l}${log1}".PHP_EOL.$date."$l: ${l}${log2}".PHP_EOL;
-                    $this->assertEquals(true, $r1);
-                    $this->assertEquals(true, $r2);
+                    $date = date('[d-M-Y H:i:s e] ');
+                    $message .= $date."$l: ${l}${log1}".PHP_EOL.$date."$l: ${l}${log2}".PHP_EOL;
+                    $this->assertNotFalse($r1);
+                    $this->assertNotFalse($r2);
                 } else {
-                    $this->assertEquals(false, $r1);
-                    $this->assertEquals(false, $r2);
+                    $this->assertNotTrue($r1);
+                    $this->assertNotTrue($r2);
                 }
             }
-            $file=static::getLogFile();
+            $file = static::getLogFile();
             $this->assertStringEqualsFile($file, $message);
         }
     }
 
     /**
-    * @depends testListener
-    */
+     * @depends testListener
+     */
     public function testLog()
     {
-        $message='just test Message';
-        $templete='{key}-{test}';
-        $context=array('key'=>'somevalue','test'=>'tstring','t'=>'sss');
-        $templete_string='somevalue-tstring';
-        $json=array('test','key','value');
+        $message = 'just test Message';
+        $templete = '{key}-{test}';
+        $context = array('key' => 'somevalue','test' => 'tstring','t' => 'sss');
+        $templete_string = 'somevalue-tstring';
+        $json = array('test','key','value');
         foreach (static::$LEVEL as $l) {
             Logger::log($l, $message);
             Logger::log(strtolower($l), $templete, $context);
@@ -133,11 +140,11 @@ class LoggerTest extends TestCase
     }
 
     /**
-    * @depends testLog
-    */
+     * @depends testLog
+     */
     public function testInterface()
     {
-        $message='test log message string';
+        $message = 'test log message string';
 
         Logger::emergency($message);
         $this->assertPop('EMERGENCY', $message);
@@ -162,13 +169,13 @@ class LoggerTest extends TestCase
     }
 
     /**
-    * @depends testWrite
-    */
+     * @depends testWrite
+     */
     public function testClear()
     {
-        if ('file'===static::$type) {
-            $dir=$this->app->getConfig()->runtime.'log/';
-            Logger::write('test', "ERROR");
+        if ('file' === static::$type) {
+            $dir = $this->app->getConfig()->runtime.'log/';
+            Logger::write('test', 'ERROR');
             Logger::write('test', 'ALERT');
             $this->assertGreaterThan(2, count(scandir($dir)));
             Logger::clear();
@@ -179,20 +186,20 @@ class LoggerTest extends TestCase
     }
 
     /**
-    * @requires OS Linux
-    * @covers ::getFile
-    */
+     * @requires OS Linux
+     * @covers ::getFile
+     */
     public function testDirMode()
     {
-        if ('file'===static::$type) {
-            $dir=APP_PATH.DIRECTORY_SEPARATOR.'runtime'.DIRECTORY_SEPARATOR.'log'.DIRECTORY_SEPARATOR;
+        if ('file' === static::$type) {
+            $dir = APP_PATH.DIRECTORY_SEPARATOR.'runtime'.DIRECTORY_SEPARATOR.'log'.DIRECTORY_SEPARATOR;
             $this->assertFileMode($dir, 0777);
         } else {
             $this->markTestSkipped(static::$type.' log [无需检查权限]');
         }
     }
 
-    protected static function getLogFile($key=null)
+    protected static function getLogFile($key = null)
     {
         if ($key) {
             return static::app()->getConfig()->runtime.'log/'. date('y-m-d-').strtoupper($key).'.log';
@@ -203,6 +210,6 @@ class LoggerTest extends TestCase
     protected function assertPop($level, $msg)
     {
         $message = array_pop($this->message);
-        return  $this->assertSame($message, array(strtoupper($level)=>$msg));
+        return  $this->assertSame($message, array(strtoupper($level) => $msg));
     }
 }
