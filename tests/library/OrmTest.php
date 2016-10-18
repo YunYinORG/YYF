@@ -90,8 +90,14 @@ class OrmTest extends TestCase
      */
     public function testDelete($data)
     {
-        $result = $this->User()->delete($data['id']);
-        $this->assertEquals(1, $result);
+        if ($data['id'] < 4) {
+            $result = $this->User->find($data['id']);
+            $this->assertEquals($data['id'], $result->id, 'find the id');
+            $this->assertEquals(1, $result->delete(), 'delete by data');
+        } else {
+            $result = $this->User->delete($data['id']);
+            $this->assertEquals(1, $result, 'delete by id');
+        }
     }
 
     /**

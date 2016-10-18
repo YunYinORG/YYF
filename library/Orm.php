@@ -1265,37 +1265,9 @@ class Orm implements \JsonSerializable, \ArrayAccess
             $sql .= Orm::backQoute($key) . '='.$v.',';
         }
         $sql{strlen($sql) - 1} = ' ';
-        $sql .= $this->buildJoin();
-
-        /*where conditions*/
-        if (empty($this->_where) && isset($this->_data[$this->_pk])) {
-            //空条件且设置了主键，使用主键作为更新参数
-           $this->Where($this->_pk, $this->_data[$this->_pk]);
-        }
-        $sql .= $this->buildWhere();
-
-        /*order limit*/
-        $db = $this->getDb('_write');
-        if ('sqlite' !== $db->getAttribute(PDO::ATTR_DRIVER_NAME)) {
-            //mysql
-            $sql .= $this->buildTail(false);
-        } elseif (in_array(array('compile_option' => 'ENABLE_UPDATE_DELETE_LIMIT'), $db->query('PRAGMA compile_options'))) {
-            //sqlite with ENABLE_UPDATE_DELETE_LIMIT
-            $sql .= $this->buildTail();
-        } elseif (($limit = $this->_limit) && isset($this->_param[$limit[0]])) {
-            if ($this->_param[$limit[0]] > 1) {
-                Logger::error('[ORM] 当前SQLITE不支持update with limit, limit条件('.$limit.')已被自动忽略!(重新编译sqlite加上参数 ENABLE_UPDATE_DELETE_LIMIT)');
-            }
-            unset($this->_param[$limit[0]]);
-            
-            if (isset($limit[1]) && isset($this->_param[$limit[1]])) {
-                if ($this->_param[$limit[1]] > 1) {
-                    Logger::error('[ORM] 当前SQLITE不支持update 不支持offset,已自动忽略');
-                }
-                unset($this->_param[$limit[1]]);
-            }
-        }
-        
+        $sql .= $this->buildJoin()
+                .$this->buildWhere(true)
+                .$this->buildTail(false);
         return $sql;
     }
 
@@ -1358,7 +1330,11 @@ class Orm implements \JsonSerializable, \ArrayAccess
         } else {
             $sql = 'DELETE ';
         }
-        $sql .= $this->buildFrom().$this->buildJoin().$this->buildWhere().$this->buildTail();
+        $sql .= $this->buildFrom()
+                .$this->buildJoin()
+                .$this->buildWhere(true)
+                .$this->buildTail(false);
+
         return $sql;
     }
 
@@ -1431,9 +1407,16 @@ class Orm implements \JsonSerializable, \ArrayAccess
      *
      * @author NewFuture
      */
-    protected function buildWhere($where = false)
+    protected function buildWhere($check_pk = false)
     {
-        if ($where || $where = &$this->_where) {
+        if ($where = &$this->_where) {
+            return $this->buildCondition($where, 'WHERE');
+        } elseif ($check_pk && isset($this->_data[$this->_pk])) {
+            //空条件且设置了主键，使用主键作为更新参数
+            //see parseCondition()
+            $where = array(
+                array('AND', $this->_pk,'=',$this->bindParam($this->_data[$this->_pk])),
+            );
             return $this->buildCondition($where, 'WHERE');
         } else {
             return '';
@@ -1487,6 +1470,47 @@ class Orm implements \JsonSerializable, \ArrayAccess
      */
     protected function buildTail($offset = true)
     {
+        $limit = $this->_limit ?: '';
+        $param = &$this->_param;
+        if (false === $offset) {
+            $db = $this->getDb('_write');
+            $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
+
+            if ('mysql' === $driver) {
+                //mysql
+                if ($limit) {
+                    if (isset($limit[1]) && isset($param[$limit[1]])) {
+                        unset($param[$limit[1]]);
+                    }
+                    $limit = ' LIMIT ' . $limit[0];
+                }
+            } elseif ('sqlite' === $driver
+                && !in_array(array('compile_option' => 'ENABLE_UPDATE_DELETE_LIMIT'), $db->query('PRAGMA compile_options'))) {
+                //sqlite and not support ENABLE_UPDATE_DELETE_LIMIT
+                // clear limit
+                // risk
+                $this->_limit = null;
+                if ($limit) {
+                    if ($param[$limit[0]] > 1) {
+                        Logger::error('[ORM] 当前SQLITE不支持update with limit, limit条件('.$param[$limit[0]].')已被自动忽略!(重新编译sqlite加上参数 ENABLE_UPDATE_DELETE_LIMIT)');
+                    }
+                    unset($param[$limit[0]]);
+                    if (isset($limit[1]) && isset($param[$limit[1]])) {
+                        if ($param[$limit[1]] > 1) {
+                            Logger::error('[ORM] 当前SQLITE不支持update 不支持offset,已自动忽略');
+                        }
+                        unset($param[$limit[1]]);
+                    }
+                }
+                return '';
+            }
+        }
+
+        if (is_array($limit)) {
+            $limit = isset($limit[1]) && isset($param[$limit[1]]) ?
+                " LIMIT ${limit[0]} OFFSET ${limit[1]}" : " LIMIT ${limit[0]}";
+        }
+
         $sql = '';
         if ($order = &$this->_order) {
             $sql = 'ORDER BY';
@@ -1495,18 +1519,11 @@ class Orm implements \JsonSerializable, \ArrayAccess
             }
             $sql{strlen($sql) - 1} = ' ';
         }
-        if ($limit = &$this->_limit) {
-            if ($offset && isset($this->_param[$limit[1]])) {
-                $sql .= 'LIMIT ' . $limit[0] . ' OFFSET ' . $limit[1] . ' ';
-            } else {
-                $sql .= ' LIMIT ' . $limit[0];
-                unset($this->_param[$limit[1]]);
-            }
-        }
+       
         if ($unions = &$this->_unions) {
             $sql .= implode(' ', $unions);
         }
-        return $sql;
+        return $sql.$limit;
     }
 
     /**
@@ -1780,6 +1797,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
         }
         return $pre . strstr($sql, '(');
     }
+
     /**
      * 解析where条件
      *

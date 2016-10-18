@@ -51,12 +51,12 @@ install:
     fi;
   - export PHP_CONF="$(dirname ~/ss)/.phpenv/versions/$(phpenv version-name)/etc"
   # Enable redis.so and memcached.so
+  # test sqlite in dev and test mysql in product
   - if [[ "$environ" == "product" ]];then
        echo -e "extension = redis.so\nextension = memcached.so">> $PHP_CONF/php.ini;
        sed -i'' 's/options.3  = 2/options.3  = 0/' conf/secret.*.ini;
     else
-       sed -i'' -e 's/db\._\./db.default./' -e 's/db\.test\./db._./' conf/secret.common.ini;
-       sed -i'' 's/db\.default\./db.test./' conf/secret.common.ini;
+       sed -i'' -e's/db\._\./db.tmp./' -e's/db\.test\./db._./' -e's/db\.tmp\./db.test./' conf/secret.common.ini;
     fi;
   # allow yaf autoload
   - echo 'yaf.use_spl_autoload = 1' >> $PHP_CONF/php.ini
