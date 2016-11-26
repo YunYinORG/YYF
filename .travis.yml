@@ -1,5 +1,5 @@
 # http://about.travis-ci.org/docs/user/languages/php/
-dist: trusty
+# dist: trusty
 sudo: false
 language: php
 

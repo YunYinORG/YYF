@@ -17,6 +17,8 @@ server.cmd
 .vscode/
 .atom/
 sftp-config.json
+#yaf tips
+.yaf.php
 
 
 #localfile
