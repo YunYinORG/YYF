@@ -1,0 +1,47 @@
+<?php
+
+$finder = PhpCsFixer\Finder::create()
+    ->exclude('runtime/')
+    ->in(__DIR__);
+
+return PhpCsFixer\Config::create()
+    ->setRules(array(
+        // 'indentation'                    => true,
+        'indentation_type'                                     => true,
+        '@PSR2'                                                 => true,
+        'array_syntax'                                          => array('syntax' => 'long'),
+        'trim_array_spaces'                                => true,        
+        'no_multiline_whitespace_around_double_arrow'           => true,
+        'lowercase_constants'                                   => true,
+        'pre_increment'                                         => true,
+        'no_unreachable_default_argument_value'                 => true,
+        'ternary_operator_spaces'                               => true,
+        'cast_spaces'                                           => true,
+        'binary_operator_spaces'                                => array('align_double_arrow' => true),
+        'phpdoc_align'                                          => true,
+        'phpdoc_annotation_without_dot'                         => true,
+        'phpdoc_separation'                                     => true,
+        'phpdoc_indent'                                         => true,
+        'phpdoc_order'                                          => true,
+        'single_quote'                                          => true,
+        'elseif'                                                => true,
+        'no_empty_comment'                                      => true,
+        'single_blank_line_at_eof'                              => true,
+        'single_import_per_statement'                           => true,
+        'no_leading_namespace_whitespace'                       => true,
+        'encoding'                                              => true,
+        'method_argument_space'                                 => true,
+        'no_trailing_comma_in_singleline_array'                 => true,
+        'no_trailing_comma_in_list_call'                        => true,
+        'lowercase_cast'                                        => true,
+        'lowercase_constants'                                   => true,
+        'no_extra_consecutive_blank_lines'                      => array('break', 'continue', 'extra', 'return', 'throw', 'use', 'parenthesis_brace_block', 'square_brace_block', 'curly_brace_block'),
+        'no_useless_else'                                       => true,
+        'no_useless_return'                                     => true,
+        'ordered_class_elements'                                => true,
+        'ordered_imports'                                       => true,
+        'no_whitespace_before_comma_in_array'                   => true,
+        'no_mixed_echo_print'                       => array('use' => 'echo'),
+        // 'header_comment' => array('header' => $header),
+    ))
+    ->setFinder($finder);
