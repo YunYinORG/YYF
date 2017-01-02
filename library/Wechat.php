@@ -1,10 +1,21 @@
 <?php
+
+/**
+ * YYF - A simple, secure, and high performance PHP RESTful Framework
+ *
+ * @link https://github.com/YunYinORG/YYF/
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+
 use Logger as Log;
 
 /**
  * 微信API接口封装【包括JSSDK，微信认证和登录】
  * 在secret配置中[wechat]配置两个key即可
+ *
  * @author NewFuture
+ *
  * @example
  *生成跳转URl
  * $url = Wechat::getAuthUrl();//生成微信认证跳转url
@@ -23,7 +34,6 @@ use Logger as Log;
  */
 class Wechat
 {
-
     private static $_config;   //微信配置
     private static $_state;    //自定义state
     private static $_instance; //自身引用
@@ -31,12 +41,16 @@ class Wechat
     /**
      * @method signJs
      * 对JS的URL进行签名
-     * @param  string  $url          [需要签名的URL]
+     *
+     * @param string $url [需要签名的URL]
+     *
      * @return array [签名后配置的数组,可json序列化返回客户端]
      */
     public static function signJs($url = false)
     {
-        $url = $url ?: getenv('HTTP_ORIGIN') ?: getenv('HTTP_REFERER');
+        if (!$url) {
+            $url = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : false);
+        }
         if (!$url) {
             throw new Exception('[wechat] JS 签名缺少参数url ');
         }
@@ -54,8 +68,8 @@ class Wechat
                 'nonceStr'  => $nonceStr,
                 'signature' => $signature,
             );
-            if ($js=self::_getConfig('js')) {
-                $config+=$js->toArray();
+            if ($js = self::_getConfig('js')) {
+                $config += $js->toArray();
             }
             return $config;
         }
@@ -64,8 +78,10 @@ class Wechat
     /**
      * @method loginConfig
      * 获取登录配置
-     *  供JS中调用时使用
-     * @param  string $redirect [验证回调地址]
+     * 供JS中调用时使用
+     *
+     * @param string $redirect [验证回调地址]
+     *
      * @return array            [配置]
      */
     public static function loginConfig($redirect = null)
@@ -85,11 +101,13 @@ class Wechat
      * @method getAuthUrl
      * 生成微信认证重定向URL
      * 获取授权URL
-     * @param  string  $scope [授权信息：默认为userinfo]
-     *  $scope = base (不弹出授权页面，直接跳转，只能获取用户openid）
-     *  $scope = userinfo （弹出授权页面，可通过openid拿到昵称、性别、所在地）
-     *  $scope = login (网页端登录)
+     *
+     * @param string $scope [授权信息：默认为userinfo]
+     *                      $scope = base (不弹出授权页面，直接跳转，只能获取用户openid）
+     *                      $scope = userinfo （弹出授权页面，可通过openid拿到昵称、性别、所在地）
+     *                      $scope = login (网页端登录)
      * @param  string  $redirect   [回调验证URL:默认读取配置]
+     *
      * @return string [重定向URL]
      */
     public static function getAuthUrl($scope = 'userinfo', $redirect = null)
@@ -110,8 +128,10 @@ class Wechat
      * @method checkCode
      * 验证授权码，返回验证信息
      * 一般用于配合snsapi_base 静默授权
-     * @param  string $code [code 默取$_GET参数]
-     * @param  string $key  [制定默认openid]
+     *
+     * @param string $code [code 默取$_GET参数]
+     * @param string $key  [制定默认openid]
+     *
      * @return string ,制定的参数如openid] [array 全部返回数据]
      * @return false 获取失败
      */
@@ -122,11 +142,11 @@ class Wechat
             return false;
         }
         if (!self::_checkState()) {
-        //自动验证state失败
+            //自动验证state失败
             Log::write('[wechat] state check fialed', 'WARN');
             return false;
         }
-        $url  = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=' . self::_getConfig('appid')
+        $url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=' . self::_getConfig('appid')
             . '&secret=' . self::_getConfig('secret') . '&code=' . $code . '&grant_type=authorization_code';
         $res  = self::_httpGet($url);
         $data = json_decode($res, true);
@@ -142,6 +162,7 @@ class Wechat
      * 设置或者获取state]
      * 无参数时获取Wechat::state()
      * 设置state Wechat::state('statestring')
+     *
      * @return wechat state($setting) 有参数时，返回wechat实体
      * @return string 无参数state（）无参数时,返回当前的state
      */
@@ -153,23 +174,24 @@ class Wechat
                 self::$_instance = new self;
             }
             return self::$_instance;
-        } else {
-            return self::$_state;
         }
+        return self::$_state;
     }
 
     /**
      * 获取用户信息
+     *
      * @param string $code [回调code,默认取$_GET参数]
+     *
      * @return array 验证成功
      * @return false 失败
-     *   {openid,nickname,headimgurl,sex,language,city,province,country,privilege}
+     *               {openid,nickname,headimgurl,sex,language,city,province,country,privilege}
      */
     public static function getUserInfo($code = false)
     {
         if ($data = self::checkCode(false, $code)) {
             //get_user_info_url
-            $url  = 'https://api.weixin.qq.com/sns/userinfo?access_token=' . $data['access_token']
+            $url = 'https://api.weixin.qq.com/sns/userinfo?access_token=' . $data['access_token']
                     . '&openid=' . $data['openid'];
             $data = json_decode(self::_httpGet($url), true);
             return isset($data['errcode']) ? false : $data;
@@ -183,9 +205,10 @@ class Wechat
     /**
      * @method _getConfig
      * 获取微信配置
+     *
      * @param  string $key 配置Key
+     *
      * @return mixed  配置信息
-     * @author NewFuture
      */
     private static function _getConfig($key)
     {
@@ -197,6 +220,7 @@ class Wechat
 
     /**
      * 生成唯一的验证state并保存到制定的存储位置
+     *
      * @return string [生成的state]
      */
     private static function _createState()
@@ -215,6 +239,7 @@ class Wechat
 
     /**
      * 验证state是否有效
+     *
      * @return bool [description]
      */
     private static function _checkState()
@@ -242,6 +267,7 @@ class Wechat
     /**
      * @method _getJsApiTicket
      * 获取JS API ticket
+     *
      * @return string [js ticket]
      */
     private static function _getJsApiTicket()
@@ -251,7 +277,7 @@ class Wechat
             $token = Cache::get('wechat_api_accesstoken');
             if (!$token) {
                 /*获取access_token*/
-                $url  = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='
+                $url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='
                     . self::_getConfig('appid') . '&secret=' . self::_getConfig('secret');
                 $res  = self::_httpGet($url);
                 $data = json_decode($res, true);
@@ -280,14 +306,16 @@ class Wechat
     /**
      * @method _httpGet
      * https请求
-     * @param  string $url
-     * @return string      [返回的数据]
+     *
+     * @param string $url
+     *
+     * @return string [返回的数据]
      */
     private static function _httpGet($url)
     {
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 1000);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 60);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
         curl_setopt($curl, CURLOPT_URL, $url);
