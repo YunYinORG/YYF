@@ -14,6 +14,8 @@ CD /D %~dp0
 
 SETLOCAL enabledelayedexpansion
 
+FOR /F "tokens=* USEBACKQ" %%F IN (`CHCP`) DO for %%A in (%%~F) do set encoding=%%A
+
 COLOR B
 
 CALL :START_MSG
@@ -834,7 +836,6 @@ if [ ! -f "conf/secret.product.ini" ]; then
   cp conf/secret.common.ini conf/secret.product.ini;
   echo "copy secret.common.ini  to secret.product.ini";
 fi;
- 
 }
 
 
