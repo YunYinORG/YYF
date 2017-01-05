@@ -1,4 +1,12 @@
 <?php
+/**
+ * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ *
+ * @see https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
 namespace Debug;
 
 use \Debug as Debug;
@@ -6,10 +14,11 @@ use \Logger as Logger;
 
 /**
  * 监视日志写入记录
+ *
+ * @author NewFuture
  */
 class LogListener
 {
-    
     /**
      * 日志过滤标记，日志级别加上此后缀不做监听
      */
@@ -31,17 +40,16 @@ class LogListener
     {
         if (static::$listen_log_type === '*'
         || in_array($level, static::$listen_log_type)) {
-            return $level . static::LOG_SUFFIX;
-        } else {
-            return $level;
+            return $level.static::LOG_SUFFIX;
         }
+        return $level;
     }
 
     /**
      * 日志监听回调
      *
-     * @param callable $level 日志级别
-     * @param string $message 日志消息
+     * @param callable $level   日志级别
+     * @param string   $message 日志消息
      */
     public static function listener(&$level, &$message)
     {

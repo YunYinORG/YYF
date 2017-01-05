@@ -1,17 +1,41 @@
 <?php
+/**
+ * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ *
+ * @see https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+
 use \Debug\Header as Header;
-use \Debug\SqlListener as SqlListener;
 use \Debug\LogListener as LogListener;
-use \Debug\Tracer as Tracer;
+use \Debug\SqlListener as SqlListener;
 
 /**
- * 调试工具
+ * Debug 调试工具
+ *
+ * @author NewFuture
  */
 class Debug
 {
     protected static $header;
 
     private static $_instance = null; //单例实体
+
+    /**
+     * 单例构造函数
+     */
+    protected function __construct()
+    {
+        ob_start();
+        static::$header = Header::instance();
+    }
+   
+    public function __destruct()
+    {
+        ob_get_length() && ob_end_flush();
+    }
 
     
     /**
@@ -25,7 +49,7 @@ class Debug
     {
         if (is_object($msg)) {
             //字符串dump
-            $msg = PHP_EOL . static::dump($msg, true);
+            $msg = PHP_EOL.static::dump($msg, true);
         }
         Logger::log(LogListener::safeType($level), $msg);
     }
@@ -33,8 +57,8 @@ class Debug
     /**
      * dump数据,方便在浏览器中显示
      *
-     * @param mixed $data dump数据
-     * @param boolean $return 返回
+     * @param mixed $data   dump数据
+     * @param bool  $return 返回
      */
     public static function dump($data, $return = false)
     {
@@ -65,7 +89,7 @@ class Debug
      * 测试代码运行资源消耗
      *
      * @param callable $function 运行函数
-     * @param string $lable 显示标签,为空时返回数组，否则直接输出
+     * @param string   $lable    显示标签,为空时返回数组，否则直接输出
      */
     public static function run($function, $lable = '')
     {
@@ -85,10 +109,10 @@ class Debug
         $mem_unit  = array('B', 'KB', 'MB', 'GB', 'TB', 'PB');
 
         $i = ($t == 0 || $t >= 1) ? 0 : ceil(log($t, 1 / 1000));
-        $t = round($t / pow(1 / 1000, $i), 2) . ' ' . $time_unit[$i];
+        $t = round($t / pow(1 / 1000, $i), 2).' '.$time_unit[$i];
 
         $i = ($m == 0) ? 0 : floor(log(abs($m), 1024));
-        $m = round($m / pow(1024, $i), 3) . ' ' . $mem_unit[$i];
+        $m = round($m / pow(1024, $i), 3).' '.$mem_unit[$i];
 
         echo "$lable: 时间消耗[time] <b> $t </b>; 内存预估[memory]:<b> $m </b><br>";
     }
@@ -116,15 +140,6 @@ class Debug
     }
 
     /**
-     * 单例构造函数
-     */
-    protected function __construct()
-    {
-        ob_start();
-        static::$header = Header::instance();
-    }
-
-    /**
      * 监视 数据库sql查询
      */
     public function initSQL($type, $show_result)
@@ -138,10 +153,5 @@ class Debug
     public function initLog($type)
     {
         LogListener::init($type);
-    }
-   
-    public function __destruct()
-    {
-        ob_get_length() && ob_end_flush();
     }
 }

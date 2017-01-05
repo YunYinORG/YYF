@@ -1,10 +1,21 @@
 <?php
+/**
+ * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ *
+ * @see https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+ 
 use \Config as Config;
-use Storage\File as File;
 use \Logger as Logger;
+use Storage\File as File;
 
 /**
- * 缓存类
+ * 缓存类 Cache
+ *
+ * @author NewFuture
  * Function list:
  * - set()
  * - get()
@@ -13,26 +24,22 @@ use \Logger as Logger;
  */
 class Cache
 {
-
-    private static $type = null;
+    private static $type     = null;
     private static $_handler = null; //处理方式
-
 
     /**
      * 设置缓存
      *
      * @method set
      *
-     * @param  string|array  $name   键
-     * @param  [mixed]  $value  值
-     * @param  int $expire [缓存时间]
-     *
-     * @author NewFuture
+     * @param string|array $name   键
+     * @param mixed        $value  值
+     * @param int          $expire [缓存时间]
      */
     public static function set($name, $value = 0, $expire = 0)
     {
         $handler = Cache::handler();
-        $type = &Cache::$type;
+        $type    = &Cache::$type;
         if (is_array($name)) {
             //数组批量设置
             //$value is $expire
@@ -76,10 +83,9 @@ class Cache
             } elseif ('redis' === $type) {
                 $value = serialize($value);
                 return $expire ? $handler->setEx($name, $expire, $value) : $handler->set($name, $value);
-            } else {
-                assert('"memcache" ===$type', '缓存驱动不支持');
-                return $handler->set($name, $value, null, $expire);
             }
+            assert('"memcache" ===$type', '缓存驱动不支持');
+            return $handler->set($name, $value, null, $expire);
         }
     }
 
@@ -88,12 +94,10 @@ class Cache
      *
      * @method get
      *
-     * @param  string|array $name [description]
-     * @param  [mixed] $default [默认值false]
+     * @param string|array $name    键
+     * @param mixed        $default [默认值false]
      *
-     * @return mixed       [获取结果]
-     *
-     * @author NewFuture
+     * @return mixed 获取结果
      */
     public static function get($name, $default = false)
     {
@@ -106,9 +110,9 @@ class Cache
                     $default = $handler->getMulti($name);
                     if (count($default) === count($name)) {
                         return $default;
-                    } else {
-                        return array_merge(array_fill_keys($name, false), $default);
                     }
+                        return array_merge(array_fill_keys($name, false), $default);
+                    
 
                 case 'file':
                     return $handler->mget($name);
@@ -116,9 +120,9 @@ class Cache
                 case 'redis':
                     if ($value = $handler->mget($name)) {
                         return array_combine($name, array_map('unserialize', $value));
-                    } else {
-                        return array_fill_keys($name, $default);
                     }
+                        return array_fill_keys($name, $default);
+                    
                  
                 
                 case 'memcache':
@@ -139,11 +143,9 @@ class Cache
      *
      * @method del
      *
-     * @param  string $name 键值
+     * @param string $name 键值
      *
-     * @return [bool]
-     *
-     * @author NewFuture
+     * @return bool
      */
     public static function del($name)
     {
@@ -155,26 +157,21 @@ class Cache
      *
      * @method fush
      *
-     * @return [type] [description]
-     *
-     * @author NewFuture
+     * @return bool 操作结果
      */
     public static function flush()
     {
         $handler = Cache::handler();
         if ('redis' === Cache::$type) {
             return $handler->flushDB();
-        } else {
-            return $handler->flush();
         }
+        return $handler->flush();
     }
 
     /**
      * 获取处理方式
      *
      * @return $_handler
-     *
-     * @author NewFuture
      */
     public static function handler()
     {
@@ -183,7 +180,7 @@ class Cache
         }
 
         switch (Cache::$type = Config::get('cache.type')) {
-            case 'memcached' : //redis 存储
+            case 'memcached': //redis 存储
                   $config = Config::getSecret('memcached');
                   $config = $config->get('cache') ?: $config->get('_');
                   if ($mcid = $config->get('mcid')) {
@@ -212,7 +209,7 @@ class Cache
                break;
 
             case 'file': //文件存储
-               $handler = new File(Config::get('runtime') . 'cache', true);
+               $handler = new File(Config::get('runtime').'cache', true);
                break;
 
             case 'memcache': // memcahe 包括 sae
@@ -228,7 +225,7 @@ class Cache
 
             default:
                 Logger::write('缓存初始化失败[cache init failed]'.$type, 'ALERT');
-                throw new Exception('未知缓存方式' . Cache::$type);
+                throw new Exception('未知缓存方式'.Cache::$type);
         }
         return  $handler;
     }

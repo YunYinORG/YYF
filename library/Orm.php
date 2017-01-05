@@ -1,4 +1,13 @@
 <?php
+/**
+ * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ *
+ * @see https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+ 
 use \Logger as Logger;
 
 /**
@@ -21,26 +30,26 @@ use \Logger as Logger;
 class Orm implements \JsonSerializable, \ArrayAccess
 {
     protected $_table = ''; //数据库表名
-    protected $_pk = 'id'; //主键
-    protected $_pre = null; //前缀
-    protected $_data = array(); //数据
+    protected $_pk    = 'id'; //主键
+    protected $_pre   = null; //前缀
+    protected $_data  = array(); //数据
     protected $_alias = null; //别名
 
-    protected $_safe = true; //安全模式
-    protected $_debug = false;//调试输出
-    protected $_db = null;//此orm优先使用的数据库
-    protected $_clear = true;
+    protected $_safe         = true; //安全模式
+    protected $_debug        = false;//调试输出
+    protected $_db           = null;//此orm优先使用的数据库
+    protected $_clear        = true;
     private static $_paramid = 0; //参数ID
 
-    private $_param = array(); //查询参数
-    private $_joins = array(); //join 表
-    private $_groups = array(); //group by
-    private $_unions = array(); //合并查询
-    private $_fields = array(); //查询字段
-    private $_where = array(); //查询条件
-    private $_having = array(); //having 条件
-    private $_order = array(); //排序字段
-    private $_limit = null; // 分段和偏移
+    private $_param    = array(); //查询参数
+    private $_joins    = array(); //join 表
+    private $_groups   = array(); //group by
+    private $_unions   = array(); //合并查询
+    private $_fields   = array(); //查询字段
+    private $_where    = array(); //查询条件
+    private $_having   = array(); //having 条件
+    private $_order    = array(); //排序字段
+    private $_limit    = null; // 分段和偏移
     private $_distinct = false; //是否去重
 
     /**
@@ -86,10 +95,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
     public function select($fields = '')
     {
         if ($fields) {
-            assert('is_string($fields)', '[Orm::select]查询参数应该缺省或者是字段字符串,但是传入的是' . print_r($fields, true));
+            assert('is_string($fields)', '[Orm::select]查询参数应该缺省或者是字段字符串,但是传入的是'.print_r($fields, true));
             $this->field($fields);
         }
-        $sql = $this->buildSelect();
+        $sql                = $this->buildSelect();
         return $this->_data = $this->query($sql);
     }
 
@@ -138,7 +147,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [boolean $auto_query [是否自动尝试从数据库获取]
      *
      * @return [mixed] [读取的结果]
-     *
      */
     public function get($key = '', $auto_query = true)
     {
@@ -153,7 +161,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
             /*自动查询*///判断是否有别名设置
             $field = array_search($key, $this->_fields, true);
             $field = is_string($field) ? $this->parseFunction($field) : Orm::backQoute($key);
-            $sql = $this->limit(1)->buildSelect($field);
+            $sql   = $this->limit(1)->buildSelect($field);
             $value = $this->value($sql); //单列查询
             if ($value !== false) {
                 $this->_data[$key] = $value;
@@ -170,8 +178,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
      *
      * @param  array $data     [要插入的数据，键值对数组(单条)]
      *
-     * @return integer|boolean        [返回插入数据的id,注，如果改记录中无自增主键将返回TRUE或者FALSE]
-     *
+     * @return int|bool        [返回插入数据的id,注，如果改记录中无自增主键将返回TRUE或者FALSE]
      */
     public function insert(array $data)
     {
@@ -187,7 +194,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
         foreach ($data as &$value) {
             $value = $this->bindParam($value);
         }
-        $sql = $this->buildInsert($data);
+        $sql    = $this->buildInsert($data);
         $result = $this->execute($sql);
         return $this->getDb('_write')->lastInsertId() ?: $result;
     }
@@ -202,7 +209,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param array $data [数据，二维数组]
      *
      * @return int 插入成功条数
-     *
      */
     public function insertAll(array $data)
     {
@@ -231,9 +237,9 @@ class Orm implements \JsonSerializable, \ArrayAccess
             //清理后无有效数据
              return false;
         }
-        $db = $this->getDb('_write');
+        $db        = $this->getDb('_write');
         $is_sqlite = 'sqlite' === $db->getAttribute(PDO::ATTR_DRIVER_NAME) && version_compare('3.7.11', $db->getAttribute(PDO::ATTR_SERVER_VERSION), '>');
-        $sql = $this->buildInsert($data, $is_sqlite);
+        $sql       = $this->buildInsert($data, $is_sqlite);
         return $this->execute($sql);
     }
 
@@ -244,7 +250,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @method add
      *
      * @return $this|FALSE
-     *
      */
     public function add()
     {
@@ -271,7 +276,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [mixed] $value [值]
      *
      * @return $this
-     *
      */
     public function set($key, $value = null)
     {
@@ -318,7 +322,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [int] $id [保存到主键,可不设置]
      *
      * @return $this|FALSE [更新失败返回FALSE否则返回$this]
-     *
      */
     public function save($id = null)
     {
@@ -347,13 +350,12 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param scalar $value [修改后的键值]
      *
      * @return 操作结果 修改成功的条数
-     *
      */
     public function put($key, $value)
     {
         if ($key = $this->getTrueField($key)) {
             $update = array($key => $this->bindParam($value));
-            $sql = $this->buildUpdate($update);
+            $sql    = $this->buildUpdate($update);
             $result = $this->execute($sql);
             if ($result !== false) {
                 $this->_data[$key] = $value;//写入数据
@@ -386,10 +388,9 @@ class Orm implements \JsonSerializable, \ArrayAccess
      *
      * @method distinct
      *
-     * @param boolean $is_distinct [是否去重]
+     * @param bool $is_distinct [是否去重]
      *
      * @return $this
-     *
      */
     public function distinct($is_distinct = true)
     {
@@ -405,7 +406,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param string $alias 设置的别名
      *
      * @return $this
-     *
      */
     public function alias($alias)
     {
@@ -445,7 +445,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [mixed]  $value    [值]
      *
      * @return [object] $this
-     *
      */
     public function whereField()
     {
@@ -462,7 +461,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [mixed]  $value    [值]
      *
      * @return [object] $this
-     *
      */
     public function orWhere()
     {
@@ -479,7 +477,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [mixed]  $value    [值]
      *
      * @return [object] $this
-     *
      */
     public function orWhereField()
     {
@@ -496,12 +493,11 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param  [string] $type    ['AND'或者'OR' 默认AND]
      *
      * @return [object] $this
-     *
      */
     public function exists(Orm $query, $not = false, $type = 'AND')
     {
         $type = strtoupper($type);
-        assert('in_array($type,array("AND","OR"))', '[Orm::exists] 类型只存在 AND 或者 OR 输入的是:' . $type);
+        assert('in_array($type,array("AND","OR"))', '[Orm::exists] 类型只存在 AND 或者 OR 输入的是:'.$type);
         $sql = $not ? 'NOT EXISTS ' : 'EXISTS';
         $sql .= $this->buildSubquery($query);
         $this->_where[] = array($type,$sql);
@@ -517,7 +513,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [boolen] $not [为true时，not exists]
      *
      * @return [object] $this
-     *
      */
     public function orExists(Orm $query, $not = false)
     {
@@ -534,7 +529,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [mixed]  $value    [值]
      *
      * @return [object] $this
-     *
      */
     public function having($field)
     {
@@ -552,7 +546,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [mixed]  $value    [值]
      *
      * @return [object] $this
-     *
      */
     public function orHaving($field)
     {
@@ -579,7 +572,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
     public function field($data, $alias = null)
     {
         $args_num = func_num_args();
-        $fields = &$this->_fields;
+        $fields   = &$this->_fields;
         if (is_array($data)) {
             //数组
             assert('1===$args_num', '[Orm::field]当参数为array时，不接受后面的参数');
@@ -612,7 +605,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [boolean] $desc   [是否降序]
      *
      * @return [object] $this
-     *
      */
     public function order($fields, $desc = false)
     {
@@ -626,11 +618,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
      *
      * @method limit
      *
-     * @param integer   $maxsize [查询条目]
+     * @param int       $maxsize [查询条目]
      * @param [integer] $offset  [偏移量,默认不偏移]
      *
      * @return [object] $this
-     *
      */
     public function limit($maxsize, $offset = 0)
     {
@@ -653,11 +644,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
      *
      * @method page
      *
-     * @param integer $number [页码]
-     * @param integer $size   [每页条目数]
+     * @param int $number [页码]
+     * @param int $size   [每页条目数]
      *
      * @return $this
-     *
      */
     public function page($number, $size = 10)
     {
@@ -676,12 +666,11 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param  string $related_key    [JOIN 与table关联的键]
      *
      * @return $this
-     *
      */
     public function join($type, $table, $on, $related_key = null)
     {
         if (!in_array($type, array('INNER', 'LEFT', 'RIGHT', 'OUTER', 'FULL OUTER'))) {
-            throw new Exception('[Orm::join] 第二个参数type不是JOIN支持的关联方式:' . $type, 1);
+            throw new Exception('[Orm::join] 第二个参数type不是JOIN支持的关联方式:'.$type, 1);
         }
         $fun_num = func_num_args();
         if (4 === $fun_num) {
@@ -721,11 +710,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param  [string] $related_key    [与之关联的主键或者表加主键，默认采用本表主键]
      *
      * @return $this
-     *
      */
     public function has($table, $table_fk = null, $related_key = null)
     {
-        (null === $table_fk) and ($table_fk = $this->_table . '_id');
+        (null === $table_fk) and ($table_fk = $this->_table.'_id');
         (null === $related_key) and ($related_key = $this->_pk);
         return $this->join('LEFT', $table, $table_fk, $related_key);
     }
@@ -741,11 +729,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param  [string]  [$primary_key]    [$table 表的关联键]
      *
      * @return [object] $this
-     *
      */
     public function belongs($table, $related_key = null, $primary_key = 'id')
     {
-        (null === $related_key) and ($related_key = $table . '_id');
+        (null === $related_key) and ($related_key = $table.'_id');
         return $this->join('INNER', $table, $primary_key, $related_key);
     }
 
@@ -757,7 +744,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [string] $exp   [description]
      *
      * @return $this
-     *
      */
     public function group($field)
     {
@@ -779,12 +765,11 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param  [boolean]  [$is_all=FALSE]    [union all 默认 false]
      *
      * @return [object] $this
-     *
      */
     public function union(Orm $orm, $is_all = false)
     {
-        $is_all = $is_all ? 'UNION ALL ' : ' UNION ';
-        $this->_unions[] = $is_all . $this->buildSubquery($orm);
+        $is_all          = $is_all ? 'UNION ALL ' : ' UNION ';
+        $this->_unions[] = $is_all.$this->buildSubquery($orm);
         return $this;
     }
 
@@ -796,7 +781,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param  obj  $orm 一个包含查询的orm数据
      *
      * @return [object] $this
-     *
      */
     public function unionAll(Orm $orm)
     {
@@ -819,7 +803,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
     {
         $column_name = $this->qouteField($column_name);
         $is_distinct = $is_distinct ? 'DISTINCT ' : '';
-        return $this->aggregate('COUNT(' . $is_distinct . $column_name . ')');
+        return $this->aggregate('COUNT('.$is_distinct.$column_name.')');
     }
 
     /**
@@ -830,11 +814,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param string $column_name [字段名称]
      *
      * @return mixed 最小值
-     *
      */
     public function min($column_name)
     {
-        return $this->aggregate('MIN(' . $this->qouteField($column_name) . ')');
+        return $this->aggregate('MIN('.$this->qouteField($column_name).')');
     }
 
     /**
@@ -845,11 +828,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param string $column_name [字段名称]
      *
      * @return mixed 最大值
-     *
      */
     public function max($column_name)
     {
-        return $this->aggregate('MAX(' . $this->qouteField($column_name) . ')');
+        return $this->aggregate('MAX('.$this->qouteField($column_name).')');
     }
 
     /**
@@ -860,11 +842,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param string $column_name [字段名称]
      *
      * @return int|string 均值
-     *
      */
     public function avg($column_name)
     {
-        return $this->aggregate('AVG(' . $this->qouteField($column_name) . ')');
+        return $this->aggregate('AVG('.$this->qouteField($column_name).')');
     }
 
     /**
@@ -875,11 +856,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param string $column_name [字段名称]
      *
      * @return int|string 均值
-     *
      */
     public function sum($column_name)
     {
-        return $this->aggregate('SUM(' . $this->qouteField($column_name) . ')');
+        return $this->aggregate('SUM('.$this->qouteField($column_name).')');
     }
 
     /**
@@ -891,13 +871,12 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [int]  $step  [增加步长默认1]
      *
      * @return int [影响条数]
-     *
      */
     public function increment($key, $step = 1)
     {
         if ($key = $this->getTrueField($key)) {
             $data = array(
-                $key => $this->qouteField($key) .'+'. $this->bindParam(intval($step)),
+                $key => $this->qouteField($key).'+'.$this->bindParam(intval($step)),
              );
             if ($result = $this->execute($this->buildUpdate($data)) && isset($this->_data[$key])) {
                 $this->_data[$key] += $step;
@@ -915,7 +894,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [int]  $step  [自减步长默认1]
      *
      * @return int [影响条数]
-     *
      */
     public function decrement($field, $step = 1)
     {
@@ -930,7 +908,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param callable $func，事务回调函数，参数是当前Database，回调返回false或者出现异常回滚，否则提交
      *
      * @return 回调函数的返回值(执行异常自动回滚，返回false)
-     *
      */
     public function transact(callable  $func)
     {
@@ -959,7 +936,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param mixed Databse 对象或者连接配置
      *
      * @return $this
-     *
      */
     public function setDb($db)
     {
@@ -980,7 +956,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [boolean] $enable [默认开启]
      *
      * @return $this
-     *
      */
     public function safe($enable = true)
     {
@@ -996,7 +971,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [boolean] $clear [默认开启]
      *
      * @return $this
-     *
      */
     public function autoClear($clear)
     {
@@ -1012,7 +986,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [boolean] $enable [默认开启]
      *
      * @return $this
-     *
      */
     public function debug($enable = true)
     {
@@ -1026,26 +999,25 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @method clear
      *
      * @return $this
-     *
      */
     public function clear($retain = false)
     {
         if ($retain === false) {
             //保留数据和设置
-            $this->_data = array(); //数据
-            $this->_safe = true; //安全模式
+            $this->_data  = array(); //数据
+            $this->_safe  = true; //安全模式
             $this->_debug = false;//调试输出
         }
 
-        $this->_param = array(); //查询参数
-        $this->_having = array();
-        $this->_where = array(); //查询条件
-        $this->_fields = array(); //查询字段
-        $this->_joins = array(); //join 表
-        $this->_groups = array();
-        $this->_unions = array();
-        $this->_order = array(); //排序字段
-        $this->_limit = null;
+        $this->_param    = array(); //查询参数
+        $this->_having   = array();
+        $this->_where    = array(); //查询条件
+        $this->_fields   = array(); //查询字段
+        $this->_joins    = array(); //join 表
+        $this->_groups   = array();
+        $this->_unions   = array();
+        $this->_order    = array(); //排序字段
+        $this->_limit    = null;
         $this->_distinct = false; //是否去重
         return $this;
     }
@@ -1086,12 +1058,11 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param string $key [字段名称]
      *
      * @return string
-     *
      */
     public static function backQoute($key)
     {
-        assert('ctype_alnum(strtr($key, "_", "A"))', '[Orm::backQoute] 字段中含有非法字符(字母_数字之外的字符):' . $key);
-        return '`' . $key . '`';
+        assert('ctype_alnum(strtr($key, "_", "A"))', '[Orm::backQoute] 字段中含有非法字符(字母_数字之外的字符):'.$key);
+        return '`'.$key.'`';
     }
 
     /**
@@ -1102,7 +1073,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param string $key [键值]
      *
      * @return 操作结果 真实键名
-     *
      */
     protected function getTrueField($key)
     {
@@ -1128,7 +1098,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param  string $name 数据库配置名[_read][Write]
      *
      * @return [object] db
-     *
      */
     protected function getDb($name)
     {
@@ -1149,19 +1118,19 @@ class Orm implements \JsonSerializable, \ArrayAccess
     protected function buildInsert(array &$data, $is_sqlite = false)
     {
         reset($data);
-        $sql = 'INSERT INTO' . Orm::backQoute($this->_pre.$this->_table). '(';
+        $sql    = 'INSERT INTO'.Orm::backQoute($this->_pre.$this->_table).'(';
         $fields = &$this->_fields;
         foreach ($fields as $field => $alias) {
-            $sql .= Orm::backQoute(is_int($field) ? $alias : $field) . ',';
+            $sql .= Orm::backQoute(is_int($field) ? $alias : $field).',';
         }
-        $sql{strlen($sql) - 1} = ')'; //去掉最后的，
+        $sql[strlen($sql) - 1] = ')'; //去掉最后的，
 
         if ($is_sqlite) {
             $sql .= 'SELECT ';
             foreach (current($data) as $key => $value) {
-                $sql .= $value.' AS'.Orm::backQoute($key) . ',';
+                $sql .= $value.' AS'.Orm::backQoute($key).',';
             }
-            $sql{strlen($sql) - 1} = PHP_EOL;
+            $sql[strlen($sql) - 1] = PHP_EOL;
             while ($next = next($data)) {
                 $sql .= 'UNION ALL SELECT '.implode(',', $next).PHP_EOL;
             }
@@ -1178,7 +1147,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
                 }
                 unset($row);
             }
-            $sql{strlen($sql) - 1} = ' ';
+            $sql[strlen($sql) - 1] = ' ';
         }
         return $sql;
     }
@@ -1196,11 +1165,11 @@ class Orm implements \JsonSerializable, \ArrayAccess
      */
     protected function buildUpdate(array &$data)
     {
-        $sql = 'UPDATE' . Orm::backQoute($this->_pre . $this->_table) . 'SET ';
+        $sql = 'UPDATE'.Orm::backQoute($this->_pre.$this->_table).'SET ';
         foreach ($data as $key => $v) {
-            $sql .= Orm::backQoute($key) . '='.$v.',';
+            $sql .= Orm::backQoute($key).'='.$v.',';
         }
-        $sql{strlen($sql) - 1} = ' ';
+        $sql[strlen($sql) - 1] = ' ';
         $sql .= $this->buildJoin()
                 .$this->buildWhere(true)
                 .$this->buildTail(false);
@@ -1215,7 +1184,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param string $exp=null，
      *
      * @return string [select xxx]
-     *
      */
     protected function buildSelect($exp = null)
     {
@@ -1227,23 +1195,23 @@ class Orm implements \JsonSerializable, \ArrayAccess
             foreach ($fields as $field => $alias) {
                 if (is_int($field) || $field === $alias) {
                     //无别名(索引键值)或者别名与字段名相同
-                    $sql .= $this->qouteField($alias) . ',';
+                    $sql .= $this->qouteField($alias).',';
                 } else { //别名和表达式解析
-                    $sql .= $this->parseFunction($field) . ' AS' . Orm::backQoute($alias) . ',';
+                    $sql .= $this->parseFunction($field).' AS'.Orm::backQoute($alias).',';
                 }
             }
-            $sql{strlen($sql) - 1} = ' '; //最后的,换成空格
+            $sql[strlen($sql) - 1] = ' '; //最后的,换成空格
         } else {
             /*多表链接时加入表名*/
             $table = $this->_alias ?: $this->_pre.$this->_table;
-            $sql .= empty($this->_joins) ? '*' : Orm::backQoute($table) . '.*';
+            $sql .= empty($this->_joins) ? '*' : Orm::backQoute($table).'.*';
         }
 
         $sql .= $this->buildFrom()
-                . $this->buildJoin()
-                . $this->buildWhere()
-                . $this->buildGroupHaving()
-                . $this->buildTail();
+                .$this->buildJoin()
+                .$this->buildWhere()
+                .$this->buildGroupHaving()
+                .$this->buildTail();
         return $sql;
     }
 
@@ -1259,7 +1227,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
     protected function buildDelete()
     {
         if ($alias = &$this->_alias) {
-            $sql = 'DELETE' . Orm::backQoute($alias);
+            $sql = 'DELETE'.Orm::backQoute($alias);
         } else {
             $sql = 'DELETE ';
         }
@@ -1283,10 +1251,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
      */
     protected function buildFrom()
     {
-        $name = $this->_pre . $this->_table;
-        $from = 'FROM' . Orm::backQoute($name);
+        $name = $this->_pre.$this->_table;
+        $from = 'FROM'.Orm::backQoute($name);
         if ($alias = $this->_alias) {
-            $from .= 'AS' . Orm::backQoute($alias);
+            $from .= 'AS'.Orm::backQoute($alias);
         }
         return $from;
     }
@@ -1297,12 +1265,11 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @method buildJoin
      *
      * @return string        [''或者JOIN(xxx)]
-     *
      */
     protected function buildJoin()
     {
-        $sql = '';
-        $prefix = &$this->_pre;
+        $sql        = '';
+        $prefix     = &$this->_pre;
         $join_table = '';
         $join_alias = '';
         foreach ($this->_joins as &$join) {
@@ -1312,17 +1279,17 @@ class Orm implements \JsonSerializable, \ArrayAccess
                 $join_alias = Orm::backQoute(substr($join_table, $pos + 4));
                 $join_table = Orm::backQoute($prefix.substr($join_table, 0, $pos)).'AS'.$join_alias;
             } else {
-                $join_table = Orm::backQoute($prefix . $join_table);
+                $join_table = Orm::backQoute($prefix.$join_table);
                 $join_alias = $join_table;
             }
             if (count($join) === 4) {
                 //简单条件
-                $sql .= $join[0] . ' JOIN' . $join_table. 'ON'
-                    . $join_alias .'.'. Orm::backQoute($join[2]) . '=' . $this->qouteField($join[3], true);
+                $sql .= $join[0].' JOIN'.$join_table.'ON'
+                    .$join_alias.'.'.Orm::backQoute($join[2]).'='.$this->qouteField($join[3], true);
             } else {
                 //复杂条件
                 assert('is_array($join[2])', '[Orm::buildCondition] 复杂条件第三个应该是数组');
-                $sql .= $join[0] . ' JOIN' . $join_table. $this->buildCondition($join[2], 'ON');
+                $sql .= $join[0].' JOIN'.$join_table.$this->buildCondition($join[2], 'ON');
             }
         }
         return $sql;
@@ -1334,7 +1301,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @method buildWhere
      *
      * @return string        [''或者WHERE(xxx)]
-     *
      */
     protected function buildWhere($check_pk = false)
     {
@@ -1357,7 +1323,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @method buildGroupHaving
      *
      * @return string        [''或者GROUP(xxx)]
-     *
      */
     protected function buildGroupHaving()
     {
@@ -1366,9 +1331,9 @@ class Orm implements \JsonSerializable, \ArrayAccess
             $condition = '';
             foreach ($groups as &$g) {
                 if (is_array($g)) {
-                    $condition .= ',' . $this->qouteField($g[0]) . $g[1].' '.$g[2];
+                    $condition .= ','.$this->qouteField($g[0]).$g[1].' '.$g[2];
                 } else {
-                    $condition .= ',' . $this->qouteField($g);
+                    $condition .= ','.$this->qouteField($g);
                 }
             }
             unset($g);
@@ -1377,10 +1342,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
         if ($having = &$this->_having) {
             $condition = '';
             foreach ($having as &$h) {
-                $condition .= $h[0] . '(' . $this->parseFunction($h[1]) . $h[2] .$h[3]. ')';//聚合函数
+                $condition .= $h[0].'('.$this->parseFunction($h[1]).$h[2].$h[3].')';//聚合函数
             }
             unset($h);
-            $sql .= 'HAVING' . strstr($condition, '(');
+            $sql .= 'HAVING'.strstr($condition, '(');
         }
         return $sql;
     }
@@ -1391,14 +1356,13 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @method buildTail
      *
      * @return string
-     *
      */
     protected function buildTail($offset = true)
     {
         $limit = $this->_limit ?: '';
         $param = &$this->_param;
         if (false === $offset) {
-            $db = $this->getDb('_write');
+            $db     = $this->getDb('_write');
             $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
 
             if ('mysql' === $driver) {
@@ -1407,7 +1371,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
                     if (isset($limit[1]) && isset($param[$limit[1]])) {
                         unset($param[$limit[1]]);
                     }
-                    $limit = ' LIMIT ' . $limit[0];
+                    $limit = ' LIMIT '.$limit[0];
                 }
             } elseif ('sqlite' === $driver
                 && !in_array(array('compile_option' => 'ENABLE_UPDATE_DELETE_LIMIT'), $db->query('PRAGMA compile_options'))) {
@@ -1440,9 +1404,9 @@ class Orm implements \JsonSerializable, \ArrayAccess
         if ($order = &$this->_order) {
             $sql = 'ORDER BY';
             foreach ($order as $field => $type) {
-                $sql .= $this->qouteField($field) . $type . ',';
+                $sql .= $this->qouteField($field).$type.',';
             }
-            $sql{strlen($sql) - 1} = ' ';
+            $sql[strlen($sql) - 1] = ' ';
         }
        
         if ($unions = &$this->_unions) {
@@ -1459,7 +1423,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param Orm &$orm [ORM对象]
      *
      * @return string [SQL语句]
-     *
      */
     protected function buildSubquery(Orm &$orm)
     {
@@ -1477,7 +1440,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param string $exp [聚合表达式]
      *
      * @return [int|string] [返回聚合操作结果]
-     *
      */
     protected function aggregate($exp)
     {
@@ -1492,7 +1454,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param string $sql [sql语句]
      *
      * @return [int] [影响行数]
-     *
      */
     protected function execute($sql)
     {
@@ -1514,7 +1475,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [string] $sql [sql语句]
      *
      * @return array [结果数组]
-     *
      */
     protected function query($sql, $fetchAll = true)
     {
@@ -1536,7 +1496,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param string $sql [sql语句]
      *
      * @return [mixed] [查询结果]
-     *
      */
     protected function value($sql)
     {
@@ -1552,11 +1511,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [string] $key   [指定键值,默认自增]
      *
      * @return 返回key
-     *
      */
     protected function bindParam($value)
     {
-        $key = ':' . Orm::$_paramid;
+        $key = ':'.Orm::$_paramid;
         Orm::$_paramid += 1;
         $this->_param[$key] = $value;
         return $key;
@@ -1571,7 +1529,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param array &$data  [数据,被过滤的数据]
      *
      * @return array 过滤后的字段
-     *
      */
     protected static function fieldFilter(array $fields, array &$data)
     {
@@ -1579,7 +1536,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
         asort($fields);
         ksort($data);
         $fields = array_intersect($fields, array_keys($data)); //合并后的字段
-        $data = array_intersect_key($data, array_flip($fields));
+        $data   = array_intersect_key($data, array_flip($fields));
         assert('count($fields)===count($data)', '[Orm::fieldFilter]过滤后字段和数据大小不一致');
         return $fields;
     }
@@ -1592,7 +1549,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param [string] $default_table [默认table，如果没有则加上table,如果射未TRUE使用此表名处理]
      *
      * @return string [description]
-     *
      */
     protected function qouteField($field_str, $default_table = null)
     {
@@ -1610,12 +1566,12 @@ class Orm implements \JsonSerializable, \ArrayAccess
                 $qouted_sql .= ('*' === $field[0]) ? '*' : Orm::backQoute($field[0]);
                 break;
             case 2:
-                $qouted_sql = Orm::backQoute($field[0]) . '.';
+                $qouted_sql = Orm::backQoute($field[0]).'.';
                 $qouted_sql .= ('*' === $field[1]) ? '*' : Orm::backQoute($field[1]);
                 break;
             default:
                 if ($this->_safe) {
-                    throw new Exception('[无法解析表名.字段]:' . $field_str);
+                    throw new Exception('[无法解析表名.字段]:'.$field_str);
                 }
                     return $field_str;
         }
@@ -1630,7 +1586,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param  string     $str     [字段名称或者$table.$field]
      *
      * @return string [description]
-     *
      */
     protected function parseFunction($str)
     {
@@ -1659,7 +1614,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * @param string $pre=''    $SQl 拼接后的前缀
      *
      * @return string [sql语句]
-     *
      */
     protected function buildCondition(&$condition, $pre = '')
     {
@@ -1688,7 +1642,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
                     //继续处理
                 case 4:
                     $operator = &$w[2];
-                    $value = &$w[3];
+                    $value    = &$w[3];
                     if (is_array($value)) {
                         if ('BETWEEN' === $operator || 'NOT BETWEEN' === $operator) { //BETWEEN
                             assert('2===count($value)', '[Orm::buildCondition] between 操作后续 参数必须是两个值');
@@ -1706,7 +1660,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
             }
             $sql .= ')';
         }
-        return $pre . strstr($sql, '(');
+        return $pre.strstr($sql, '(');
     }
 
     /**
@@ -1715,7 +1669,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
      *
      * @param array $where [where 参数数组]
      * @param  string $addition [附加条件，'AND'或者'OR']
-     * @param boolean $bind_value [是否绑定参数]
+     * @param bool $bind_value [是否绑定参数]
      *
      * @return array 格式化的三元或者多元元索引数组
      */
@@ -1747,7 +1701,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      *
      * @return array 格式化的三元或者多元元索引数组
      *          array([$addition,],$field,$operator,$value[,NO_BIND_FLAG])
-     *
      */
     protected function parseCondition(array $condition, $addition = null, $bind_value = true)
     {
@@ -1768,7 +1721,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
                 break;
             case 3: //三个值，三元表达式
                 $operator = strtoupper($condition[1]);
-                $value = &$condition[2];
+                $value    = &$condition[2];
                 if (null === $value) { //NULL值判断标准化
                     assert('in_array($condition[1],array("=","<>","!=","IS"))',
                      '[Orm::parseCondition]NULL值判读只允许 [等于] 或者[不等于]');
@@ -1799,7 +1752,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
             case 4: //4元表达式between
                 $operator = strtoupper($condition[1]);
                 assert('in_array($operator,array("BETWEEN","NOT BTWEEN"))',
-                    '[Orm::parseCondition] 四参数条件只支持[not ]between表达式 :' . $operator);
+                    '[Orm::parseCondition] 四参数条件只支持[not ]between表达式 :'.$operator);
                 $result[] = $operator ;
                 $result[] = $bind_value ?
                     array($this->bindParam($condition[2]),$this->bindParam($condition[3])) :
@@ -1813,7 +1766,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
                 $result = array(null,$condition[0]);
                 break;
             default:
-                throw new Exception('where条件参数太多，无法解析.' . json_encode($condition, 256));
+                throw new Exception('where条件参数太多，无法解析.'.json_encode($condition, 256));
                 break;
         }
         if (!$bind_value) {
