@@ -7,7 +7,6 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
-
 if (!function_exists('array_column')) {
     function array_column($array, $column_name)
     {

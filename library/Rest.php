@@ -10,12 +10,12 @@
 use Yaf_Controller_Abstract as Controller_Abstract;
 
 /**
- * REST 控制器
+ * REST 控制器.
  */
 abstract class Rest extends Controller_Abstract
 {
     /**
-     * 响应数据
+     * 响应数据.
      *
      * @var array
      */
@@ -29,17 +29,16 @@ abstract class Rest extends Controller_Abstract
     protected $code = 200;
 
     /**
-     * 配置信息
+     * 配置信息.
      *
      * @var array
      */
     private $_config;
 
     /**
-     * 结束时自动输出信息
+     * 结束时自动输出信息.
      *
      * @method __destruct
-     * @access public
      *
      * @author NewFuture
      */
@@ -53,7 +52,7 @@ abstract class Rest extends Controller_Abstract
 
     /**
      * 初始化 REST 路由
-     * 修改操作 和 绑定参数
+     * 修改操作 和 绑定参数.
      *
      * @method init
      *
@@ -71,7 +70,7 @@ abstract class Rest extends Controller_Abstract
 
         /*请求操作判断*/
         $method = $request->getMethod();
-        $type   = $request->getServer('CONTENT_TYPE');
+        $type = $request->getServer('CONTENT_TYPE');
         if ($method === 'OPTIONS') {
             /*cors 跨域header应答,只需响应头即可*/
             exit();
@@ -91,13 +90,13 @@ abstract class Rest extends Controller_Abstract
         }
 
         /*Action路由*/
-        $action        = $request->getActionName();
+        $action = $request->getActionName();
         $this->_config = Config::get('rest')->toArray();
         if (is_numeric($action)) {
             /*数字id绑定参数*/
             $request->setParam($this->_config['param'], intval($action));
-            $path   = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : strstr($_SERVER['REQUEST_URI'].'?', '?', true);
-            $path   = substr(strstr($path, $action), strlen($action) + 1);
+            $path = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : strstr($_SERVER['REQUEST_URI'].'?', '?', true);
+            $path = substr(strstr($path, $action), strlen($action) + 1);
             $action = $path ? strstr($path.'/', '/', true) : $this->_config['action'];
         }
 
@@ -113,13 +112,13 @@ abstract class Rest extends Controller_Abstract
                 $request->setActionName($this->_config['none']);
             } else {
                 $this->response(-8,
-                    array(
+                    [
                         'error'      => '未定义操作',
                         'method'     => $method,
                         'action'     => $action,
                         'controller' => $request->getControllerName(),
                         'module'     => $request->getmoduleName(),
-                    ),
+                    ],
                     404);
                 exit;
             }
@@ -130,7 +129,7 @@ abstract class Rest extends Controller_Abstract
     }
 
     /**
-     * 设置返回信息，立即返回
+     * 设置返回信息，立即返回.
      *
      * @method response
      *
@@ -143,10 +142,10 @@ abstract class Rest extends Controller_Abstract
      */
     protected function response($status, $info = '', $code = null)
     {
-        $this->response = array(
+        $this->response = [
             $this->_config['status'] => $status,
             $this->_config['data']   => $info,
-        );
+        ];
 
         ($code > 0) && $this->code = $code;
         exit;
@@ -176,6 +175,7 @@ abstract class Rest extends Controller_Abstract
                 if (!$domain) {
                     /*非请指定的求来源,自动终止响应*/
                     header('Forbid-Origin:'.$from);
+
                     return;
                 }
             } elseif ($cors['Access-Control-Allow-Credentials'] === 'true') {

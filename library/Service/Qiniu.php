@@ -7,23 +7,24 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
+
 namespace Service;
 
-use \Logger as Log;
+use Logger as Log;
 
 /**
  * 上传文件管理
- * 封装七牛API
+ * 封装七牛API.
  *
  * @author NewFuture
  */
 class Qiniu
 {
-    const QINIU_RS         = 'http://rs.qbox.me';
+    const QINIU_RS = 'http://rs.qbox.me';
     public static $_config = null;
 
     /**
-     * 获取文件
+     * 获取文件.
      *
      * @method download
      *
@@ -33,15 +34,16 @@ class Qiniu
      *
      * @return string url
      */
-    public static function download($domain, $name, $param = array())
+    public static function download($domain, $name, $param = [])
     {
-        $url   = $domain.$name.'?'.http_build_query($param);
+        $url = $domain.$name.'?'.http_build_query($param);
         $token = self::sign($url);
+
         return $url.'&token='.$token;
     }
 
     /**
-     * 重命名【移动】
+     * 重命名【移动】.
      *
      * @method move
      *
@@ -52,11 +54,12 @@ class Qiniu
     {
         // $bucket = $this->_config['bucket'];
         $op = '/move/'.self::qiniuEncode($from).'/'.self::qiniuEncode($to);
+
         return self::opration($op);
     }
 
     /**
-     * 复制文件
+     * 复制文件.
      *
      * @method copy
      *
@@ -69,11 +72,12 @@ class Qiniu
     {
         // $bucket = $this->_config['bucket'];
         $op = '/copy/'.self::qiniuEncode($from).'/'.self::qiniuEncode($saveas);
+
         return self::opration($op);
     }
 
     /**
-     * 获取token
+     * 获取token.
      *
      * @method getToken
      *
@@ -84,18 +88,19 @@ class Qiniu
      */
     public static function getToken($bucket, $key, $max = 10485760, $timeout = 600)
     {
-        $setting = array(
+        $setting = [
             'scope'      => $bucket,
             'saveKey'    => $key,
             'deadline'   => $timeout + $_SERVER['REQUEST_TIME'],
             'fsizeLimit' => intval($max),
-        );
+        ];
         $setting = self::qiniuEncode(json_encode($setting));
+
         return self::sign($setting).':'.$setting;
     }
 
     /**
-     * 删除
+     * 删除.
      *
      * @method delete
      *
@@ -106,11 +111,12 @@ class Qiniu
     public static function delete($uri)
     {
         $file = self::qiniuEncode($uri);
+
         return self::opration('/delete/'.$file);
     }
 
     /**
-     * 判断文件是否存在
+     * 判断文件是否存在.
      *
      * @param [type] $bucket [description]
      * @param [type] $key    [description]
@@ -120,11 +126,12 @@ class Qiniu
     public static function has($uri)
     {
         $op = '/stat/'.self::qiniuEncode($uri);
+
         return self::opration($op);
     }
 
     /**
-     * 转pdf
+     * 转pdf.
      *
      * @param [type] $file     [description]
      * @param [type] $saveName [description]
@@ -133,14 +140,15 @@ class Qiniu
      */
     public static function toPdf($bucket, $key, $saveas)
     {
-        $API  = 'http://api.qiniu.com';
-        $op   = '/pfop/';
+        $API = 'http://api.qiniu.com';
+        $op = '/pfop/';
         $data = 'bucket='.$bucket.'&key='.$key.'&fops=yifangyun_preview|saveas/'.self::qiniuEncode($saveas);
+
         return self::opration($op, $data, $API);
     }
 
     /**
-     * 七牛操作
+     * 七牛操作.
      *
      * @method opration
      *
@@ -150,9 +158,9 @@ class Qiniu
      */
     private static function opration($op, $data = null, $host = self::QINIU_RS)
     {
-        $token  = self::sign(is_string($data) ? $op."\n".$data : $op."\n");
-        $url    = $host.$op;
-        $header = array('Authorization: QBox '.$token);
+        $token = self::sign(is_string($data) ? $op."\n".$data : $op."\n");
+        $url = $host.$op;
+        $header = ['Authorization: QBox '.$token];
 
         if ($ch = curl_init($url)) {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -164,7 +172,7 @@ class Qiniu
             }
             curl_setopt($ch, CURLOPT_HEADER, 1);
             $response = curl_exec($ch);
-            $status   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
 
             if ($status == 200) {
@@ -177,11 +185,12 @@ class Qiniu
             // }
         }
         Log::write('[QINIU]七牛错误'.$url.':'.($response ?: '请求失败'), 'ERROR');
+
         return false;
     }
 
     /**
-     * 获取url签名
+     * 获取url签名.
      *
      * @method sign
      *
@@ -192,8 +201,9 @@ class Qiniu
     private static function sign($url)
     {
         $config = self::$_config ?: (self::$_config = \Config::getSecret('qiniu'));
-        $sign   = hash_hmac('sha1', $url, $config['secretkey'], true);
-        $ak     = $config['accesskey'];
+        $sign = hash_hmac('sha1', $url, $config['secretkey'], true);
+        $ak = $config['accesskey'];
+
         return $ak.':'.self::qiniuEncode($sign);
     }
 
@@ -202,6 +212,6 @@ class Qiniu
      */
     private static function qiniuEncode($str)
     {
-        return strtr(base64_encode($str), array('+' => '-', '/' => '_'));
+        return strtr(base64_encode($str), ['+' => '-', '/' => '_']);
     }
 }

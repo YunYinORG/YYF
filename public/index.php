@@ -7,7 +7,6 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
-
 define('APP_PATH', dirname(__DIR__));
 
 //create yaf app:; 创建YAFAPP

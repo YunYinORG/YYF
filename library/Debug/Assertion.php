@@ -7,17 +7,18 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
+
 namespace Debug;
 
 /**
  * 调试环境断言处理
- * 兼容php5.3
+ * 兼容php5.3.
  *
  * @author NewFuture
  */
 class Assertion
 {
-    protected static $instance  = null;
+    protected static $instance = null;
     protected static $assertion = null;
 
     protected function __construct($active, $warning, $bail)
@@ -27,7 +28,7 @@ class Assertion
             if (version_compare(PHP_VERSION, '7.0.0', '>=')) { //for php7
                 //判断环境
                 if (-1 == ini_get('zend.assertions')) {
-                    $msg=<<<'EOF'
+                    $msg = <<<'EOF'
 调试环境，请开启php7的断言，以便更早发现问题！<br>
 (<u>在php.ini 中的设置 zend.assertions = 1 开启断言【推荐】</u>;
 或者在 conf/app.ini 中设置 assert.active = 0 关闭此警告【不推荐】。)<br>
@@ -38,23 +39,23 @@ EOF;
                     exit($msg);
                 }
                 //PHP7配置
-                ini_set('zend.assertions', 1);//开启断言
-                ini_set('assert.exception', 0);//关闭断言异常
+                ini_set('zend.assertions', 1); //开启断言
+                ini_set('assert.exception', 0); //关闭断言异常
             } elseif (version_compare(PHP_VERSION, '5.4.8', '<')) {
                 //低版本(php5.3)断言
-                set_error_handler(array(__CLASS__, 'php53'), E_WARNING);
+                set_error_handler([__CLASS__, 'php53'], E_WARNING);
             }
 
             assert_options(ASSERT_ACTIVE, true);
             //断言错误回调
-            assert_options(ASSERT_CALLBACK, array(__CLASS__, 'callback'));
+            assert_options(ASSERT_CALLBACK, [__CLASS__, 'callback']);
         } else {
             assert_options(ASSERT_ACTIVE, false);
         }
 
-        assert_options(ASSERT_QUIET_EVAL, false);//关闭在断言表达式求值时禁用error_reporting
-        assert_options(ASSERT_WARNING, $warning);//为每个失败的断言产生一个 PHP 警告（warning)
-        assert_options(ASSERT_BAIL, $bail);//在断言失败时中止执行
+        assert_options(ASSERT_QUIET_EVAL, false); //关闭在断言表达式求值时禁用error_reporting
+        assert_options(ASSERT_WARNING, $warning); //为每个失败的断言产生一个 PHP 警告（warning)
+        assert_options(ASSERT_BAIL, $bail); //在断言失败时中止执行
     }
 
     public function __destory()
@@ -65,9 +66,9 @@ EOF;
     public static function init(array $config)
     {
         if (!static::$instance) {
-            $active           = isset($config['active']) ? $config['active'] : true;
-            $warning          = isset($config['warning']) ? $config['warning'] : false;
-            $bail             = isset($config['bail']) ? $config['bail'] : true;
+            $active = isset($config['active']) ? $config['active'] : true;
+            $warning = isset($config['warning']) ? $config['warning'] : false;
+            $bail = isset($config['bail']) ? $config['bail'] : true;
             static::$instance = new static($active, $warning, $bail);
         }
     }
@@ -75,7 +76,7 @@ EOF;
     /**
      * 兼容PHP5.3的assert(只支持一个参数)
      * 参数表$number, $message, $file, $line, $context
-     * 为了不影响恢复断言环境，此方法内避免使用任何局部参数或变量
+     * 为了不影响恢复断言环境，此方法内避免使用任何局部参数或变量.
      */
     public static function php53()
     {
@@ -83,17 +84,18 @@ EOF;
             return false;  //非断言参数错误继续传递
         }
         static::$assertion = debug_backtrace(false);
-        static::$assertion = static::$assertion[1];//从trace栈获取assert参数内容
-        extract(func_get_arg(4));//恢复assert上下文环境
-        assert(static::$assertion['args'][0]);//运行断言
+        static::$assertion = static::$assertion[1]; //从trace栈获取assert参数内容
+        extract(func_get_arg(4)); //恢复assert上下文环境
+        assert(static::$assertion['args'][0]); //运行断言
         /*清除断言数据*/
         static::$assertion = null;
+
         return true;
     }
 
     /**
      * Assertion Handler
-     * 断言错误回调
+     * 断言错误回调.
      *
      * @method callback
      */

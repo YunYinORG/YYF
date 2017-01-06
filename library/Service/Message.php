@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
@@ -7,7 +8,7 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
- 
+
 namespace Service;
 
 /***************************************************\
@@ -31,74 +32,74 @@ namespace Service;
 class Message
 {
     /**
-     * from name
+     * from name.
      */
     protected $fromName;
 
     /**
-     * from email
+     * from email.
      */
     protected $fromEmail;
 
     /**
-     * fake from name
+     * fake from name.
      */
     protected $fakeFromName;
 
     /**
-     * fake from email
+     * fake from email.
      */
     protected $fakeFromEmail;
 
     /**
-     * to email
+     * to email.
      */
-    protected $to = array();
+    protected $to = [];
 
     /**
-     * mail subject
+     * mail subject.
      */
     protected $subject;
 
     /**
-     * mail body
+     * mail body.
      */
     protected $body;
 
     /**
-     *mail attachment
+     *mail attachment.
      */
-    protected $attachment = array();
+    protected $attachment = [];
 
     /**
-     * message header
+     * message header.
      */
-    protected $header = array();
+    protected $header = [];
 
     /**
-     * charset
+     * charset.
      */
     protected $charset = 'UTF-8';
 
     /**
-     * header multipart boundaryMixed
+     * header multipart boundaryMixed.
      */
     protected $boundaryMixed;
 
     /**
-     * header multipart alternative
+     * header multipart alternative.
      */
     protected $boundaryAlternative;
 
     /**
-     * $this->CRLF
+     * $this->CRLF.
      *
      * @var string
      */
     protected $CRLF = "\r\n";
 
     /**
-     * set mail from
+     * set mail from.
      *
      * @param string $name
      * @param string $email
@@ -107,13 +108,14 @@ class Message
      */
     public function setFrom($name, $email)
     {
-        $this->fromName  = $name;
+        $this->fromName = $name;
         $this->fromEmail = $email;
+
         return $this;
     }
 
     /**
-     * set mail fake from
+     * set mail fake from.
      *
      * @param string $name
      * @param string $email
@@ -122,13 +124,14 @@ class Message
      */
     public function setFakeFrom($name, $email)
     {
-        $this->fakeFromName  = $name;
+        $this->fakeFromName = $name;
         $this->fakeFromEmail = $email;
+
         return $this;
     }
 
     /**
-     * set mail receiver
+     * set mail receiver.
      *
      * @param string $name
      * @param string $email
@@ -138,11 +141,12 @@ class Message
     public function setTo($name, $email)
     {
         $this->to[$name] = $email;
+
         return $this;
     }
 
     /**
-     * add mail receiver
+     * add mail receiver.
      *
      * @param string $name
      * @param string $email
@@ -152,11 +156,12 @@ class Message
     public function addTo($name, $email)
     {
         $this->to[$name] = $email;
+
         return $this;
     }
 
     /**
-     * set mail subject
+     * set mail subject.
      *
      * @param string $subject
      *
@@ -165,11 +170,12 @@ class Message
     public function setSubject($subject)
     {
         $this->subject = $subject;
+
         return $this;
     }
 
     /**
-     * set mail body
+     * set mail body.
      *
      * @param string $body
      *
@@ -178,11 +184,12 @@ class Message
     public function setBody($body)
     {
         $this->body = $body;
+
         return $this;
     }
 
     /**
-     * add mail attachment
+     * add mail attachment.
      *
      * @param $name
      * @param $path
@@ -192,11 +199,12 @@ class Message
     public function setAttachment($name, $path)
     {
         $this->attachment[$name] = $path;
+
         return $this;
     }
 
     /**
-     * add mail attachment
+     * add mail attachment.
      *
      * @param $name
      * @param $path
@@ -206,6 +214,7 @@ class Message
     public function addAttachment($name, $path)
     {
         $this->attachment[$name] = $path;
+
         return $this;
     }
 
@@ -286,11 +295,12 @@ class Message
             $in .= $this->createBodyWithAttachment();
         }
         $in .= $this->CRLF.$this->CRLF.'.'.$this->CRLF;
+
         return $in;
     }
 
     /**
-     * Create mail header
+     * Create mail header.
      *
      * @return $this
      */
@@ -300,27 +310,28 @@ class Message
 
         if (!empty($this->fakeFromEmail)) {
             $this->header['Return-Path'] = $this->fakeFromEmail;
-            $this->header['From']        = $this->fakeFromName.' <'.$this->fakeFromEmail.'>';
+            $this->header['From'] = $this->fakeFromName.' <'.$this->fakeFromEmail.'>';
         } else {
             $this->header['Return-Path'] = $this->fromEmail;
-            $this->header['From']        = $this->fromName.' <'.$this->fromEmail.'>';
+            $this->header['From'] = $this->fromName.' <'.$this->fromEmail.'>';
         }
 
         $this->header['To'] = '';
         foreach ($this->to as $toName => $toEmail) {
             $this->header['To'] .= $toName.' <'.$toEmail.'>, ';
         }
-        $this->header['To']           = substr($this->header['To'], 0, -2);
-        $this->header['Subject']      = $this->subject;
-        $this->header['Message-ID']   = '<'.md5('TX'.md5(time()).uniqid()).'@'.$this->fromEmail.'>';
-        $this->header['X-Priority']   = '3';
-        $this->header['X-Mailer']     = 'YunYin Mailer';
+        $this->header['To'] = substr($this->header['To'], 0, -2);
+        $this->header['Subject'] = $this->subject;
+        $this->header['Message-ID'] = '<'.md5('TX'.md5(time()).uniqid()).'@'.$this->fromEmail.'>';
+        $this->header['X-Priority'] = '3';
+        $this->header['X-Mailer'] = 'YunYin Mailer';
         $this->header['MIME-Version'] = '1.0';
         if (!empty($this->attachment)) {
-            $this->boundaryMixed          = md5(md5(time().'TxMailer').uniqid());
+            $this->boundaryMixed = md5(md5(time().'TxMailer').uniqid());
             $this->header['Content-Type'] = "multipart/mixed; \r\n\tboundary=\"".$this->boundaryMixed.'"';
         }
         $this->boundaryAlternative = md5(md5(time().'TXMailer').uniqid());
+
         return $this;
     }
 
@@ -347,6 +358,7 @@ class Message
         $in .= chunk_split(base64_encode($this->body)).$this->CRLF;
         $in .= $this->CRLF;
         $in .= '--'.$this->boundaryAlternative.'--'.$this->CRLF;
+
         return $in;
     }
 
@@ -388,6 +400,7 @@ class Message
         $in .= $this->CRLF;
         $in .= $this->CRLF;
         $in .= '--'.$this->boundaryMixed.'--'.$this->CRLF;
+
         return $in;
     }
 }

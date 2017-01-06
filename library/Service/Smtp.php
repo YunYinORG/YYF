@@ -10,47 +10,47 @@
 
 namespace Service;
 
-use \Exception;
+use Exception;
 
 class Smtp
 {
     /**
-     * smtp socket
+     * smtp socket.
      */
     protected $smtp;
 
     /**
-     * smtp server
+     * smtp server.
      */
     protected $host;
 
     /**
-     * smtp server port
+     * smtp server port.
      */
     protected $port;
 
     /**
-     * smtp secure ssl tls
+     * smtp secure ssl tls.
      */
     protected $secure;
 
     /**
-     * EHLO message
+     * EHLO message.
      */
     protected $ehlo;
 
     /**
-     * smtp username
+     * smtp username.
      */
     protected $username;
 
     /**
-     * smtp password
+     * smtp password.
      */
     protected $password;
 
     /**
-     * $this->CRLF
+     * $this->CRLF.
      *
      * @var string
      */
@@ -67,18 +67,18 @@ class Smtp
     // protected $logger;
 
     /**
-     * Stack of all commands issued to SMTP
+     * Stack of all commands issued to SMTP.
      *
      * @var array
      */
-    protected $commandStack = array();
+    protected $commandStack = [];
 
     /**
-     * Stack of all results issued to SMTP
+     * Stack of all results issued to SMTP.
      *
      * @var array
      */
-    protected $resultStack = array();
+    protected $resultStack = [];
 
     public function __construct()
     {
@@ -86,7 +86,7 @@ class Smtp
     }
 
     /**
-     * set server and port
+     * set server and port.
      *
      * @param string $host   server
      * @param int    $port   port
@@ -94,11 +94,11 @@ class Smtp
      *
      * @return $this
      */
-    public function setServer($host, $port, $secure=null)
+    public function setServer($host, $port, $secure = null)
     {
-        $this->host                  = $host;
-        $this->port                  = $port;
-        $this->secure                = $secure;
+        $this->host = $host;
+        $this->port = $port;
+        $this->secure = $secure;
         if (!$this->ehlo) {
             $this->ehlo = $host;
         }
@@ -107,7 +107,7 @@ class Smtp
     }
 
     /**
-     * auth with server
+     * auth with server.
      *
      * @param string $username
      * @param string $password
@@ -123,7 +123,7 @@ class Smtp
     }
 
     /**
-     * set the EHLO message
+     * set the EHLO message.
      *
      * @param $ehlo
      *
@@ -132,11 +132,12 @@ class Smtp
     public function setEhlo($ehlo)
     {
         $this->ehlo = $ehlo;
+
         return $this;
     }
 
     /**
-     * Send the message
+     * Send the message.
      *
      * @param Message $message
      *
@@ -162,12 +163,13 @@ class Smtp
             ->rcptTo()
             ->data()
             ->quit();
+
         return fclose($this->smtp);
     }
 
     /**
      * connect the server
-     * SUCCESS 220
+     * SUCCESS 220.
      *
      * @throws Exception
      * @throws Exception
@@ -177,7 +179,7 @@ class Smtp
     protected function connect()
     {
         // $this->logger && $this->logger->debug("Connecting to {$this->host} at {$this->port}");
-        $host       = ($this->secure == 'ssl') ? 'ssl://'.$this->host : $this->host;
+        $host = ($this->secure == 'ssl') ? 'ssl://'.$this->host : $this->host;
         $this->smtp = @fsockopen($host, $this->port);
         //set block mode
         //    stream_set_blocking($this->smtp, 1);
@@ -188,12 +190,13 @@ class Smtp
         if ($code !== '220') {
             throw new Exception('220'.$code.array_pop($this->resultStack));
         }
+
         return $this;
     }
 
     /**
      * SMTP STARTTLS
-     * SUCCESS 220
+     * SUCCESS 220.
      *
      * @throws Exception
      * @throws Exception
@@ -203,7 +206,7 @@ class Smtp
      */
     protected function starttls()
     {
-        $in   = 'STARTTLS'.$this->CRLF;
+        $in = 'STARTTLS'.$this->CRLF;
         $code = $this->pushStack($in);
         if ($code !== '220') {
             throw new Exception('220'.$code.array_pop($this->resultStack));
@@ -211,12 +214,13 @@ class Smtp
         if (!\stream_socket_enable_crypto($this->smtp, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
             throw new Exception('Start TLS failed to enable crypto');
         }
+
         return $this;
     }
 
     /**
      * SMTP EHLO
-     * SUCCESS 250
+     * SUCCESS 250.
      *
      * @throws Exception
      * @throws Exception
@@ -225,11 +229,12 @@ class Smtp
      */
     protected function ehlo()
     {
-        $in   = 'EHLO '.$this->ehlo.$this->CRLF;
+        $in = 'EHLO '.$this->ehlo.$this->CRLF;
         $code = $this->pushStack($in);
         if ($code !== '250') {
             throw new Exception('250'.$code.array_pop($this->resultStack));
         }
+
         return $this;
     }
 
@@ -237,7 +242,7 @@ class Smtp
      * SMTP AUTH LOGIN
      * SUCCESS 334
      * SUCCESS 334
-     * SUCCESS 235
+     * SUCCESS 235.
      *
      * @throws Exception
      * @throws Exception
@@ -252,27 +257,28 @@ class Smtp
             return $this;
         }
 
-        $in   = 'AUTH LOGIN'.$this->CRLF;
+        $in = 'AUTH LOGIN'.$this->CRLF;
         $code = $this->pushStack($in);
         if ($code !== '334') {
             throw new Exception('334'.$code.array_pop($this->resultStack));
         }
-        $in   = base64_encode($this->username).$this->CRLF;
+        $in = base64_encode($this->username).$this->CRLF;
         $code = $this->pushStack($in);
         if ($code !== '334') {
             throw new Exception('334'.$code.array_pop($this->resultStack));
         }
-        $in   = base64_encode($this->password).$this->CRLF;
+        $in = base64_encode($this->password).$this->CRLF;
         $code = $this->pushStack($in);
         if ($code !== '235') {
             throw new Exception('235'.$code.array_pop($this->resultStack));
         }
+
         return $this;
     }
 
     /**
      * SMTP MAIL FROM
-     * SUCCESS 250
+     * SUCCESS 250.
      *
      * @throws Exception
      * @throws Exception
@@ -281,17 +287,18 @@ class Smtp
      */
     protected function mailFrom()
     {
-        $in   = "MAIL FROM:<{$this->message->getFromEmail()}>".$this->CRLF;
+        $in = "MAIL FROM:<{$this->message->getFromEmail()}>".$this->CRLF;
         $code = $this->pushStack($in);
         if ($code !== '250') {
             throw new Exception('250'.$code.array_pop($this->resultStack));
         }
+
         return $this;
     }
 
     /**
      * SMTP RCPT TO
-     * SUCCESS 250
+     * SUCCESS 250.
      *
      * @throws Exception
      * @throws Exception
@@ -301,19 +308,20 @@ class Smtp
     protected function rcptTo()
     {
         foreach ($this->message->getTo() as $toEmail) {
-            $in   = 'RCPT TO:<'.$toEmail.'>'.$this->CRLF;
+            $in = 'RCPT TO:<'.$toEmail.'>'.$this->CRLF;
             $code = $this->pushStack($in);
             if ($code !== '250') {
                 throw new Exception('250'.$code.']'.array_pop($this->resultStack));
             }
         }
+
         return $this;
     }
 
     /**
      * SMTP DATA
      * SUCCESS 354
-     * SUCCESS 250
+     * SUCCESS 250.
      *
      * @throws Exception
      * @throws Exception
@@ -322,22 +330,23 @@ class Smtp
      */
     protected function data()
     {
-        $in   = 'DATA'.$this->CRLF;
+        $in = 'DATA'.$this->CRLF;
         $code = $this->pushStack($in);
         if ($code !== '354') {
             throw new Exception('354'.$code.']'.array_pop($this->resultStack));
         }
-        $in   = $this->message->toString();
+        $in = $this->message->toString();
         $code = $this->pushStack($in);
         if ($code !== '250') {
             throw new Exception('250'.$code.']'.array_pop($this->resultStack));
         }
+
         return $this;
     }
 
     /**
      * SMTP QUIT
-     * SUCCESS 221
+     * SUCCESS 221.
      *
      * @throws Exception
      * @throws Exception
@@ -346,11 +355,12 @@ class Smtp
      */
     protected function quit()
     {
-        $in   = 'QUIT'.$this->CRLF;
+        $in = 'QUIT'.$this->CRLF;
         $code = $this->pushStack($in);
         if ($code !== '221') {
             throw new Exception('221'.$code.']'.array_pop($this->resultStack));
         }
+
         return $this;
     }
 
@@ -364,7 +374,7 @@ class Smtp
 
     /**
      * get smtp response code
-     * once time has three digital and a space
+     * once time has three digital and a space.
      *
      * @throws Exception
      *
@@ -377,6 +387,7 @@ class Smtp
             $this->resultStack[] = $str;
             if (substr($str, 3, 1) == ' ') {
                 $code = substr($str, 0, 3);
+
                 return $code;
             }
         }

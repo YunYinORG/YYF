@@ -7,38 +7,38 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
-
 use \Orm as Orm;
 use \Service\Database as Database;
 
 /**
- * Db 数据库管理类
+ * Db 数据库管理类.
  *
  * @author NewFuture
  */
 class Db
 {
-    private static $_dbpool = array(); // 数据库连接池
+    private static $_dbpool = []; // 数据库连接池
     private static $current = null; //当前数据库连接
 
     /**
-     * 静态方式调用Database的方法
+     * 静态方式调用Database的方法.
      */
     public static function __callStatic($method, $params)
     {
         assert('method_exists("\Service\Database",$method)', '[Db::Database]Database中不存在此方式:'.$method);
-        return call_user_func_array(array(Db::current(), $method), $params);
+
+        return call_user_func_array([self::current(), $method], $params);
     }
 
     /**
-     * 数据库初始化 并取得数据库类实例
+     * 数据库初始化 并取得数据库类实例.
      *
      * @method connect
      * @static
      *
      * @param mixed $config 连接配置
      *
-     * @return Object [Database] 返回数据库类
+     * @return object [Database] 返回数据库类
      */
     public static function connect($config = '_')
     {
@@ -47,36 +47,36 @@ class Db
             $key = md5(json_encode($config));
         } else {
             assert('is_string($config)', '[Db::connect]直接收数组或者字符串参数');
-            $key    = $config;
+            $key = $config;
             $config = Config::getSecret('database', 'db.'.$key)->toArray();
             assert('!empty($config)', '[Db::connect]数据库配置未设置:db.'.$key);
         }
-        if (isset(Db::$_dbpool[$key])) {
-            return Db::$_dbpool[$key];
+        if (isset(self::$_dbpool[$key])) {
+            return self::$_dbpool[$key];
         }
         $username = isset($config['username']) ? $config['username'] : null;
         $password = isset($config['password']) ? $config['password'] : null;
-     
+
         $options = Config::getSecret('database', 'options')->toArray();
         if (isset($config['options'])) {
             assert('is_array($config["options"])', '[Db::connect]数据库连接参数options配置应是数组');
             $options = $config['options'] + $options;
         }
-        
+
         try {
-            return Db::$_dbpool[$key] = new Database($config['dsn'], $username, $password, $options);
+            return self::$_dbpool[$key] = new Database($config['dsn'], $username, $password, $options);
         } catch (Exception $e) {
             Logger::log(
                 'ALERT',
                 '[Db::connect]数据库[{KEY}]({DSN})无法连接:{MSG}',
-                array('KEY' => $key, 'DSN' => $config['dsn'], 'MSG' => $e->getMessage())
+                ['KEY' => $key, 'DSN' => $config['dsn'], 'MSG' => $e->getMessage()]
             );
             throw $e;
         }
     }
 
     /**
-     * 获取或者设置当前数据库连接,如果没有数据库事例将读取默认配置
+     * 获取或者设置当前数据库连接,如果没有数据库事例将读取默认配置.
      *
      * @method current
      *
@@ -87,9 +87,10 @@ class Db
     public static function current(Database $db = null)
     {
         if (null === $db) {
-            return Db::$current ?: (Db::$current = Db::connect());
+            return self::$current ?: (self::$current = self::connect());
         }
-        return Db::$current = $db;
+
+        return self::$current = $db;
     }
 
     /**
@@ -102,30 +103,31 @@ class Db
      */
     public static function get($name = '_')
     {
-        if (isset(Db::$_dbpool[$name])) {
-            return Db::$_dbpool[$name];
+        if (isset(self::$_dbpool[$name])) {
+            return self::$_dbpool[$name];
         }
-        return  Db::$_dbpool[$name] = (Config::getSecret('database', 'db.'.$name.'.dsn') ?
-            Db::connect($name) : Db::connect('_'));
+
+        return  self::$_dbpool[$name] = (Config::getSecret('database', 'db.'.$name.'.dsn') ?
+            self::connect($name) : self::connect('_'));
     }
 
     /**
-     * 设定换数据库,可以覆盖默认数据库配置
+     * 设定换数据库,可以覆盖默认数据库配置.
      *
      * @method set
      *
-     * @param string $name 设置名称，‘_’,'_read','_write'
+     * @param string $name   设置名称，‘_’,'_read','_write'
      * @param mixed  $config 配置名称
      *
      * @return [object] Database
      */
     public static function set($name, $config)
     {
-        $conf = array();
+        $conf = [];
         switch (func_num_args()) {
             case 2://一个参数，对象，数组，配置名或者dsn
                 if ($config instanceof Database) {
-                    return Db::$_dbpool[$name] = $config;
+                    return self::$_dbpool[$name] = $config;
                 }
                 if (is_string($config) && strpos($config, ':') > 0) {
                     $conf['dsn'] = &$config;
@@ -140,17 +142,18 @@ class Db
                $conf['password'] = func_get_arg(3);
             case 3://两参数第二个为账号
                 assert('is_string($config)', '[Db::set]多参数dsn链接设置必须是字符串');
-                $conf['username']  = func_get_arg(2);
-                $conf['dsn']       = $config;
+                $conf['username'] = func_get_arg(2);
+                $conf['dsn'] = $config;
                 break;
             default:
                 throw new Exception('无法解析参数，参数数目异常'.func_num_args());
         }
-        return Db::$_dbpool[$name] = Db::connect($conf);
+
+        return self::$_dbpool[$name] = self::connect($conf);
     }
 
    /**
-    * 获取数据库表进行后续操作
+    * 获取数据库表进行后续操作.
     *
     * @static
     *
@@ -164,7 +167,7 @@ class Db
    }
 
     /**
-     * exec 别名 覆盖Db类的的execute
+     * exec 别名 覆盖Db类的的execute.
      *
      * @method execute
      *
@@ -172,11 +175,11 @@ class Db
      */
     public static function execute($sql, array $params = null)
     {
-        return Db::get('_write')->exec($sql, $params);
+        return self::get('_write')->exec($sql, $params);
     }
 
     /**
-     * 数据库操作(写入)
+     * 数据库操作(写入).
      *
      * @method exec
      *
@@ -184,7 +187,7 @@ class Db
      */
     public static function exec($sql, array $params = null)
     {
-        return Db::get('_write')->exec($sql, $params);
+        return self::get('_write')->exec($sql, $params);
     }
 
     /**
@@ -196,7 +199,7 @@ class Db
      */
     public static function query($sql, array $params = null, $fetchAll = true, $fetchmode = null)
     {
-        return Db::get('_read')->query($sql, $params, $fetchAll, $fetchmode);
+        return self::get('_read')->query($sql, $params, $fetchAll, $fetchmode);
     }
 
     /**
@@ -208,6 +211,6 @@ class Db
      */
     public static function column($sql, array $params = null)
     {
-        return Db::get('_read')->column($sql, $params);
+        return self::get('_read')->column($sql, $params);
     }
 }

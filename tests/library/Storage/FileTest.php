@@ -1,60 +1,62 @@
 <?php
+
 namespace tests\library\Storage;
 
-use \Storage\File as File;
-use \Test\YafCase as TestCase;
+use Storage\File as File;
+use Test\YafCase as TestCase;
 
 /**
  * @coversDefaultClass \Storage\File
  */
 class FileTest extends TestCase
 {
-    const PRE='<?php //';
-    const TEST_STRING='yyf file storage test';
+    const PRE = '<?php //';
+    const TEST_STRING = 'yyf file storage test';
     protected static $env;
     protected static $dir;
     protected static $file;
 
     public static function setUpBeforeClass()
     {
-        static::$dir=APP_PATH.DIRECTORY_SEPARATOR.'runtime'.DIRECTORY_SEPARATOR.'tests'.DIRECTORY_SEPARATOR;
-        static::$file=new File(static::$dir);
-        static::$env= static::app()->environ();
+        static::$dir = APP_PATH.DIRECTORY_SEPARATOR.'runtime'.DIRECTORY_SEPARATOR.'tests'.DIRECTORY_SEPARATOR;
+        static::$file = new File(static::$dir);
+        static::$env = static::app()->environ();
     }
 
     /**
-    * @requires OS Linux
-    * @covers ::__construct
-    */
+     * @requires OS Linux
+     * @covers ::__construct
+     */
     public function testDirMode()
     {
-        $mode=$this->assertFileMode(static::$dir, 0777);
+        $mode = $this->assertFileMode(static::$dir, 0777);
     }
 
     public function testSet()
     {
-        $name=uniqid('test_set', true);
-        static::$file->set($name, FileTest::TEST_STRING);
-        $filename=static::$dir.$name.'.php';
+        $name = uniqid('test_set', true);
+        static::$file->set($name, self::TEST_STRING);
+        $filename = static::$dir.$name.'.php';
         $this->assertFileExists($filename);
         $this->assertFileMode($filename);
-        $this->assertStringEqualsFile($filename,FileTest::PRE.FileTest::TEST_STRING);
+        $this->assertStringEqualsFile($filename, self::PRE.self::TEST_STRING);
+
         return $name;
     }
 
     /**
-    * @depends testSet
-    */
+     * @depends testSet
+     */
     public function testGet($name)
     {
-        $str=static::$file->get($name);
-        $this->assertSame($str, FileTest::TEST_STRING);
+        $str = static::$file->get($name);
+        $this->assertSame($str, self::TEST_STRING);
         $this->assertFalse(static::$file->get(uniqid('_rand_', true)));
     }
 
     /**
-    * @depends testSet
-    */
+     * @depends testSet
+     */
     public function testDelete($name)
     {
         static::$file->delete($name);
@@ -63,13 +65,13 @@ class FileTest extends TestCase
     }
 
     /**
-    * @depends testDelete
-    * @covers ::cleanDir
-    * @covers ::delete
-    */
+     * @depends testDelete
+     * @covers ::cleanDir
+     * @covers ::delete
+     */
     public function testFlush()
     {
-        for ($i=0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; $i++) {
             static::$file->set('test_'.uniqid(rand(1000, 10000)), rand());
         }
         static::$file->flush();

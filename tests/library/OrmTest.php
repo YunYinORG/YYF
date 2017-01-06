@@ -1,12 +1,13 @@
 <?php
+
 namespace tests\library;
 
-use \Orm as Orm;
-use \Test\YafCase as TestCase;
+use Orm as Orm;
+use Test\YafCase as TestCase;
 
 class OrmTest extends TestCase
 {
-    const USER_AMOUNT = 2 ;
+    const USER_AMOUNT = 2;
     protected $User;
 
     public function setUp()
@@ -18,7 +19,7 @@ class OrmTest extends TestCase
     {
         unset($this->User);
     }
-    
+
     protected function User()
     {
         return $this->User->clear();
@@ -60,18 +61,18 @@ class OrmTest extends TestCase
     //插入测试数据
     public function InsertProvider()
     {
-        return array(
-                array( array(
+        return [
+                [[
                     'id'      => 3,
                     'account' => 'tester',
                     'name'    => 'test '.substr(__CLASS__, -8),
-                )),
-                array( array(
+                ]],
+                [[
                     'id'      => 4,
                     'account' => 'new_tester',
                     'name'    => 'New Tester 4',
-                )),
-            );
+                ]],
+            ];
     }
 
     /**
@@ -81,6 +82,7 @@ class OrmTest extends TestCase
     {
         $id = $this->User()->insert($data);
         $this->assertEquals($data['id'], $id);
+
         return $id;
     }
 
@@ -110,7 +112,7 @@ class OrmTest extends TestCase
         }
 
         $this->assertInstanceOf('Orm', $this->User->add());
-        
+
         $this->assertEquals(1, $this->User->delete($data['id']));
     }
 
@@ -119,7 +121,7 @@ class OrmTest extends TestCase
         $data = $this->InsertProvider();
         $data = array_column($data, 0);
         $this->assertEquals(count($data), $this->User->insertAll($data));
-             
+
         foreach ($data as $u) {
             $this->assertEquals(1,
              $this->User->where($u)->delete()
@@ -130,20 +132,20 @@ class OrmTest extends TestCase
    //跟新测试数据
     public function updateProvider()
     {
-        return array(
-                array(
+        return [
+                [
                     1,
-                    array(
+                    [
                         'account' => 'tester_update',
-                    ),
-                ),
-                array(
+                    ],
+                ],
+                [
                     2,
-                    array(
+                    [
                         'name' => 'update Tester',
-                    )
-                ),
-            );
+                    ],
+                ],
+            ];
     }
 
     /**
@@ -152,7 +154,7 @@ class OrmTest extends TestCase
     public function testUpdate($con, array $data)
     {
         if (!is_array($con)) {
-            $con = array('id' => $con);
+            $con = ['id' => $con];
         }
         $old_data = $this->User->where($con)->find()->get();
         $this->assertEquals(1, $this->User()->where($con)->update($data));
@@ -198,6 +200,7 @@ class OrmTest extends TestCase
         $status = $User->get('status');
         $this->assertEquals(1, $User->increment('status'));
         $this->assertEquals($status + 1, $this->User()->where('id', $id)->get('status'));
+
         return $id;
     }
 

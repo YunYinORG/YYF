@@ -9,7 +9,7 @@
  */
 
 /**
- * PHP53兼容
+ * PHP53兼容.
  */
 interface JsonSerializable
 {

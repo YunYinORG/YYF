@@ -7,14 +7,15 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
+
 namespace Debug;
 
-use \Config as Config;
-use \ReflectionClass as ReflectionClass;
-use \Yaf_Application as Application;
+use Config as Config;
+use ReflectionClass as ReflectionClass;
+use Yaf_Application as Application;
 
 /**
- * 响应头输出调试信息
+ * 响应头输出调试信息.
  *
  * @author NewFuture
  * Header::log('some log info');
@@ -42,7 +43,7 @@ class Header
     }
 
     /**
-     * 通过http header dump数据
+     * 通过http header dump数据.
      *
      * @param string $key   [description]
      * @param [type] $value [description]
@@ -53,49 +54,50 @@ class Header
         switch (gettype($value)) {
             case 'string':
                 if (ctype_print($value) && (strpos($value, "\n") === false)) {
-                    $key = '-S-'.$key;//字符串
+                    $key = '-S-'.$key; //字符串
                 } else {
-                    $key   = '-E-'.$key;//编码字符串
+                    $key = '-E-'.$key; //编码字符串
                     $value = rawurlencode($value);
                 }
                 break;
 
             case 'integer':
             case 'double':
-                $key = '-N-'.$key;//数字
+                $key = '-N-'.$key; //数字
                 break;
 
             case 'boolean':
-                $key .= '-B-'.$key;//bool
+                $key .= '-B-'.$key; //bool
                 $value = $value ? 'true' : 'false';
                 break;
 
             case 'array':
             case 'null':
             case null:
-                $key   = '-J-'.$key;//数组JSON
+                $key = '-J-'.$key; //数组JSON
                 $value = json_encode($value);
                 break;
 
             case 'object':
                 //对象
-                $key                = '-O-'.$key;
-                static::$_processed = array();
-                $value              = json_encode(static::_convertObject($value));
+                $key = '-O-'.$key;
+                static::$_processed = [];
+                $value = json_encode(static::_convertObject($value));
                 break;
 
             case 'unkown':
             default:
-                $key   = '-U-'.$key;
+                $key = '-U-'.$key;
                 $value = rawurlencode(str_replace('    ', "\t", print_r($value, true)));
-                $value = str_replace(array('+', '%3D', '%3E', '%28', '%29', '%5B', '%5D', '%3A'), array(' ', '=', '>', '(', ')', '[', ']', ':'), $value);
+                $value = str_replace(['+', '%3D', '%3E', '%28', '%29', '%5B', '%5D', '%3A'], [' ', '=', '>', '(', ')', '[', ']', ':'], $value);
         }
         headers_sent() || header(static::HEADER_BASE.$key.': '.$value, false);
+
         return $this;
     }
 
     /**
-     * 静态调用
+     * 静态调用.
      */
     public static function __callStatic($Type, $params)
     {
@@ -110,7 +112,7 @@ class Header
     }
 
     /**
-     * 链式调用
+     * 链式调用.
      */
     public function __call($Type, $params)
     {
@@ -118,7 +120,7 @@ class Header
     }
 
     /**
-     * 添加header调试信息
+     * 添加header调试信息.
      *
      * @param string       $type 字段名
      * @param array|string $info [输出的调试信息]
@@ -132,14 +134,15 @@ class Header
                     is_numeric($v) && $v = round($v, $N);
                 });
             }
-            $info = json_encode($info, 64);//64 JSON_UNESCAPED_SLASHES
+            $info = json_encode($info, 64); //64 JSON_UNESCAPED_SLASHES
         }
         headers_sent() || header(static::HEADER_BASE."-$type: $info", false);
+
         return $this;
     }
 
     /**
-     * 获取事例
+     * 获取事例.
      *
      * @return [type] [description]
      */
@@ -149,7 +152,7 @@ class Header
     }
 
     /**
-     * 转换object->array
+     * 转换object->array.
      *
      * @param [type] $object [description]
      *
@@ -161,7 +164,7 @@ class Header
             return $object;
         }
         static::$_processed[] = $object;
-        $object_as_array      = array();
+        $object_as_array = [];
 
         $object_as_array['__CLASS__'] = get_class($object);
 
@@ -188,6 +191,7 @@ class Header
 
             $object_as_array[$type] = in_array($value, static::$_processed, true) ? '__CLASS__['.get_class($value).']' : static::_convertObject($value);
         }
+
         return $object_as_array;
     }
 }

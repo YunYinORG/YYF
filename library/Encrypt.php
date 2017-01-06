@@ -62,13 +62,13 @@ class Encrypt
      *
      * @param string $str [编码前字符串]
      *
-     * @return string            [安全base64编码后字符串]
+     * @return string [安全base64编码后字符串]
      *
      * @author NewFuture
      */
     public static function base64Encode($str)
     {
-        return strtr(base64_encode($str), array('+' => '-', '=' => '_', '/' => '.'));
+        return strtr(base64_encode($str), ['+' => '-', '=' => '_', '/' => '.']);
     }
 
     /**
@@ -78,19 +78,19 @@ class Encrypt
      *
      * @param string $str [解码前字符串]
      *
-     * @return string          [安全base64解码后字符串]
+     * @return string [安全base64解码后字符串]
      *
      * @author NewFuture
      */
     public static function base64Decode($str)
     {
-        return base64_decode(strtr($str, array('-' => '+', '_' => '=', '.' => '/')));
+        return base64_decode(strtr($str, ['-' => '+', '_' => '=', '.' => '/']));
     }
 
     /**
      *  aes_encode(&$data, $key)
      *  aes加密函数,$data引用传真，直接变成密码
-     *  采用mcrypt扩展,为保证一致性,初始向量设为0
+     *  采用mcrypt扩展,为保证一致性,初始向量设为0.
      *
      * @param $data 原文
      * @param $key 密钥
@@ -104,12 +104,13 @@ class Encrypt
         mcrypt_generic_init($td, $key, '0000000000000000');
         $data = mcrypt_generic($td, $data);
         mcrypt_generic_deinit($td);
+
         return $safe_view ? self::base64Encode($data) : $data;
     }
 
     /**
      * aes_decode(&$cipher, $key)
-     *  aes解密函数,$cipher引用传真也会改变
+     *  aes解密函数,$cipher引用传真也会改变.
      *
      * @param &$cipher 密文
      * @param $key 密钥
@@ -127,6 +128,7 @@ class Encrypt
             $cipher = mdecrypt_generic($td, $cipher);
             mcrypt_generic_deinit($td);
             $cipher = trim($cipher);
+
             return $cipher;
         }
     }
@@ -134,7 +136,7 @@ class Encrypt
     /**
      *  encryptEmail($email)
      *  可逆加密邮箱
-     *  保留首字母和@之后的内容
+     *  保留首字母和@之后的内容.
      *
      * @param $email 邮箱
      *
@@ -154,12 +156,13 @@ class Encrypt
         } else {
             $name2 = rand(); //对于用户名只有一个的邮箱生成随机数掩盖
         }
+
         return $name[0].$name2.'@'.$domain;
     }
 
     /**
      *  decryptEmail($email)
-     *  解密邮箱
+     *  解密邮箱.
      *
      * @param $email 邮箱
      *
@@ -171,7 +174,7 @@ class Encrypt
             return $email;
         }
         list($name, $domain) = explode('@', $email);
-        $name2               = substr($name, 1);
+        $name2 = substr($name, 1);
         if (strlen($name2) < 24) {
             //长度小于24为随机掩码直接去掉
             $name2 = '';
@@ -180,6 +183,7 @@ class Encrypt
             $name2 = self::aesDecode($name2, self::config('key_email'), true);
         }
         $email = $name[0].trim($name2).'@'.$domain;
+
         return $email;
     }
 
@@ -188,7 +192,7 @@ class Encrypt
      *  手机号格式保留加密
      *  根据不同长度采用不同方式加密,
      *  所有手机号加密后四位的加密方式全局一致
-     *  大于10位[6(2混淆+4)+4] 大于8位[4+4] 其他[4]
+     *  大于10位[6(2混淆+4)+4] 大于8位[4+4] 其他[4].
      *
      * @param $phone string 手机号[4位以上]
      * @param $salt string 字符串用于混淆密钥
@@ -205,10 +209,10 @@ class Encrypt
                 /*拆分6(双混淆)+4加密*/
                 $mid = substr($phone, -10, 6);
                 $end = substr($phone, -4);
+
                 return substr($phone, 0, -10).self::_encryptMid($mid, $salt, $id).self::encryptPhoneTail($end);
             }
-            
-            
+
             throw new Exception('超长手机号加密手机参数不足 salt 和 sid 混淆必须');
         } elseif ($len >= 8 && is_numeric($phone[0])) {
             /*手机号数字部分长度大于8-10位*/
@@ -216,10 +220,10 @@ class Encrypt
                 /*拆分4(单混淆)+4加密*/
                 $mid = substr($phone, -8, 4);
                 $end = substr($phone, -4);
+
                 return substr($phone, 0, -8).self::_encryptShortMid($mid, $salt).self::encryptPhoneTail($end);
             }
-            
-            
+
             throw new Exception('长手机号加密手机混淆参数salt 必须');
         } elseif ($len > 4) {
             /*4到7位手机号,只加密后4位，不混淆*/
@@ -233,7 +237,7 @@ class Encrypt
 
     /**
      *  dncrypt_phone($phone, $salt, $id)
-     *  手机号格式保留解密
+     *  手机号格式保留解密.
      *
      * @param $phone string 11位手机号
      * @param $salt string 用户编号
@@ -250,10 +254,10 @@ class Encrypt
                 /*拆分6(双混淆)+4加密*/
                 $mid = substr($phone, -10, 6);
                 $end = substr($phone, -4);
+
                 return substr($phone, 0, -10).self::_decryptMid($mid, $salt, $id).self::_decryptEnd($end);
             }
-            
-            
+
             throw new Exception('超长手机号解密参数不足 salt 和 sid 混淆必须');
         } elseif ($len >= 8 && is_numeric($phone[0])) {
             /*手机号数字部分长度大于8-10位*/
@@ -261,10 +265,10 @@ class Encrypt
                 /*拆分4(单混淆)+4加密*/
                 $mid = substr($phone, -8, 4);
                 $end = substr($phone, -4);
+
                 return substr($phone, 0, -8).self::_decryptShortMid($mid, $salt).self::_decryptEnd($end);
             }
-            
-            
+
             throw new Exception('长手机号解密参数不足,$salt必须');
         } elseif ($len > 4) {
             /*4到7位手机号,只加密后4位，不混淆*/
@@ -278,7 +282,7 @@ class Encrypt
 
     /**
      *  encryptPhoneTail($endNum)
-     *  4位尾号加密
+     *  4位尾号加密.
      *
      * @param $endNum 4位尾号
      *
@@ -290,11 +294,11 @@ class Encrypt
             throw new Exception('尾号不是4位数');
             return false;
         }
-        $key    = self::config('key_phone_end'); //获取配置密钥
+        $key = self::config('key_phone_end'); //获取配置密钥
         $endNum = (int) $endNum;
         $cipher = self::aesEncode($endNum, $key); //对后四位进行AES加密
         /*加密后内容查找密码表进行匹配*/
-        $table      = self::_cipherTable($key);
+        $table = self::_cipherTable($key);
         $encryption = array_search($cipher, $table);
 
         if (false === $encryption) {
@@ -303,14 +307,13 @@ class Encrypt
             throw new Exception('加密手机参数不足');
             return false;
         }
-        
-        
+
         return sprintf('%04s', $encryption); //转位4位字符串,不足4位补左边0
     }
 
     /**
      *  encrypt_mid($midNum, $snum, $id)
-     *  中间6位数加密
+     *  中间6位数加密.
      *
      * @param $midNum string 6位数字
      * @param $snum string 编号字符串,用于混淆密钥
@@ -320,8 +323,8 @@ class Encrypt
      */
     private static function _encryptMid($midNum, $snum, $id)
     {
-        $key   = self::config('key_phone_mid'); //获取配置密钥
-        $key   = substr($snum.$key, 0, 32);   //混淆密钥,每个人的密钥均不同
+        $key = self::config('key_phone_mid'); //获取配置密钥
+        $key = substr($snum.$key, 0, 32);   //混淆密钥,每个人的密钥均不同
         $table = self::_cipherTable($key);
         //拆成两部分进行解密
         $midNum += $id % self::MAX_ID;
@@ -332,15 +335,15 @@ class Encrypt
             //前密码表查找失败
             throw new Exception('中间加密异常,密码表匹配失败');
         }
-        
-        
+
         $mid2 = sprintf('%04s', $mid2);
+
         return substr_replace($midNum, $mid2, 2);
     }
 
     /**
      *  _encryptShortMid($midNum, $snum)
-     *  短加密中间4位数加密
+     *  短加密中间4位数加密.
      *
      * @param $midNum string 4位数字
      * @param $snum string 编号字符串,用于混淆密钥
@@ -349,8 +352,8 @@ class Encrypt
      */
     private static function _encryptShortMid($midNum, $snum)
     {
-        $key   = self::config('key_phone_mid'); //获取配置密钥
-        $key   = substr($snum.$key, 0, 32);   //混淆密钥,每个人的密钥均不同
+        $key = self::config('key_phone_mid'); //获取配置密钥
+        $key = substr($snum.$key, 0, 32);   //混淆密钥,每个人的密钥均不同
         $table = self::_cipherTable($key);
         //后4位加密
         $midNum = array_search(self::aesEncode($midNum, $key), $table);
@@ -358,14 +361,13 @@ class Encrypt
             //前密码表查找失败
             throw new Exception('中间加密异常,密码表匹配失败');
         }
-        
-        
+
         return sprintf('%04s', $midNum);
     }
 
     /**
      * decrypt_end($encodeEnd)
-     *  4位尾号解密
+     *  4位尾号解密.
      *
      * @param $encodeEnd 加密后4位尾号
      *
@@ -373,10 +375,10 @@ class Encrypt
      */
     private static function _decryptEnd($encodeEnd)
     {
-        $key   = self::config('key_phone_end'); //获取配置密钥
+        $key = self::config('key_phone_end'); //获取配置密钥
         $table = self::_cipherTable($key);      //读取密码表
                                                 //获取对应aes密码
-        $end    = intval($encodeEnd);
+        $end = intval($encodeEnd);
         $cipher = $table[$end];
         if (!$cipher) {
             throw new Exception('尾号密码查找失败');
@@ -387,7 +389,7 @@ class Encrypt
 
     /**
      *  decrypt_mid($midEncode, $snum, $id)
-     *  中间6位数解密函数
+     *  中间6位数解密函数.
      *
      * @param $midEncode string 加密后的6位数字
      * @param $snum string 编号字符串,用于混淆密钥
@@ -398,8 +400,8 @@ class Encrypt
     private static function _decryptMid($midEncode, $snum, $id)
     {
         //获取密码表
-        $key   = self::config('key_phone_mid');
-        $key   = substr($snum.$key, 0, 32);
+        $key = self::config('key_phone_mid');
+        $key = substr($snum.$key, 0, 32);
         $table = self::_cipherTable($key);
         //解密
         $mid2 = (int) substr($midEncode, 2, 4);
@@ -408,12 +410,13 @@ class Encrypt
         //还原
         $num = substr_replace($midEncode, $mid2, 2);
         $num -= $id % self::MAX_ID;
+
         return $num;
     }
 
     /**
      *  _decryptShortMid($midNum, $snum)
-     *  短加密中间4位数解密
+     *  短加密中间4位数解密.
      *
      * @param $midNum string 4位数字
      * @param $snum string 编号字符串,用于混淆密钥
@@ -422,11 +425,11 @@ class Encrypt
      */
     private static function _decryptShortMid($midEncode, $snum)
     {
-        $key   = self::config('key_phone_mid'); //获取配置密钥
-        $key   = substr($snum.$key, 0, 32);   //混淆密钥,每个人的密钥均不同
+        $key = self::config('key_phone_mid'); //获取配置密钥
+        $key = substr($snum.$key, 0, 32);   //混淆密钥,每个人的密钥均不同
         $table = self::_cipherTable($key);
 
-        $mid    = intval($midEncode);
+        $mid = intval($midEncode);
         $cipher = $table[$mid];
         if (!$cipher) {
             throw new Exception('中间4位密码解密查找失败');
@@ -438,7 +441,7 @@ class Encrypt
     /**
      * cipher_table($key)
      *  获取密码表
-     *  现在缓存中查询,如果存在,则直接读取,否则重新生成
+     *  现在缓存中查询,如果存在,则直接读取,否则重新生成.
      *
      * @param $key 加密的密钥
      *
@@ -462,17 +465,18 @@ class Encrypt
             sort($table);                           //根据加密后内容排序得到密码表
             Kv::set($tableName, serialize($table)); //缓存密码表
         }
+
         return $table;
     }
 
     /**
-     * 读取配置
+     * 读取配置.
      *
      * @method config
      *
-     * @param  [string] $key [配置变量名]
+     * @param [string] $key [配置变量名]
      *
-     * @return [mixed]      [配置信息]
+     * @return [mixed] [配置信息]
      *
      * @author NewFuture
      */
@@ -481,6 +485,7 @@ class Encrypt
         if (null == self::$_config) {
             self::$_config = Config::getSecret('encrypt');
         }
+
         return self::$_config->get($key);
     }
 }

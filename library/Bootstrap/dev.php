@@ -7,7 +7,6 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
-
 use \Debug\Assertion as Assertion;
 use \Debug\Tracer as Tracer;
 use \Yaf_Bootstrap_Abstract as Bootstrap_Abstract;
@@ -16,14 +15,14 @@ define('YYF_INIT_TIME', microtime(true)); //启动时间
 define('YYF_INIT_MEM', memory_get_peak_usage()); //启动内存峰值
 
 /**
- * 调试启动加载
+ * 调试启动加载.
  *
  * @author NewFuture
  */
 class Bootstrap extends Bootstrap_Abstract
 {
     /**
-     * 添加路由
+     * 添加路由.
      *
      * @method _initRoute
      */
@@ -35,7 +34,7 @@ class Bootstrap extends Bootstrap_Abstract
     }
 
     /**
-     * 断言设置
+     * 断言设置.
      *
      * @method _initAssert
      */
@@ -46,7 +45,7 @@ class Bootstrap extends Bootstrap_Abstract
     }
 
     /**
-     * 开启调试输出
+     * 开启调试输出.
      *
      * @method _initDebug
      */
@@ -72,7 +71,7 @@ class Bootstrap extends Bootstrap_Abstract
     }
 
     /**
-     * 开启日志监控
+     * 开启日志监控.
      *
      * @method _initLogListener
      */
@@ -84,7 +83,7 @@ class Bootstrap extends Bootstrap_Abstract
     }
 
     /**
-     * 记录数据库查询
+     * 记录数据库查询.
      *
      * @method _initSqlListener
      */
@@ -101,7 +100,7 @@ class Bootstrap extends Bootstrap_Abstract
     }
 
     /**
-     * 加载统计插件
+     * 加载统计插件.
      *
      * @method _initTracer
      *

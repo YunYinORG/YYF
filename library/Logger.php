@@ -7,11 +7,10 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
-
 use Storage\File as File;
 
 /**
- * Logger 日志记录
+ * Logger 日志记录.
  *
  * @see 遵循 https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
  *
@@ -32,37 +31,37 @@ use Storage\File as File;
 class Logger
 {
     /**
-     * 日志监控回调,可以修改message和level
+     * 日志监控回调,可以修改message和level.
      *
      * @var callable
      */
     public static $listener = null;
-    private static $_conf   = null;
-    private static $_files  = null;
+    private static $_conf = null;
+    private static $_files = null;
 
     /**
-     * 写入日志
+     * 写入日志.
      *
      * @method write
      *
      * @param string $msg   [消息]
      * @param string $level [日志级别]
      *
-     * @return bool         [写入状态]
+     * @return bool [写入状态]
      */
     public static function write($msg, $level = 'NOTICE')
     {
         $level = strtoupper($level);
-        if ($listener = &Logger::$listener) {
+        if ($listener = &self::$listener) {
             //日志监控回调
             assert('is_callable($listener)');
-            call_user_func_array($listener, array(&$level, &$msg));
+            call_user_func_array($listener, [&$level, &$msg]);
         }
 
-        if (!$config = &Logger::$_conf) {
+        if (!$config = &self::$_conf) {
             //读取配置信息
-            $config          = Config::get('log')->toArray();
-            $config['type']  = strtolower($config['type']);
+            $config = Config::get('log')->toArray();
+            $config['type'] = strtolower($config['type']);
             $config['allow'] = explode(',', strtoupper($config['allow']));
             isset($config['timezone']) && date_default_timezone_set($config['timezone']);
         }
@@ -74,7 +73,7 @@ class Logger
 
                 case 'file': //文件日志
                     return file_put_contents(
-                                Logger::getFile($level),
+                                self::getFile($level),
                                 date('[d-M-Y H:i:s e] (').$_SERVER['REQUEST_URI'].') '.$msg.PHP_EOL,
                                 FILE_APPEND);
 
@@ -88,7 +87,7 @@ class Logger
     }
 
     /**
-     * 清空日志(仅对文件模式有效)
+     * 清空日志(仅对文件模式有效).
      *
      * @method write
      */
@@ -112,7 +111,7 @@ class Logger
      *
      * @return bool [写入状态]
      */
-    public static function emergency($message, array $context = array())
+    public static function emergency($message, array $context = [])
     {
         return static::log('EMERGENCY', $message, $context);
     }
@@ -247,16 +246,17 @@ class Logger
     public static function log($level, $message, array $context = null)
     {
         if ($context) {
-            $replace = array();
+            $replace = [];
             foreach ($context as $key => &$val) {
-                $replace['{'.$key.'}']=is_scalar($val) || method_exists($val, '__toString') ? $val : json_endcode($val, 256);
+                $replace['{'.$key.'}'] = is_scalar($val) || method_exists($val, '__toString') ? $val : json_endcode($val, 256);
             }
             $message = strtr($message, $replace);
         } elseif (!(is_scalar($message) || method_exists($message, '__toString'))) {
             //无法之间转成字符的数据json格式化
             $message = json_encode($message, 256); //256isJSON_UNESCAPED_UNICODE 兼容php5.3
         }
-        return Logger::write($message, $level);
+
+        return self::write($message, $level);
     }
 
     /**
@@ -270,25 +270,26 @@ class Logger
      */
     private static function getFile($tag)
     {
-        $files = &Logger::$_files;
+        $files = &self::$_files;
         if (!isset($files[$tag])) {
             /*打开文件流*/
             if (!isset($files['_dir'])) {
                 //日志目录
                 umask(intval(Config::get('umask', 0077), 8));
-                $logdir =isset(Logger::$_conf['path']) ? Logger::$_conf['path'] : Config::get('runtime').'log';
+                $logdir = isset(self::$_conf['path']) ? self::$_conf['path'] : Config::get('runtime').'log';
                 if (!is_dir($logdir)) {
                     mkdir($logdir, 0777, true);
                 }
                 $files['_dir'] = $logdir.DIRECTORY_SEPARATOR.date('y-m-d-');
-                
+
                 //如果没有设置REQUEST_URI[命令行模式],自动补为null
                 isset($_SERVER['REQUEST_URI']) || $_SERVER['REQUEST_URI'] = null;
             }
-            
-            $file        = $files['_dir'].$tag.'.log';
+
+            $file = $files['_dir'].$tag.'.log';
             $files[$tag] = $file;
         }
+
         return $files[$tag];
     }
 }
