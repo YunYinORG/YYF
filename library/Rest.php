@@ -7,15 +7,18 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
+
 use Yaf_Controller_Abstract as Controller_Abstract;
 
 /**
  * REST 控制器
+ *
+ * @author NewFuture
  */
 abstract class Rest extends Controller_Abstract
 {
     /**
-     * 响应数据
+     * 完成响应数据
      *
      * @var array
      */
@@ -31,6 +34,8 @@ abstract class Rest extends Controller_Abstract
     /**
      * 配置信息
      *
+     * @access private
+     *
      * @var array
      */
     private $_config;
@@ -40,8 +45,6 @@ abstract class Rest extends Controller_Abstract
      *
      * @method __destruct
      * @access public
-     *
-     * @author NewFuture
      */
     public function __destruct()
     {
@@ -56,12 +59,11 @@ abstract class Rest extends Controller_Abstract
      * 修改操作 和 绑定参数
      *
      * @method init
-     *
-     * @author NewFuture
+     * @access protected
      */
     protected function init()
     {
-        Yaf_Dispatcher::getInstance()->disableView(); //立即输出响应，并关闭视图模板引擎
+        Yaf_Dispatcher::getInstance()->disableView(); //立即输出响应，并关闭视图模板
         $request = $this->_request;
 
         /*请求来源，跨站cors响应*/
@@ -74,7 +76,7 @@ abstract class Rest extends Controller_Abstract
         $type   = $request->getServer('CONTENT_TYPE');
         if ($method === 'OPTIONS') {
             /*cors 跨域header应答,只需响应头即可*/
-            exit();
+            exit;
         } elseif (strpos($type, 'application/json') === 0) {
             /*json 数据格式*/
             if ($inputs = file_get_contents('php://input')) {
@@ -96,7 +98,9 @@ abstract class Rest extends Controller_Abstract
         if (is_numeric($action)) {
             /*数字id绑定参数*/
             $request->setParam($this->_config['param'], intval($action));
-            $path   = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : strstr($_SERVER['REQUEST_URI'].'?', '?', true);
+            //提取请求路径
+            $path = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] :
+                        strstr($_SERVER['REQUEST_URI'].'?', '?', true);
             $path   = substr(strstr($path, $action), strlen($action) + 1);
             $action = $path ? strstr($path.'/', '/', true) : $this->_config['action'];
         }
@@ -112,15 +116,13 @@ abstract class Rest extends Controller_Abstract
             if (method_exists($this, $this->_config['none'].'Action')) {
                 $request->setActionName($this->_config['none']);
             } else {
-                $this->response(-8,
-                    array(
+                $this->response(-8, array(
                         'error'      => '未定义操作',
                         'method'     => $method,
                         'action'     => $action,
                         'controller' => $request->getControllerName(),
                         'module'     => $request->getmoduleName(),
-                    ),
-                    404);
+                    ), 404);
                 exit;
             }
         } elseif ($action !== $request->getActionName()) {
@@ -133,38 +135,75 @@ abstract class Rest extends Controller_Abstract
      * 设置返回信息，立即返回
      *
      * @method response
+     * @access protected
      *
-     * @param [type] $status [请求结果]
-     * @param string $info   [请求信息]
-     *
-     * @return [type] [description]
-     *
-     * @author NewFuture
+     * @param int   $status 返回状态
+     * @param mixed $data   返回数据
+     * @param int   $code   可选参数，设置响应状态吗
      */
-    protected function response($status, $info = '', $code = null)
+    protected function response($status, $data = null, $code = null)
     {
         $this->response = array(
             $this->_config['status'] => $status,
-            $this->_config['data']   => $info,
+            $this->_config['data']   => $data,
         );
-
         ($code > 0) && $this->code = $code;
         exit;
     }
 
     /**
-     * @method corsHeader
+     * 快速返回成功信息(status为1)
+     *
+     * @method success
+     * @access protected
+     *
+     * @param mixed $data 返回数据内容
+     * @param int $code 设置状态码[默认200]
+     */
+    protected function success($data = null, $code = 200)
+    {
+        $this->response = array(
+            $this->_config['status'] => 1,
+            $this->_config['data']   => $data,
+        );
+        $this->code = $code;
+        exit;
+    }
+
+    /**
+     * 快速返回失败信息(status为0)
+     *
+     * @method fail
+     * @access protected
+     *
+     * @param mixed $data 返回数据内容
+     * @param int $code 设置状态码[默认200]
+     */
+    protected function fail($data = null, $code = 200)
+    {
+        $this->response = array(
+            $this->_config['status'] => 0,
+            $this->_config['data']   => $data,
+        );
+        $this->code = $code;
+        exit;
+    }
+
+    /**
      * CORS 跨域请求响应头处理
      *
-     * @author NewFuture
+     * @method corsHeader
+     * @access private
      */
     private function corsHeader(array $cors)
     {
-        $from = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : null);
+        //请求来源站点
+        $from = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] :
+                    (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : null);
 
         if ($from) {
             $domains = $cors['Access-Control-Allow-Origin'];
-            if ($domains !== '*') {
+            if ($domains !== '*') {//非通配
                 $domain = strtok($domains, ',');
                 while ($domain) {
                     if (strpos($from, rtrim($domain, '/')) === 0) {
@@ -175,7 +214,7 @@ abstract class Rest extends Controller_Abstract
                 }
                 if (!$domain) {
                     /*非请指定的求来源,自动终止响应*/
-                    header('Forbid-Origin:'.$from);
+                    header('Forbid-Origin: '.$from);
                     return;
                 }
             } elseif ($cors['Access-Control-Allow-Credentials'] === 'true') {
@@ -183,7 +222,7 @@ abstract class Rest extends Controller_Abstract
                 $cors['Access-Control-Allow-Origin'] = $from;
             }
             foreach ($cors as $key => $value) {
-                header($key.':'.$value);
+                header($key.': '.$value);
             }
         }
     }
