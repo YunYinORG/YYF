@@ -65,8 +65,8 @@ class Bootstrap extends Bootstrap_Abstract
                     break;
 
                 default:
-                    exit("未知调试类型设置,请检查[conf/app.ini]中的debug.type参数配置\n<br>" +
-                        "unkown debug type: $debug . check 'debug.type' setting in [conf/app.ini]");
+                    exit('未知调试类型设置,请检查[conf/app.ini]中的debug.type参数配置<br>'.
+                        "\nunkown debug type: $debug . check 'debug.type' setting in [conf/app.ini]");
             }
         }
     }
