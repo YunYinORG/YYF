@@ -7,6 +7,7 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
+
 namespace Parse;
 
 class Xml
@@ -25,6 +26,7 @@ class Xml
         $xml .= '<yunyin>';
         $xml .= self::data_to_xml($data);
         $xml .= '</yunyin>';
+
         return $xml;
     }
 
@@ -43,12 +45,13 @@ class Xml
         foreach ($data as $key => $val) {
             if (is_numeric($key)) {
                 $id && $attr = " {$id}=\"{$key}\"";
-                $key         = $item;
+                $key = $item;
             }
             $xml .= "<{$key}{$attr}>";
             $xml .= (is_array($val) || is_object($val)) ? self::data_to_xml($val, $item, $id) : $val;
             $xml .= "</{$key}>";
         }
+
         return $xml;
     }
 }

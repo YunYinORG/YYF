@@ -7,13 +7,12 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
-
 use \Debug\Header as Header;
 use \Debug\LogListener as LogListener;
 use \Debug\SqlListener as SqlListener;
 
 /**
- * Debug 调试工具
+ * Debug 调试工具.
  *
  * @author NewFuture
  */
@@ -24,25 +23,24 @@ class Debug
     private static $_instance = null; //单例实体
 
     /**
-     * 单例构造函数
+     * 单例构造函数.
      */
     protected function __construct()
     {
         ob_start();
         static::$header = Header::instance();
     }
-   
+
     public function __destruct()
     {
         ob_get_length() && ob_end_flush();
     }
 
-    
     /**
      * 记录调试日志,写入日志系统而不被拦截
-     * 或者打印数据到日志文件
+     * 或者打印数据到日志文件.
      *
-     * @param mixed $msg 日志内容
+     * @param mixed  $msg   日志内容
      * @param string $level 日志级别
      */
     public static function log($msg, $level = 'DEBUG')
@@ -55,7 +53,7 @@ class Debug
     }
 
     /**
-     * dump数据,方便在浏览器中显示
+     * dump数据,方便在浏览器中显示.
      *
      * @param mixed $data   dump数据
      * @param bool  $return 返回
@@ -72,6 +70,7 @@ class Debug
                 var_dump($data);
             }
             $data = ob_get_clean();
+
             return preg_replace('/\]\=\>\n(\s+)/m', '] => ', $data);
         } elseif (extension_loaded('xdebug')) {
             xdebug_var_dump($data);
@@ -86,7 +85,7 @@ class Debug
     }
 
     /**
-     * 测试代码运行资源消耗
+     * 测试代码运行资源消耗.
      *
      * @param callable $function 运行函数
      * @param string   $lable    显示标签,为空时返回数组，否则直接输出
@@ -102,11 +101,11 @@ class Debug
         $m = $m > $mp ? ($m - $m0) : memory_get_usage() - $m0;
 
         if (!$lable) {
-            return array('t' => $t, 'm' => $m);
+            return ['t' => $t, 'm' => $m];
         }
 
-        $time_unit = array('s', 'ms', 'us', 'ns');
-        $mem_unit  = array('B', 'KB', 'MB', 'GB', 'TB', 'PB');
+        $time_unit = ['s', 'ms', 'us', 'ns'];
+        $mem_unit = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
 
         $i = ($t == 0 || $t >= 1) ? 0 : ceil(log($t, 1 / 1000));
         $t = round($t / pow(1 / 1000, $i), 2).' '.$time_unit[$i];
@@ -118,7 +117,7 @@ class Debug
     }
 
     /**
-     * header头中dump数据
+     * header头中dump数据.
      *
      * @param mixed $data 要输出的数据，可以多个
      */
@@ -128,19 +127,20 @@ class Debug
         foreach (func_get_args() as $data) {
             $header->dump($data);
         }
+
         return $header;
     }
 
     /**
-     * 获取Debug实体
+     * 获取Debug实体.
      */
     public static function instance()
     {
-        return static::$_instance ?: (static::$_instance = new static);
+        return static::$_instance ?: (static::$_instance = new static());
     }
 
     /**
-     * 监视 数据库sql查询
+     * 监视 数据库sql查询.
      */
     public function initSQL($type, $show_result)
     {
@@ -148,7 +148,7 @@ class Debug
     }
 
     /**
-     * 监视 日志写入记录
+     * 监视 日志写入记录.
      */
     public function initLog($type)
     {

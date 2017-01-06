@@ -7,10 +7,11 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
+
 namespace Service;
 
 /**
- * 短信发送接口
+ * 短信发送接口.
  *
  * @author NewFuture
  */
@@ -22,13 +23,13 @@ class Ucpaas
     public function __construct($accountSid, $appId, $token)
     {
         $softVersion = '2014-06-30';
-        $baseUrl     = 'https://api.ucpaas.com/';
+        $baseUrl = 'https://api.ucpaas.com/';
         date_default_timezone_set('Asia/Shanghai');
-        $timestamp    = date('YmdHis');
-        $sig          = strtoupper(md5($accountSid.$token.$timestamp));
+        $timestamp = date('YmdHis');
+        $sig = strtoupper(md5($accountSid.$token.$timestamp));
         $this->_appid = $appId;
-        $this->_url   = $baseUrl.$softVersion.'/Accounts/'.$accountSid.'/Messages/templateSMS?sig='.$sig;
-        $this->auth   = trim(base64_encode($accountSid.':'.$timestamp));
+        $this->_url = $baseUrl.$softVersion.'/Accounts/'.$accountSid.'/Messages/templateSMS?sig='.$sig;
+        $this->auth = trim(base64_encode($accountSid.':'.$timestamp));
     }
 
     /**
@@ -40,23 +41,24 @@ class Ucpaas
      */
     public function send($phone, $msg, $templateId)
     {
-        $body_json = array(
-            'templateSMS' => array(
+        $body_json = [
+            'templateSMS' => [
                 'appId'      => $this->_appid,
                 'templateId' => $templateId,
                 'to'         => $phone,
-                'param'      => $msg
-            )
-        );
+                'param'      => $msg,
+            ],
+        ];
         $data = json_encode($body_json);
 
         $result = $this->_connection($data);
         $result = json_decode($result);
+
         return isset($result->resp->respCode) ? ($result->resp->respCode == 0) : false;
     }
 
     /**
-     * 连接服务器回尝试curl
+     * 连接服务器回尝试curl.
      *
      * @param  $data          post数据
      *
@@ -66,7 +68,7 @@ class Ucpaas
     {
         $ch = curl_init($this->_url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json;charset=utf-8', 'Authorization:'.$this->auth));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type:application/json;charset=utf-8', 'Authorization:'.$this->auth]);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);

@@ -7,13 +7,13 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
- 
+
 namespace Test;
 
-use \Debug\Assertion as Assertion;
-use \PHPUnit_Framework_TestCase as TestCase;
-use \Yaf_Application as Application;
-use \Yaf_Loader as Loader;
+use Debug\Assertion as Assertion;
+use PHPUnit_Framework_TestCase as TestCase;
+use Yaf_Application as Application;
+use Yaf_Loader as Loader;
 
 defined('APP_PATH') || define('APP_PATH', realpath(__DIR__.'/../../'));
 
@@ -22,7 +22,7 @@ Loader::import(__DIR__.'/functions.php');
 /**
  * 框架库测试基类 YafCase
  * Function list:
- * - app()；获取当前运行app实例
+ * - app()；获取当前运行app实例.
  *
  * @preserveGlobalState disabled
  * @backupGlobals disabled
@@ -37,7 +37,7 @@ abstract class YafCase extends TestCase
 
     protected $app = null;
 
-    public function __construct($name = null, array $data = array(), $dataName = '')
+    public function __construct($name = null, array $data = [], $dataName = '')
     {
         call_user_func_array('parent::__construct', func_get_args());
         if (!extension_loaded('yaf')) {
@@ -52,7 +52,8 @@ abstract class YafCase extends TestCase
 
     public function __sleep()
     {
-        $keys = array();
+        $keys = [];
+
         return $keys;
     }
 
@@ -66,7 +67,7 @@ abstract class YafCase extends TestCase
     }
 
     /**
-     * 获取当前APP
+     * 获取当前APP.
      *
      * @return Application
      */
@@ -75,7 +76,7 @@ abstract class YafCase extends TestCase
         if (!$app = Application::app()) {
             //加载APP
             $conf = APP_PATH.'/conf/app.ini';
-            $app  = new Application(APP_PATH.'/conf/app.ini');
+            $app = new Application(APP_PATH.'/conf/app.ini');
             $conf = $app->getConfig();
             //加载启动项 app Bootstrap
             if (static::$bootstrap && $conf->get('application.bootstrap')) {
@@ -87,11 +88,12 @@ abstract class YafCase extends TestCase
                 Assertion::init($conf->get('assert')->toArray());
             }
         }
+
         return $app;
     }
 
     /**
-     * 检查文件权限，
+     * 检查文件权限，.
      *
      * @param $base 基础值，文件0666 目录0777
      * @param $umask

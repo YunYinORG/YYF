@@ -7,12 +7,13 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
+
 namespace Storage;
 
-use \Config as Config;
+use Config as Config;
 
 /**
- * File 文件存取类
+ * File 文件存取类.
  *
  * @author NewFuture
  * Function list:
@@ -23,9 +24,9 @@ use \Config as Config;
  */
 class File
 {
-    protected static $umask    = false;  //文件权限过滤
-    protected $_dir            = null;  //文件目录
-    protected $_serialized     = false; //是否序列化存取
+    protected static $umask = false;  //文件权限过滤
+    protected $_dir = null;  //文件目录
+    protected $_serialized = false; //是否序列化存取
 
     /**
      * @param [type] $dir [存储目录]
@@ -33,19 +34,19 @@ class File
      */
     public function __construct($dir, $serialized = false)
     {
-        if (false === File::$umask) {
+        if (false === self::$umask) {
             umask(intval(Config::get('umask', 0077), 8));
-            File::$umask=true;
+            self::$umask = true;
         }
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
-        $this->_dir        = $dir.DIRECTORY_SEPARATOR;
+        $this->_dir = $dir.DIRECTORY_SEPARATOR;
         $this->_serialized = $serialized;
     }
 
     /**
-     * 保存数据
+     * 保存数据.
      *
      * @method set
      *
@@ -53,46 +54,48 @@ class File
      * @param [type] $value  [description]
      * @param mixed  $expire [有效时间]
      */
-    public function set($name, $value, $expire=0)
+    public function set($name, $value, $expire = 0)
     {
         if ($this->_serialized) {
             //序列化写入文件
             $expire = $expire > 0 ? $_SERVER['REQUEST_TIME'] + $expire : 0;
-            $value  = serialize(array($value, $expire));
+            $value = serialize([$value, $expire]);
         }
         assert('is_scalar($value)||is_null($value)', '保存的数据应该是基本类型');
         $filename = $this->_dir.$name.'.php';
+
         return file_put_contents($filename, '<?php //'.$value) > 0;
     }
 
     /**
-     * 批量保存数据
+     * 批量保存数据.
      *
      * @method mset
      *
      * @param array $data   [数据(键值对)]
      * @param int   $expire [有效时间]
      */
-    public function mset(array $data, $expire=0)
+    public function mset(array $data, $expire = 0)
     {
-        $dir    =$this->_dir;
+        $dir = $this->_dir;
         $result = true;
         if ($this->_serialized) {
             //序列化写入文件
             $expire = $expire > 0 ? $_SERVER['REQUEST_TIME'] + $expire : 0;
             foreach ($data as $key => &$value) {
-                $result = $result && file_put_contents($dir.$key.'.php', '<?php //'.serialize(array($value, $expire)));
+                $result = $result && file_put_contents($dir.$key.'.php', '<?php //'.serialize([$value, $expire]));
             }
         } else {
             foreach ($data as $key => &$value) {
                 $result = $result && file_put_contents($dir.$key.'.php', '<?php //'.$value);
             }
         }
+
         return $result;
     }
 
     /**
-     * 读取数据
+     * 读取数据.
      *
      * @method get
      *
@@ -114,15 +117,18 @@ class File
             $content = unserialize($content);
             if ($content[1] && $_SERVER['REQUEST_TIME'] > $content[1]) {
                 @unlink($filename);
+
                 return false;
             }
+
             return $content[0];
         }
+
         return $content;
     }
 
     /**
-     * 批量读取数据
+     * 批量读取数据.
      *
      * @method mget
      *
@@ -130,16 +136,17 @@ class File
      */
     public function mget(array $data)
     {
-        $result = array();
+        $result = [];
         foreach ($data as &$k) {
             $result[$k] = $this->get($k);
         }
         unset($k);
+
         return $result;
     }
 
     /**
-     * 删除数据
+     * 删除数据.
      *
      * @method delete
      *
@@ -150,11 +157,12 @@ class File
     public function delete($name)
     {
         $filename = $this->_dir.$name.'.php';
+
         return is_file($filename) ? unlink($filename) : false;
     }
 
     /**
-     * 删除全部缓存数据
+     * 删除全部缓存数据.
      *
      * @method flush
      *
@@ -162,11 +170,11 @@ class File
      */
     public function flush()
     {
-        return File::cleanDir($this->_dir);
+        return self::cleanDir($this->_dir);
     }
 
     /**
-     * 清空目录
+     * 清空目录.
      *
      * @param [type] $dir [存储目录]
      */
@@ -178,12 +186,13 @@ class File
         }
         $files = scandir($dir);
         unset($files[0], $files[1]);
-        
+
         $result = 0;
         foreach ($files as &$f) {
             $result += @unlink($dir.$f);
         }
         unset($files);
+
         return $result;
     }
 }

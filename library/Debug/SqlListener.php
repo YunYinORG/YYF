@@ -7,13 +7,14 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
+
 namespace Debug;
 
-use \Debug as Debug;
-use \Service\Database as Database;
+use Debug as Debug;
+use Service\Database as Database;
 
 /**
- * 数据库操作监控
+ * 数据库操作监控.
  *
  * @author NewFuture
  */
@@ -21,12 +22,11 @@ class SqlListener
 {
     protected static $sql_output;
     protected static $show_detail_in_header = false;
-    protected static $_sql_id               = 0; /*记录执行次数*/
+    protected static $_sql_id = 0; /*记录执行次数*/
     protected static $instance;
 
-    protected $_data = array();
-    
-    
+    protected $_data = [];
+
     protected function __construct()
     {
     }
@@ -39,19 +39,19 @@ class SqlListener
     }
 
     /**
-     * 监视 数据库sql查询
+     * 监视 数据库sql查询.
      */
     public static function init($type, $show_detail = null)
     {
-        $instance           = static::$instance ?: (static::$instance = new static);
+        $instance = static::$instance ?: (static::$instance = new static());
         static::$sql_output = explode(',', strtoupper($type));
-        Database::$before   = array($instance, 'beforeQuery');
-        Database::$after    = array($instance, 'afterQuery');
+        Database::$before = [$instance, 'beforeQuery'];
+        Database::$after = [$instance, 'afterQuery'];
         static::showDetail($show_detail);
     }
 
     /**
-     *是否在header中显示
+     *是否在header中显示.
      */
     public static function showDetail($is_enable)
     {
@@ -59,7 +59,7 @@ class SqlListener
     }
 
     /**
-     * 数据库查询监听回调
+     * 数据库查询监听回调.
      *
      * @param string $sql   查询语句
      * @param array  $param 参数列表
@@ -72,11 +72,11 @@ class SqlListener
         if ($data = &$this->_data) {
             $this->flush('异常终止');
         }
-        $data = array(
-            'T' => microtime(true),//time
-            'Q' => $sql,//sql query
+        $data = [
+            'T' => microtime(true), //time
+            'Q' => $sql, //sql query
             'N' => $name,
-        );
+        ];
         if ($param) {
             //param
             $data['P'] = $param;
@@ -87,7 +87,7 @@ class SqlListener
     }
 
     /**
-     * 数据库查询监听回调
+     * 数据库查询监听回调.
      *
      * @param pdo    $db     数据库事例
      * @param mixed  $result 查询结果
@@ -95,23 +95,24 @@ class SqlListener
      */
     public function afterQuery(&$db, &$result, $name)
     {
-        $data      = &$this->_data;
+        $data = &$this->_data;
         $data['T'] = (microtime(true) - $data['T']) * 1000;
-        $error     = null;
+        $error = null;
         if ($db->isOk() && $name !== 'error') {
             $data['R'] = $result;
         } else {
-            $error     = $result;
+            $error = $result;
             $data['E'] = $result[0];
         }
         $this->flush($error);
     }
+
     /**
-     * 输出数据
+     * 输出数据.
      */
     protected function flush($error = null)
     {
-        $id   = static::$_sql_id;
+        $id = static::$_sql_id;
         $data = &$this->_data;
         if (in_array('LOG', static::$sql_output)) {
             $message = "\r\n";

@@ -7,17 +7,18 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
- 
+
 /**
- * Cookie 加密cookie管理
+ * Cookie 加密cookie管理.
  *
  * @author NewFuture
  */
 class Cookie
 {
     private static $_config = null; //配置
+
     /**
-     * 设置cookie
+     * 设置cookie.
      *
      * @method set
      *
@@ -38,12 +39,13 @@ class Cookie
             }
             $expire = $expire ? $_SERVER['REQUEST_TIME'] + $expire : null;
             $domain = $domain === null ? self::config('domain') : $domain;
+
             return setcookie($name, $value, $expire, $path, $domain, self::config('secure'), self::config('httponly'));
         }
     }
 
     /**
-     * 获取cookie
+     * 获取cookie.
      *
      * @method get
      *
@@ -61,7 +63,7 @@ class Cookie
     }
 
     /**
-     * 删除
+     * 删除.
      *
      * @method del
      *
@@ -73,22 +75,21 @@ class Cookie
     {
         if (isset($_COOKIE[$name])) {
             unset($_COOKIE[$name]);
-            $path   = $path ?: self::config('path');
+            $path = $path ?: self::config('path');
             $domain = $domain === null ? self::config('domain') : $domain;
             setcookie($name, '', 100, $path, $domain, self::config('secure'), self::config('httponly'));
         }
     }
 
     /**
-     * 清空cookie
+     * 清空cookie.
      */
     public static function flush()
     {
         if (empty($_COOKIE)) {
-            return null;
+            return;
         }
-        
-        
+
             /*逐个删除*/
             foreach ($_COOKIE as $key => $val) {
                 self::del($key);
@@ -96,7 +97,7 @@ class Cookie
     }
 
     /**
-     * 获取加密密钥
+     * 获取加密密钥.
      *
      * @method key
      *
@@ -111,6 +112,7 @@ class Cookie
             $key = Random::word(32);
             Kv::set('COOKIE_aes_key', $key);
         }
+
         return $key;
     }
 
@@ -131,7 +133,7 @@ class Cookie
     }
 
     /**
-     * Cookie数据解密
+     * Cookie数据解密.
      *
      * @method encode
      *
@@ -149,11 +151,11 @@ class Cookie
     }
 
     /**
-     * 获取cookie配置
+     * 获取cookie配置.
      *
      * @method config
      *
-     * @param  [string] $name [配置变量名]
+     * @param [string] $name [配置变量名]
      *
      * @return [mixed] [description]
      *
@@ -167,6 +169,7 @@ class Cookie
             $config['key'] = self::key();
             self::$_config = $config;
         }
+
         return isset($config[$name]) ? $config[$name] : null;
     }
 }

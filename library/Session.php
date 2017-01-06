@@ -9,7 +9,7 @@
  */
 
 /**
- *Session seession管理
+ *Session seession管理.
  *
  * @author NewFuture
  */
@@ -34,11 +34,12 @@ class Session
             }
             self::$_id = $sid;
         }
+
         return $sid;
     }
 
     /**
-     * 设置session
+     * 设置session.
      *
      * @method set
      *
@@ -48,11 +49,12 @@ class Session
     public static function set($name, $value)
     {
         self::start();
+
         return $_SESSION[$name] = $value;
     }
 
     /**
-     * 读取
+     * 读取.
      *
      * @method get
      *
@@ -61,11 +63,12 @@ class Session
     public static function get($name)
     {
         self::start();
+
         return isset($_SESSION[$name]) ? $_SESSION[$name] : null;
     }
 
     /**
-     * 删除
+     * 删除.
      *
      * @method del
      *

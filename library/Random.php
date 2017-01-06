@@ -9,7 +9,7 @@
  */
 
 /**
- * Random 随机生成器
+ * Random 随机生成器.
  *
  * @author NewFuture
  *
@@ -18,7 +18,7 @@
 class Random
 {
     /**
-     * 生成指定长度的随机数字
+     * 生成指定长度的随机数字.
      *
      * @method number
      *
@@ -29,8 +29,9 @@ class Random
         if ($n < 9 && $n >= 2) {
             return str_pad(mt_rand(1, pow(10, $n)), '0', STR_PAD_LEFT);
         }
-        
+
         $str = str_repeat('1234567890', $n / 2);
+
         return substr(str_shuffle($str), 0, $n);
     }
 
@@ -48,7 +49,7 @@ class Random
 
     /**
      * 验证码生成
-     * 会过滤掉0O1lL等不易辨识字符
+     * 会过滤掉0O1lL等不易辨识字符.
      *
      * @method code
      *

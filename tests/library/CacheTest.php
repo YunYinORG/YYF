@@ -1,8 +1,9 @@
 <?php
+
 namespace tests\library;
 
-use \Cache as Cache;
-use \Test\YafCase as TestCase;
+use Cache as Cache;
+use Test\YafCase as TestCase;
 
 class CacheTest extends TestCase
 {
@@ -11,32 +12,31 @@ class CacheTest extends TestCase
         Cache::flush();
     }
 
-
     //单组测试数据
     public function singleProvider()
     {
-        return array(
-            'Number Value' => array('_test_key_n',1234577),
-            'bool Value'   => array('_test_key_bool',true,2),
-            'string_value' => array('_test_key_s','test_value',0),
-            'array Value'  => array('_test_key_array',array('a',2,'c' => 3),60),
-        );
+        return [
+            'Number Value' => ['_test_key_n', 1234577],
+            'bool Value'   => ['_test_key_bool', true, 2],
+            'string_value' => ['_test_key_s', 'test_value', 0],
+            'array Value'  => ['_test_key_array', ['a', 2, 'c' => 3], 60],
+        ];
     }
 
     //多组测试数据
     public function multiProvider()
     {
-        return array(
-            array(
-                array('_mkey1_s' => 'test_value','_mkey1_i' => 10),0
-            ),
-            array(
-                array('_mkey3_a' => array('test_value2',122),'_mkey3_bool' => true),2
-            ),
-            array(
-                array('_mkey2_s' => 'test_value2','_mkey2bool' => true),
-            ),
-        );
+        return [
+            [
+                ['_mkey1_s' => 'test_value', '_mkey1_i' => 10], 0,
+            ],
+            [
+                ['_mkey3_a' => ['test_value2', 122], '_mkey3_bool' => true], 2,
+            ],
+            [
+                ['_mkey2_s' => 'test_value2', '_mkey2bool' => true],
+            ],
+        ];
     }
 
     public function setUp()
@@ -57,7 +57,7 @@ class CacheTest extends TestCase
      */
     public function testMSet($data, $exp = 0)
     {
-        $this->assertTrue(call_user_func_array(array('Cache', 'set'), func_get_args()));
+        $this->assertTrue(call_user_func_array(['Cache', 'set'], func_get_args()));
     }
 
     /**
@@ -79,9 +79,8 @@ class CacheTest extends TestCase
         $this->assertSame($data, Cache::get($keys));
     }
 
-
     /**
-     * 测试过期失效
+     * 测试过期失效.
      *
      * @dataProvider singleProvider
      * @depends testGet
@@ -103,7 +102,7 @@ class CacheTest extends TestCase
     }
 
     /**
-     *测试过期失效
+     *测试过期失效.
      *
      * @dataProvider multiProvider
      * @depends testGet
@@ -137,7 +136,6 @@ class CacheTest extends TestCase
         }
         $this->assertFalse(Cache::get($key));
     }
-
 
     /**
      * @dataProvider singleProvider

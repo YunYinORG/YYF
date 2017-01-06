@@ -10,7 +10,7 @@
 
 /**
  * Model 数据Model基类
- * 基本的Facde接口，对model封装
+ * 基本的Facde接口，对model封装.
  *
  * @author NewFuture
  *
@@ -38,29 +38,28 @@
  */
 abstract class Model
 {
-    protected $name   = null; //数据库表
-    protected $pk     = 'id'; //主键
+    protected $name = null; //数据库表
+    protected $pk = 'id'; //主键
     protected $prefix = true; //前缀
     protected $fields = null; //字段过滤
     protected $dbname = null; //使用指定数据库
 
-    private $_orm   = null; //底层orm
+    private $_orm = null; //底层orm
 
     /**
-     * 构造函数
+     * 构造函数.
      *
      * @method __construct
      *
-     * @param  array       $data [传入数据]
-     * @access public
+     * @param array $data [传入数据]
      */
     final public function __construct(array $data = null)
     {
-        if (!$name=&$this->name) {
-            $name=strtolower(preg_replace('/.(?=[A-Z])/', '$1_', substr(get_called_class(), 0, -5)));
+        if (!$name = &$this->name) {
+            $name = strtolower(preg_replace('/.(?=[A-Z])/', '$1_', substr(get_called_class(), 0, -5)));
         }
         $this->_orm = new Orm($name, $this->pk, $this->prefix);
-        
+
         if ($this->fields) {
             //字段设置
             $this->_orm->field($this->fields);
@@ -76,13 +75,12 @@ abstract class Model
     }
 
     /**
-     * 直接修改字段
+     * 直接修改字段.
      *
      * @method __set
      *
      * @param [type] $name  [description]
      * @param [type] $value [description]
-     * @access public
      */
     public function __set($name, $value)
     {
@@ -90,12 +88,11 @@ abstract class Model
     }
 
     /**
-     * 直接读取字段
+     * 直接读取字段.
      *
      * @method __get
      *
      * @return [type] [description]
-     * @access public
      */
     public function __get($name)
     {
@@ -103,23 +100,23 @@ abstract class Model
     }
 
     /**
-     * 直接调用model的操作
+     * 直接调用model的操作.
      */
     public function __call($method, $params)
     {
-        return call_user_func_array(array($this->getOrm(), $method), $params);
+        return call_user_func_array([$this->getOrm(), $method], $params);
     }
 
     /**
-     * 静态调用model的操作
+     * 静态调用model的操作.
      */
     public static function __callStatic($method, $params)
     {
-        return call_user_func_array(array((new static)->getOrm(), $method), $params);
+        return call_user_func_array([(new static())->getOrm(), $method], $params);
     }
 
     /**
-     * 获取模型实例
+     * 获取模型实例.
      *
      * @method getOrm
      *
@@ -136,13 +133,13 @@ abstract class Model
     }
 
     /**
-     * 数据转成json
+     * 数据转成json.
      *
      * @method toJson
      *
      * @param constant   JSON_ENCODE type
      */
-    public function toJson($type=256)//256isJSON_UNESCAPED_UNICODE
+    public function toJson($type = 256)//256isJSON_UNESCAPED_UNICODE
     {
         return json_encode($this->_orm->get(), $type);
     }

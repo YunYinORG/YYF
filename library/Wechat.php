@@ -7,12 +7,11 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
-
 use Logger as Log;
 
 /**
  * 微信API接口封装【包括JSSDK，微信认证和登录】
- * 在secret配置中[wechat]配置两个key即可
+ * 在secret配置中[wechat]配置两个key即可.
  *
  * @author NewFuture
  *
@@ -57,21 +56,22 @@ class Wechat
         }
         if ($jsapiTicket = self::_getJsApiTicket()) {
             $timestamp = $_SERVER['REQUEST_TIME'];
-            $nonceStr  = Random::word(16);
+            $nonceStr = Random::word(16);
             // 这里参数的顺序要按照 key 值 ASCII 码升序排序
             $signature = 'jsapi_ticket='.$jsapiTicket.'&noncestr='.$nonceStr
                 .'&timestamp='.$timestamp.'&url='.$url;
             $signature = sha1($signature);
-            
-            $config = array(
+
+            $config = [
                 'appId'     => self::_getConfig('appid'),
                 'timestamp' => $timestamp,
                 'nonceStr'  => $nonceStr,
                 'signature' => $signature,
-            );
+            ];
             if ($js = self::_getConfig('js')) {
                 $config += $js->toArray();
             }
+
             return $config;
         }
     }
@@ -83,18 +83,19 @@ class Wechat
      *
      * @param string $redirect [验证回调地址]
      *
-     * @return array            [配置]
+     * @return array [配置]
      */
     public static function loginConfig($redirect = null)
     {
-        $config = array(
+        $config = [
             'appid'        => self::_getConfig('appid'),
             'scope'        => 'snsapi_login',
             'redirect_uri' => $redirect ?: self::_getConfig('redirect_login'),
-        );
+        ];
         if ($state = self::_createState()) {
             $config['state'] = $state;
         }
+
         return $config;
     }
 
@@ -103,11 +104,11 @@ class Wechat
      * 生成微信认证重定向URL
      * 获取授权URL
      *
-     * @param string $scope [授权信息：默认为userinfo]
-     *                      $scope = base (不弹出授权页面，直接跳转，只能获取用户openid）
-     *                      $scope = userinfo （弹出授权页面，可通过openid拿到昵称、性别、所在地）
-     *                      $scope = login (网页端登录)
-     * @param  string  $redirect   [回调验证URL:默认读取配置]
+     * @param string $scope    [授权信息：默认为userinfo]
+     *                         $scope = base (不弹出授权页面，直接跳转，只能获取用户openid）
+     *                         $scope = userinfo （弹出授权页面，可通过openid拿到昵称、性别、所在地）
+     *                         $scope = login (网页端登录)
+     * @param string $redirect [回调验证URL:默认读取配置]
      *
      * @return string [重定向URL]
      */
@@ -119,9 +120,10 @@ class Wechat
             'https://open.weixin.qq.com/connect/oauth2/authorize';
 
         $redirect = $redirect ? urlencode($redirect) : urlencode(self::_getConfig('redirect_'.$scope));
-        $scope    = 'snsapi_'.$scope;
-        $state    = self::_createState();
-        $state    = $state ? '&state='.$state : '';
+        $scope = 'snsapi_'.$scope;
+        $state = self::_createState();
+        $state = $state ? '&state='.$state : '';
+
         return $url.'?appid='.self::_getConfig('appid').'&redirect_uri='.$redirect
             .'&response_type=code&scope='.$scope.$state.'#wechat_redirect';
     }
@@ -135,27 +137,31 @@ class Wechat
      * @param string $key  [制定默认openid]
      *
      * @return string ,制定的参数如openid] [array 全部返回数据]
-     * @return false 获取失败
+     * @return false  获取失败
      */
     public static function checkCode($key = 'openid', $code = false)
     {
         if (!($code || Input::get('code', $code))) {
             Log::write('[wechat] 微信认证缺少 code 参数');
+
             return false;
         }
         if (!self::_checkState()) {
             //自动验证state失败
             Log::write('[wechat] state check fialed', 'WARN');
+
             return false;
         }
         $url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid='.self::_getConfig('appid')
             .'&secret='.self::_getConfig('secret').'&code='.$code.'&grant_type=authorization_code';
-        $res  = self::_httpGet($url);
+        $res = self::_httpGet($url);
         $data = json_decode($res, true);
         if (!($data && isset($data['access_token']))) {
             Log::write('[wechat] access_token failed :'.$res, 'CRITICAL');
+
             return false;
         }
+
         return $key ? $data[$key] : $data;
     }
 
@@ -173,15 +179,17 @@ class Wechat
         if (func_num_args() > 0) {
             self::$_state = func_get_arg(0);
             if (null === self::$_instance) {
-                self::$_instance = new self;
+                self::$_instance = new self();
             }
+
             return self::$_instance;
         }
+
         return self::$_state;
     }
 
     /**
-     * 获取用户信息
+     * 获取用户信息.
      *
      * @param string $code [回调code,默认取$_GET参数]
      *
@@ -196,6 +204,7 @@ class Wechat
             $url = 'https://api.weixin.qq.com/sns/userinfo?access_token='.$data['access_token']
                     .'&openid='.$data['openid'];
             $data = json_decode(self::_httpGet($url), true);
+
             return isset($data['errcode']) ? false : $data;
         }
     }
@@ -208,20 +217,21 @@ class Wechat
      * @method _getConfig
      * 获取微信配置
      *
-     * @param  string $key 配置Key
+     * @param string $key 配置Key
      *
-     * @return mixed  配置信息
+     * @return mixed 配置信息
      */
     private static function _getConfig($key)
     {
         if (!self::$_config) {
             self::$_config = Config::getSecret('wechat');
         }
+
         return $key ? self::$_config->get($key) : self::$_config;
     }
 
     /**
-     * 生成唯一的验证state并保存到制定的存储位置
+     * 生成唯一的验证state并保存到制定的存储位置.
      *
      * @return string [生成的state]
      */
@@ -236,11 +246,12 @@ class Wechat
             $type::set('_yyf_wechat_state', $state);
             self::$_state = $state;
         }
+
         return $state;
     }
 
     /**
-     * 验证state是否有效
+     * 验证state是否有效.
      *
      * @return bool [description]
      */
@@ -254,6 +265,7 @@ class Wechat
                 $Type::del('_yyf_wechat_state');
             } else {
                 Log::write('[wechat] 无法获取state数据'.$Type, 'WARN');
+
                 return false;
             }
         }
@@ -281,7 +293,7 @@ class Wechat
                 /*获取access_token*/
                 $url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid='
                     .self::_getConfig('appid').'&secret='.self::_getConfig('secret');
-                $res  = self::_httpGet($url);
+                $res = self::_httpGet($url);
                 $data = json_decode($res, true);
                 if ($data && isset($data['access_token'])) {
                     $token = $data['access_token'];
@@ -292,8 +304,8 @@ class Wechat
                 }
             }
 
-            $url  = 'https://api.weixin.qq.com/cgi-bin/ticket/getticket?type=jsapi&access_token='.$token;
-            $res  = self::_httpGet($url);
+            $url = 'https://api.weixin.qq.com/cgi-bin/ticket/getticket?type=jsapi&access_token='.$token;
+            $res = self::_httpGet($url);
             $data = json_decode($res, true);
             if ($data && isset($data['ticket'])) {
                 $ticket = $data['ticket'];
@@ -302,6 +314,7 @@ class Wechat
                 throw new Exception('[wechat] get JS TICKET Failed:'.$res, 1);
             }
         }
+
         return $ticket;
     }
 
@@ -323,6 +336,7 @@ class Wechat
         curl_setopt($curl, CURLOPT_URL, $url);
         $res = curl_exec($curl);
         curl_close($curl);
+
         return $res;
     }
 }

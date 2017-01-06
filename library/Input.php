@@ -10,7 +10,7 @@
 
 /**
  * Input 输入过滤
- * 支持PUT GET POST 和 COOKIE , ENV ,SYSTEM , PUT
+ * 支持PUT GET POST 和 COOKIE , ENV ,SYSTEM , PUT.
  *
  * @author NewFuture
  *
@@ -19,14 +19,14 @@
 class Input
 {
     /**
-     * 输入过滤
+     * 输入过滤.
      *
      * @method I
      *
-     * @param  [string] $param   [输入参数]
-     * @param [mixed] &$export [description]
-     * @param [mixed] $filter  [过滤条件]
-     * @param [type]  $default [description]
+     * @param [string] $param   [输入参数]
+     * @param [mixed]  &$export [description]
+     * @param [mixed]  $filter  [过滤条件]
+     * @param [type]   $default [description]
      *
      * @example if(I('post.phone',$phone,'phone')){}//phone()方法验证
      * @example if(I('get.id',$uid,'int',1)){}//数字，int函数验证,默认1
@@ -39,13 +39,14 @@ class Input
             list($method, $name) = explode('.', $param, 2);
             /*PUT请求已在REST中注入到$GLOBAL中*/
             $method = '_'.strtoupper($method);
-            $input  = &$GLOBALS[$method];
+            $input = &$GLOBALS[$method];
         } else {
             // 默认为自动判断
             $input = &$_REQUEST;
-            $name  = $param;
+            $name = $param;
         }
         $r = self::filter($input, $name, $export, $filter) or ($export = $default);
+
         return $r;
     }
 
@@ -53,30 +54,33 @@ class Input
     public static function put($name, &$export, $filter = null, $default = null)
     {
         ($r = self::filter($GLOBALS['_PUT'], $name, $export, $filter)) or ($export = $default);
+
         return $r;
     }
 
     public static function get($name, &$export, $filter = null, $default = null)
     {
         ($r = self::filter($_GET, $name, $export, $filter)) or ($export = $default);
+
         return $r;
     }
 
     public static function post($name, &$export, $filter = null, $default = null)
     {
         ($r = self::filter($_POST, $name, $export, $filter)) or ($export = $default);
+
         return $r;
     }
 
     /**
-     * 过滤器
+     * 过滤器.
      *
      * @method filter
      *
      * @param string &$input  [输入参数]
-     * @param mixed &$index  [description]
-     * @param mixed &$export [description]
-     * @param mixed $filter  [过滤条件]
+     * @param mixed  &$index  [description]
+     * @param mixed  &$export [description]
+     * @param mixed  $filter  [过滤条件]
      *
      * @return bool [description]
      */
@@ -99,6 +103,7 @@ class Input
                 case 'object':
                 /*匿名回调函数*/
                     $r = $filter($export);
+
                     return $r ? ($export = $r) : false;
 
                 case 'string':    //字符串
@@ -114,10 +119,10 @@ class Input
                         return $r ? (is_bool($r) or $export = $r) : $export = $r;
                     } elseif (method_exists('Parse\Filter', $filter)) {
                         /*过滤器过滤*/
-                        return (bool) $export = call_user_func_array(array('Parse\Filter', $filter), array($export));
+                        return (bool) $export = call_user_func_array(['Parse\Filter', $filter], [$export]);
                     } elseif (method_exists('Validate', $filter)) {
                         /*Validate方法验证*/
-                        return call_user_func_array(array('Validate', $filter), array($export));
+                        return call_user_func_array(['Validate', $filter], [$export]);
                     } elseif ($filterid = filter_id($filter)) {
                         /*系统过滤函数*/
                         return $export = filter_var($export, $filterid);
@@ -130,11 +135,12 @@ class Input
                     if (Config::get('debug')) {
                         throw new Exception('未知过滤方法'.$filter);
                     }
+
                     return false;
             }
         } else {
             /*不存在*/
-            return null;
+            return;
         }
     }
 }

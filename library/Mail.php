@@ -11,7 +11,7 @@ use \Service\Message;
 use \Service\Smtp;
 
 /**
- * Mail 邮件发送类
+ * Mail 邮件发送类.
  *
  * @author NewFuture
  */
@@ -26,13 +26,13 @@ class Mail
     private function __construct()
     {
         $this->_config = Config::getSecret('mail');
-        $this->_smtp   = new Smtp();
-        $server        = $this->_config['server'];
+        $this->_smtp = new Smtp();
+        $server = $this->_config['server'];
         $this->_smtp->setServer($server['smtp'], $server['port'], $server['secure']);
     }
 
     /**
-     * 发送验证邮件
+     * 发送验证邮件.
      *
      * @method sendVerify
      *
@@ -45,20 +45,21 @@ class Mail
     public static function sendVerify($email, $name, $link)
     {
         $instance = self::getInstance();
-        $from     = $instance->_config['verify'];
-        $to       = array('email' => $email, 'name' => $name ?: $email);
-        $url      = $instance->_config['verify']['baseuri'].$link;
+        $from = $instance->_config['verify'];
+        $to = ['email' => $email, 'name' => $name ?: $email];
+        $url = $instance->_config['verify']['baseuri'].$link;
 
         $msg['title'] = 'YYF验证邮件';
-        $msg['body']  = $instance->getView()
+        $msg['body'] = $instance->getView()
                                  ->assign('name', $name)
                                  ->assign('url', $url)
                                  ->render('verify.tpl');
+
         return $instance->send($from, $to, $msg);
     }
 
     /**
-     * 发送邮件
+     * 发送邮件.
      *
      * @method send
      *
@@ -75,6 +76,7 @@ class Mail
                 ->addTo($to['name'], $to['email'])
                 ->setSubject($msg['title'])
                 ->setBody($msg['body']);
+
         return $this->_smtp
                     ->setAuth($from['email'], $from['pwd'])
                     ->send($Message);
@@ -86,7 +88,7 @@ class Mail
     }
 
     /**
-     *获取模板引擎
+     *获取模板引擎.
      */
     private function getView()
     {

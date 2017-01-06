@@ -7,10 +7,11 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
+
 namespace Parse;
 
 /**
- * 字符串过滤
+ * 字符串过滤.
  */
 class Filter
 {
@@ -35,6 +36,7 @@ class Filter
     public static function tag($str)
     {
         $str = filter_var(trim($str), FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW);
+
         return (strpbrk($str, '<>&/\\%|{} ,;　，；、') === false) ? $str : false;
     }
 }

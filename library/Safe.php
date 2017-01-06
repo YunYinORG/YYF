@@ -18,7 +18,7 @@
 class Safe
 {
     /**
-     * 检查尝试次数是否超限
+     * 检查尝试次数是否超限.
      *
      * @method checkTry
      *
@@ -29,17 +29,18 @@ class Safe
      */
     public static function checkTry($key, $timesLimit = 0)
     {
-        $name       = 's_t_'.$key;
-        $times      = intval(Cache::get($name));
+        $name = 's_t_'.$key;
+        $times = intval(Cache::get($name));
         $timesLimit = intval($timesLimit) ?: intval(Config::get('try.times'));
         if ($times >= $timesLimit) {
             $msg = '多次尝试警告:'.$key.'IP信息:'.self::ip();
             Logger::write($msg, 'WARN');
+
             return false;
         }
-        
-        
+
         Cache::set($name, ++$times, Config::get('try.expire'));
+
         return $times;
     }
 
@@ -51,7 +52,8 @@ class Safe
     public static function ip()
     {
         $request_ip = getenv('REMOTE_ADDR');
-        $orign_ip   = getenv('HTTP_X_FORWARDED_FOR') ?: getenv('HTTP_CLIENT_IP');
+        $orign_ip = getenv('HTTP_X_FORWARDED_FOR') ?: getenv('HTTP_CLIENT_IP');
+
         return $request_ip.'[client：'.$orign_ip.']';
     }
 }

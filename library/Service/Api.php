@@ -12,7 +12,7 @@ namespace Service;
 
 /**
 
- * 第三方服务接口
+ * 第三方服务接口.
  *
  * @author NewFuture
  *
@@ -22,7 +22,7 @@ class Api
 {
     /**
      * 连接远程服务器
-     * curl扩展未开启时尝试file_get_contents
+     * curl扩展未开启时尝试file_get_contents.
      *
      * @method connect
      *
@@ -33,7 +33,7 @@ class Api
      *
      * @return array($header,$body)[请求响应结果]
      */
-    public static function connect($url, $header = array(), $method = 'POST', $data = '')
+    public static function connect($url, $header = [], $method = 'POST', $data = '')
     {
         $response = null;
         if (function_exists('curl_init')) {
@@ -54,7 +54,7 @@ class Api
 
                 if ($result) {
                     list($header, $response['body']) = explode("\r\n\r\n", $result, 2);
-                    $response['header']              = explode("\r\n", $header);
+                    $response['header'] = explode("\r\n", $header);
                 }
             }
         } else {

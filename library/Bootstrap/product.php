@@ -9,20 +9,20 @@
  */
 
 /**
- * Bootstrap 启动
+ * Bootstrap 启动.
  *
  * @author NewFuture
  */
 class Bootstrap extends Yaf_Bootstrap_Abstract
 {
     /**
-     * 初始化路由
+     * 初始化路由.
      *
      * @method _initRoute
      */
     public function _initRoute(Yaf_Dispatcher $dispatcher)
     {
-        if ($routes=Config::get('routes')) {
+        if ($routes = Config::get('routes')) {
             $dispatcher->getRouter()->addConfig($routes);
         }
     }

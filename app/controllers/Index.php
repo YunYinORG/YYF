@@ -1,10 +1,9 @@
 <?php
 /**
- * YYF默认的demo
+ * YYF默认的demo.
  */
 class IndexController extends Rest
 {
-
     /*demo*/
     public function indexAction()
     {
@@ -14,34 +13,34 @@ class IndexController extends Rest
     }
 
     /**
-     * GET /index/test
+     * GET /index/test.
      *
      * @method GET_testAction
      */
     public function GET_testAction()
     {
-        Input::get('data', $data);//获取GET参数
-        $this->response = array('data' => $data, 'method' => 'GET');
+        Input::get('data', $data); //获取GET参数
+        $this->response = ['data' => $data, 'method' => 'GET'];
     }
 
     /**
-     * POST /index/test
+     * POST /index/test.
      *
      * @method POST_testAction
      */
     public function POST_testAction()
     {
         Input::post('data', $data);
-        $this->response = array('data' => $data, 'method' => 'POST');
+        $this->response = ['data' => $data, 'method' => 'POST'];
     }
 
     /**
-     * GET /index/:id
+     * GET /index/:id.
      *
      * @method GET_infoAction
      */
     public function GET_infoAction($id = 0)
     {
-        $this->response = array('id' => $id, 'action' => 'GET_infoAction');
+        $this->response = ['id' => $id, 'action' => 'GET_infoAction'];
     }
 }
