@@ -31,13 +31,12 @@ class Debug
         ob_start();
         static::$header = Header::instance();
     }
-   
+
     public function __destruct()
     {
         ob_get_length() && ob_end_flush();
     }
 
-    
     /**
      * 记录调试日志,写入日志系统而不被拦截
      * 或者打印数据到日志文件

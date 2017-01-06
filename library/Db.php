@@ -56,13 +56,13 @@ class Db
         }
         $username = isset($config['username']) ? $config['username'] : null;
         $password = isset($config['password']) ? $config['password'] : null;
-     
+
         $options = Config::getSecret('database', 'options')->toArray();
         if (isset($config['options'])) {
             assert('is_array($config["options"])', '[Db::connect]数据库连接参数options配置应是数组');
             $options = $config['options'] + $options;
         }
-        
+
         try {
             return Db::$_dbpool[$key] = new Database($config['dsn'], $username, $password, $options);
         } catch (Exception $e) {

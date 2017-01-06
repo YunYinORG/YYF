@@ -131,7 +131,7 @@ class Kv
         if ($handler = &Kv::$_handler) {
             return $handler;
         }
-        
+
         switch (Kv::$type=Config::get('kv.type')) {
             case 'redis':    //redis 存储
                   $config=Config::getSecret('redis');

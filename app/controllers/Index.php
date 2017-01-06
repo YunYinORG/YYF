@@ -1,10 +1,18 @@
 <?php
 /**
- * YYF默认的demo
+ * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ *
+ * @see https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+
+/**
+ * Demo 示例
  */
 class IndexController extends Rest
 {
-
     /*demo*/
     public function indexAction()
     {

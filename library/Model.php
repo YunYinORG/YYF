@@ -60,7 +60,7 @@ abstract class Model
             $name=strtolower(preg_replace('/.(?=[A-Z])/', '$1_', substr(get_called_class(), 0, -5)));
         }
         $this->_orm = new Orm($name, $this->pk, $this->prefix);
-        
+
         if ($this->fields) {
             //字段设置
             $this->_orm->field($this->fields);

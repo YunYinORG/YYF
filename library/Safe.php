@@ -37,8 +37,7 @@ class Safe
             Logger::write($msg, 'WARN');
             return false;
         }
-        
-        
+
         Cache::set($name, ++$times, Config::get('try.expire'));
         return $times;
     }

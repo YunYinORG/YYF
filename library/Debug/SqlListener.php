@@ -7,6 +7,7 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
+
 namespace Debug;
 
 use \Debug as Debug;
@@ -25,8 +26,7 @@ class SqlListener
     protected static $instance;
 
     protected $_data = array();
-    
-    
+
     protected function __construct()
     {
     }

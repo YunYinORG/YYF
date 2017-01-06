@@ -7,7 +7,7 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
- 
+
 use \Yaf_Application as Application;
 use \Yaf_Config_Ini as Ini;
 

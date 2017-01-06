@@ -207,8 +207,7 @@ class Encrypt
                 $end = substr($phone, -4);
                 return substr($phone, 0, -10).self::_encryptMid($mid, $salt, $id).self::encryptPhoneTail($end);
             }
-            
-            
+
             throw new Exception('超长手机号加密手机参数不足 salt 和 sid 混淆必须');
         } elseif ($len >= 8 && is_numeric($phone[0])) {
             /*手机号数字部分长度大于8-10位*/
@@ -218,8 +217,7 @@ class Encrypt
                 $end = substr($phone, -4);
                 return substr($phone, 0, -8).self::_encryptShortMid($mid, $salt).self::encryptPhoneTail($end);
             }
-            
-            
+
             throw new Exception('长手机号加密手机混淆参数salt 必须');
         } elseif ($len > 4) {
             /*4到7位手机号,只加密后4位，不混淆*/
@@ -252,8 +250,7 @@ class Encrypt
                 $end = substr($phone, -4);
                 return substr($phone, 0, -10).self::_decryptMid($mid, $salt, $id).self::_decryptEnd($end);
             }
-            
-            
+
             throw new Exception('超长手机号解密参数不足 salt 和 sid 混淆必须');
         } elseif ($len >= 8 && is_numeric($phone[0])) {
             /*手机号数字部分长度大于8-10位*/
@@ -263,8 +260,7 @@ class Encrypt
                 $end = substr($phone, -4);
                 return substr($phone, 0, -8).self::_decryptShortMid($mid, $salt).self::_decryptEnd($end);
             }
-            
-            
+
             throw new Exception('长手机号解密参数不足,$salt必须');
         } elseif ($len > 4) {
             /*4到7位手机号,只加密后4位，不混淆*/
@@ -303,8 +299,7 @@ class Encrypt
             throw new Exception('加密手机参数不足');
             return false;
         }
-        
-        
+
         return sprintf('%04s', $encryption); //转位4位字符串,不足4位补左边0
     }
 
@@ -332,8 +327,7 @@ class Encrypt
             //前密码表查找失败
             throw new Exception('中间加密异常,密码表匹配失败');
         }
-        
-        
+
         $mid2 = sprintf('%04s', $mid2);
         return substr_replace($midNum, $mid2, 2);
     }
@@ -358,8 +352,7 @@ class Encrypt
             //前密码表查找失败
             throw new Exception('中间加密异常,密码表匹配失败');
         }
-        
-        
+
         return sprintf('%04s', $midNum);
     }
 

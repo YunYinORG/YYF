@@ -281,11 +281,11 @@ class Logger
                     mkdir($logdir, 0777, true);
                 }
                 $files['_dir'] = $logdir.DIRECTORY_SEPARATOR.date('y-m-d-');
-                
+
                 //如果没有设置REQUEST_URI[命令行模式],自动补为null
                 isset($_SERVER['REQUEST_URI']) || $_SERVER['REQUEST_URI'] = null;
             }
-            
+
             $file        = $files['_dir'].$tag.'.log';
             $files[$tag] = $file;
         }

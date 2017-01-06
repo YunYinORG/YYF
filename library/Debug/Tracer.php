@@ -7,6 +7,7 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
+
 namespace Debug;
 
 use \Logger as log;
@@ -41,7 +42,6 @@ class Tracer extends Plugin
         $this->mem['start']    = memory_get_usage() / 1024; //启动内存，包括调试插件占用
     }
 
-    
     public function __destruct()
     {
         $files = get_included_files();
@@ -53,14 +53,14 @@ class Tracer extends Plugin
 
         $mem  = &$this->mem;
         $time = &$this->time;
-        
+
         $mem['max']  = memory_get_peak_usage() / 1024;
         $time['end'] = microtime(true);
 
         foreach ($time as &$t) {
             $t *= 1000;
         }
-        
+
         /*传递回调*/
         foreach (static::$observer as &$callback) {
             call_user_func($callback, $mem, $time, $files);
@@ -117,7 +117,7 @@ class Tracer extends Plugin
         if (!isset($time['dispatchstart'])) {
             return false;
         }
-        
+
         if (in_array('LOG', $this->output)) {
             $header = (isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : getenv('REQUEST_METHOD'))
                 .' 资源消耗统计:'.PHP_EOL;

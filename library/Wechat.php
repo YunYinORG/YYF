@@ -62,7 +62,7 @@ class Wechat
             $signature = 'jsapi_ticket='.$jsapiTicket.'&noncestr='.$nonceStr
                 .'&timestamp='.$timestamp.'&url='.$url;
             $signature = sha1($signature);
-            
+
             $config = array(
                 'appId'     => self::_getConfig('appid'),
                 'timestamp' => $timestamp,

@@ -7,6 +7,7 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
+
 namespace Service;
 
 use \Exception;
@@ -39,7 +40,7 @@ class Database extends PDO
 
     private $_status    = true;
     private $_errorInfo = null;
-    
+
     /**
      * @method query
      * 查询数据库,返回数组或者null
@@ -73,7 +74,7 @@ class Database extends PDO
         }
         return $result;
     }
-    
+
     /**
      * 执行sql语句
      *
@@ -93,7 +94,7 @@ class Database extends PDO
             assert('is_callable($before)', '[Database::$before] 应该是可执行的回调');
             call_user_func_array($before, array(&$sql, &$params, 'exec'));
         }
-        
+
         if (empty($params)) {
             $this->_status = true;
             $result        = parent::exec($sql);
@@ -107,7 +108,7 @@ class Database extends PDO
         } else {
             return false;
         }
-        
+
         if ($after = &Database::$after) {
             //执行完成调用
             assert('is_callable($after)', '[Database::$after] 应该是可执行的回调');
@@ -115,7 +116,7 @@ class Database extends PDO
         }
         return $result;
     }
-    
+
     /**
      *	@method column
      *	按行查询
@@ -147,8 +148,7 @@ class Database extends PDO
         }
         return $result;
     }
-    
-    
+
     /**
      * @method isOk
      *
@@ -158,7 +158,7 @@ class Database extends PDO
     {
         return $this->_status;
     }
-    
+
     /**
      * @method errorInfo
      *
@@ -231,7 +231,7 @@ class Database extends PDO
                 return null;
         }
     }
-    
+
     /**
      * @method execute
      * @description 预处理方式执行sql
@@ -249,7 +249,7 @@ class Database extends PDO
             $statement = parent::query($sql); //无参数直接执行
         } elseif ($statement = $this->prepare($sql)) {
             assert('is_array($params)', '[database]绑定参数$params应该以数组形式传入'.print_r($params, true));
-        
+
             /*参数绑定*/
             if (is_int($key = key($params))) {
                 /*索引数组*/
@@ -287,7 +287,7 @@ class Database extends PDO
         }
         return $statement;
     }
-    
+
     /*错误处理*/
     private function error()
     {

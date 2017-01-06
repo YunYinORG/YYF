@@ -7,7 +7,7 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
- 
+
 /**
  * Cookie 加密cookie管理
  *
@@ -87,8 +87,7 @@ class Cookie
         if (empty($_COOKIE)) {
             return null;
         }
-        
-        
+
             /*逐个删除*/
             foreach ($_COOKIE as $key => $val) {
                 self::del($key);

@@ -7,7 +7,7 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
- 
+
 use \Config as Config;
 use \Logger as Logger;
 use Storage\File as File;
@@ -45,13 +45,13 @@ class Cache
             //$value is $expire
             assert(func_num_args() < 3, '[Cache::set]第一个参数为数组时(批量设置)，最多两个参数');
             assert('is_numeric($value)', '[Cache::set]批量设置时，第二个参数时间必须为数字');
-            
+
             switch ($type) {
                 case 'memcached':
                     return $handler->setMulti($name, $value);
-                
+
                 case 'redis':
-               
+
                     $result = true;
                      if ($value) {
                          foreach ($name as $k => &$v) {
@@ -63,11 +63,10 @@ class Cache
                          }
                      }
                     return  $result;
-                
 
                 case 'file':
                     return $handler->mset($name, $value);
-                
+
                 case 'memcache':
                     $result = true;
                     foreach ($name as $k => &$v) {
@@ -112,7 +111,6 @@ class Cache
                         return $default;
                     }
                         return array_merge(array_fill_keys($name, false), $default);
-                    
 
                 case 'file':
                     return $handler->mget($name);
@@ -122,9 +120,7 @@ class Cache
                         return array_combine($name, array_map('unserialize', $value));
                     }
                         return array_fill_keys($name, $default);
-                    
-                 
-                
+
                 case 'memcache':
                     $result = array();
                     foreach ($name as &$key) {
@@ -199,7 +195,7 @@ class Cache
             case 'redis': //redis 存储
                   $config = Config::getSecret('redis');
                   $config = $config->get('cache') ?: $config->get('_');
-                 
+
                   $handler = new \Redis();
                   $handler->connect($config->get('host'), $config->get('port'));
                   //密码验证

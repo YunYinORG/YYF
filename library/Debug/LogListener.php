@@ -7,6 +7,7 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
+
 namespace Debug;
 
 use \Debug as Debug;
@@ -23,7 +24,7 @@ class LogListener
      * 日志过滤标记，日志级别加上此后缀不做监听
      */
     const LOG_SUFFIX = '.LISTENER';
-    
+
     protected static $listen_log_type = array();
 
     public static function init($type)
@@ -35,7 +36,7 @@ class LogListener
         }
         Logger::$listener = array(__CLASS__, 'listener');
     }
-       
+
     public static function safeType($level)
     {
         if (static::$listen_log_type === '*'

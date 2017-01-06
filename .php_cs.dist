@@ -67,8 +67,10 @@ $rules = array(
     'no_mixed_echo_print'                          => array('use' => 'echo'), //print转echo
     'no_spaces_inside_parenthesis'                 => true,
     'no_spaces_around_offset'                      => array('inside', 'outside'),
+    'no_singleline_whitespace_before_semicolons'   => true,
     'no_trailing_comma_in_list_call'               => true,
     'no_trailing_comma_in_singleline_array'        => true, //单行数组去逗号
+    'no_whitespace_in_blank_line'                  => true, //删除空白行中多余的空格;
     'no_whitespace_before_comma_in_array'          => true, //数组去空格
 
     'no_unreachable_default_argument_value'        => true, //去掉不可达的默认参数
@@ -84,6 +86,8 @@ $rules = array(
     'phpdoc_separation'                            => true,
     'phpdoc_trim'                                  => true,
     'pre_increment'                                => true, //++前置
+    'single_blank_line_before_namespace'           => true,
+    'blank_line_after_namespace'                   => true,
     'single_blank_line_at_eof'                     => true, //文件结束后换行
     'single_import_per_statement'                  => true,
     'single_quote'                                 => true, //转单引号

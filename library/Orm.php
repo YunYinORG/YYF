@@ -7,7 +7,7 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
- 
+
 use \Logger as Logger;
 
 /**
@@ -1408,7 +1408,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
             }
             $sql[strlen($sql) - 1] = ' ';
         }
-       
+
         if ($unions = &$this->_unions) {
             $sql .= implode(' ', $unions);
         }
@@ -1753,7 +1753,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
                 $operator = strtoupper($condition[1]);
                 assert('in_array($operator,array("BETWEEN","NOT BTWEEN"))',
                     '[Orm::parseCondition] 四参数条件只支持[not ]between表达式 :'.$operator);
-                $result[] = $operator ;
+                $result[] = $operator;
                 $result[] = $bind_value ?
                     array($this->bindParam($condition[2]),$this->bindParam($condition[3])) :
                     array($condition[2],$condition[3]);

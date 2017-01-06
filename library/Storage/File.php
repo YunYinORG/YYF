@@ -7,6 +7,7 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
+
 namespace Storage;
 
 use \Config as Config;
@@ -178,7 +179,7 @@ class File
         }
         $files = scandir($dir);
         unset($files[0], $files[1]);
-        
+
         $result = 0;
         foreach ($files as &$f) {
             $result += @unlink($dir.$f);
