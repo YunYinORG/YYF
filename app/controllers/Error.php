@@ -15,6 +15,8 @@ class ErrorController extends Yaf_Controller_Abstract
 {
     /**
      * 错误处理函数
+     *
+     * @param Exception $exception 异常
      */
     public function errorAction($exception)
     {

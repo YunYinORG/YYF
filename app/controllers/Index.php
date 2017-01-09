@@ -47,6 +47,8 @@ class IndexController extends Rest
      * GET /index/:id
      *
      * @method GET_infoAction
+     *
+     * @param mixed $id
      */
     public function GET_infoAction($id = 0)
     {
