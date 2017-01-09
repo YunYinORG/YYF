@@ -7,8 +7,10 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
+
 use \Service\Message;
 use \Service\Smtp;
+use \Yaf_View_Simple as View;
 
 /**
  * Mail 邮件发送类
@@ -19,7 +21,6 @@ use \Service\Smtp;
  */
 class Mail
 {
-    const TPL_DIR = APP_PATH.'/app/email/';
     protected $_config;
     private $_smtp;
     private $_view;
@@ -60,9 +61,9 @@ class Mail
     /**
      * 发送邮件
      *
-     * @param string $from [发送方邮箱]
      * @param string $to   [接收方邮箱]
      * @param array  $msg  [发送信息]
+     * @param mixed  $from
      *
      * @return bool [发送结果]
      */
@@ -79,18 +80,26 @@ class Mail
     }
 
     /**
-     *获取邮件服务对象
+     * 获取邮件服务对象
      */
     public static function getInstance()
     {
-        return self::$_instance ?: (self::$_instance = new self());
+        if (!self::$_instance) {
+            self::$_instance = new self();
+        }
+        return self::$_instance;
+        // return self::$_instance ?: (self::$_instance = new self());
     }
 
     /**
-     *获取模板引擎
+     * 获取模板引擎
      */
     private function getView()
     {
-        return $this->_view ?: ($this->_view = new Yaf_View_Simple(self::TPL_DIR));
+        if (!$this->_view) {
+            $this->_view = new View(APP_PATH.'/app/email/');
+        }
+        return $this->_view;
+        // return $this->_view ?: ($this->_view = new View(self::TPL_DIR));
     }
 }

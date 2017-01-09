@@ -33,8 +33,7 @@
  *  UserModel::where('name','LIKE','%future%')->count();//统计name中包含future的字数
  *
  * 也可以实例化操作 $user=new UserModel;
- * $user->find（1）;//
-
+ * $user->find（1）;
  */
 abstract class Model
 {
@@ -49,8 +48,7 @@ abstract class Model
     /**
      * 构造函数
      *
-     * @param  array       $data [传入数据]
-     * @access public
+     * @param array $data 传入数据
      */
     final public function __construct(array $data = null)
     {
@@ -76,9 +74,8 @@ abstract class Model
     /**
      * 直接修改字段
      *
-     * @param string $name  [description]
-     * @param mixed  $value [description]
-     * @access public
+     * @param string $name  字段名
+     * @param mixed  $value 对应值
      */
     public function __set($name, $value)
     {
@@ -88,8 +85,9 @@ abstract class Model
     /**
      * 直接读取字段
      *
+     * @param string $name 字段名
+     *
      * @return mixed 对应的值
-     * @access public
      */
     public function __get($name)
     {
@@ -98,6 +96,9 @@ abstract class Model
 
     /**
      * 直接调用model的操作
+     *
+     * @param string $method
+     * @param array  $params
      */
     public function __call($method, $params)
     {
@@ -106,10 +107,14 @@ abstract class Model
 
     /**
      * 静态调用model的操作
+     *
+     * @param string $method
+     * @param array  $params
      */
     public static function __callStatic($method, $params)
     {
-        return call_user_func_array(array((new static)->getOrm(), $method), $params);
+        $model = new static();
+        return call_user_func_array(array($model->getOrm(), $method), $params);
     }
 
     /**
@@ -130,9 +135,9 @@ abstract class Model
     /**
      * 数据转成json
      *
-     * @param int constant JSON_ENCODE type
+     * @param int $type JSON_ENCODE type 【256 是JSON_UNESCAPED_UNICODE值】
      */
-    public function toJson($type=256)//256isJSON_UNESCAPED_UNICODE
+    public function toJson($type = 256)
     {
         return json_encode($this->_orm->get(), $type);
     }
