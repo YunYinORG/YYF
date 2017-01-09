@@ -134,7 +134,7 @@ class File
     /**
      * 删除数据
      *
-     * @param string name [数据名称]
+     * @param string $name 数据文件名称
      *
      * @return bool 操作结果
      */

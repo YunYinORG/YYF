@@ -93,6 +93,7 @@ abstract class YafCase extends TestCase
     /**
      * 检查文件权限，
      *
+     * @param mixed $path 路径
      * @param $base 基础值，文件0666 目录0777
      * @param $umask
      * @requires OS Linux

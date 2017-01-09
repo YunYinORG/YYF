@@ -56,7 +56,8 @@ class Kv
     /**
      * 读取缓存数据
      *
-     * @param string|array $name [缓存名称]
+     * @param string|array $name    [缓存名称]
+     * @param mixed        $default
      *
      * @return mixed [获取值]
      */
@@ -78,6 +79,9 @@ class Kv
 
     /**
      * delete 别名
+     *
+     * @param string $name 键
+     * @param int    $time 时间(redis有效)
      */
     public static function del($name, $time=0)
     {

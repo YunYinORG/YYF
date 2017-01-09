@@ -18,6 +18,8 @@ class Session
     private static $_id;
 
     /**
+     * @param string $id session_id
+     *
      * @return string [session id]
      */
     public static function start($id = null)

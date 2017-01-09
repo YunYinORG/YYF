@@ -37,6 +37,9 @@ class LogListener
         Logger::$listener = array(__CLASS__, 'listener');
     }
 
+    /**
+     * @param string $level 日志级别
+     */
     public static function safeType($level)
     {
         if (static::$listen_log_type === '*'

@@ -40,6 +40,9 @@ class SqlListener
 
     /**
      * 监视 数据库sql查询
+     *
+     * @param string $type        监听方式
+     * @param bool   $show_detail 是否输出
      */
     public static function init($type, $show_detail = null)
     {
@@ -52,6 +55,8 @@ class SqlListener
 
     /**
      *是否在header中显示
+     *
+     * @param bool $is_enable 显示详情
      */
     public static function showDetail($is_enable)
     {
@@ -109,6 +114,8 @@ class SqlListener
 
     /**
      * 输出数据
+     *
+     * @param null|mixed $error
      */
     protected function flush($error = null)
     {

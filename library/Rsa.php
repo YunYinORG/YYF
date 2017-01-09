@@ -29,6 +29,8 @@ class Rsa
     /**
      * 解密
      *
+     * @param string $str 密文
+     *
      * @return string
      */
     public static function decode($str)
@@ -60,7 +62,7 @@ class Rsa
      *
      * @param  bool $return_pri [返回公钥或者私钥]
      *
-     * @return string              [公钥或者私钥]
+     * @return string [公钥或者私钥]
      */
     private static function init($return_pri = false)
     {

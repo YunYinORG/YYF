@@ -25,10 +25,11 @@ class Cookie
     /**
      * 设置cookie
      *
-     * @param string $name   cookie名称
-     * @param mixed  $value  cookie值
-     * @param string $path   [存取路径]
-     * @param int    $expire 有效时间
+     * @param string      $name   cookie名称
+     * @param mixed       $value  cookie值
+     * @param string      $path   [存取路径]
+     * @param int         $expire 有效时间
+     * @param null|string $domain 域名
      */
     public static function set($name, $value, $path = '', $expire = null, $domain = null)
     {
@@ -61,7 +62,9 @@ class Cookie
     /**
      * 删除
      *
-     * @param string $name cookie名称
+     * @param string      $name   cookie名称
+     * @param null|string $path   路径
+     * @param null|string $domain 域名
      */
     public static function del($name, $path = null, $domain = null)
     {

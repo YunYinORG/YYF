@@ -101,6 +101,9 @@ class Header
 
     /**
      * 静态调用
+     *
+     * @param string $Type   函数名
+     * @param array  $params 参数
      */
     public static function __callStatic($Type, $params)
     {
@@ -116,6 +119,9 @@ class Header
 
     /**
      * 链式调用
+     *
+     * @param string $Type   函数名
+     * @param array  $params 参数
      */
     public function __call($Type, $params)
     {

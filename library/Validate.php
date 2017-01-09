@@ -35,30 +35,38 @@ class Validate
 
     /**
      * 验证手机格式
+     *
+     * @param string $phone
      */
-    public static function phone(&$phone)
+    public static function phone($phone)
     {
         return preg_match(Config::get('regex.phone'), $phone);
     }
 
     /**
      * 验证账号格式
+     *
+     * @param string $account
      */
-    public static function account(&$account)
+    public static function account($account)
     {
         return preg_match(Config::get('regex.account'), $account);
     }
 
     /**
      * 验证姓名格式
+     *
+     * @param string $name
      */
-    public static function name(&$name)
+    public static function name($name)
     {
         return preg_match(Config::get('regex.name'), $name);
     }
 
     /**
      * 验证字符串是否仅由字母，_，数字线组成
+     *
+     * @param string $str
      */
     public static function char_num($str)
     {
@@ -67,6 +75,8 @@ class Validate
 
     /**
      * 验证字符串是否仅由字母，_，数字线组成
+     *
+     * @param string $str
      */
     public static function fileName($str)
     {
@@ -75,6 +85,8 @@ class Validate
 
     /**
      * md5后的字符串
+     *
+     * @param string $md5pwd
      */
     public static function isMD5($md5pwd)
     {

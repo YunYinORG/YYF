@@ -98,6 +98,11 @@ EOF;
     /**
      * Assertion Handler
      * 断言错误回调
+     *
+     * @param string $file
+     * @param int    $line
+     * @param string $code
+     * @param string $message
      */
     public static function callback($file, $line, $code, $message = null)
     {

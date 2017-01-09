@@ -46,8 +46,8 @@ class Database extends PDO
      *
      * @param string $sql
      * @param array  $params
-     * @param  bool   $fetchAll 全部查询模式fetchAll，false 使用fetch
-     * @param  int    $fetchmode 默认读取配置
+     * @param bool   $fetchAll 全部查询模式fetchAll，false 使用fetch
+     * @param int $mode 查询模式,默认读取配置
      *
      * @return array 查询结果
      */
@@ -116,8 +116,8 @@ class Database extends PDO
     /**
      *  按行查询
      *
-     *  @param  string $query
-     *  @param  array  $params
+     * @param string $sql    查询语句
+     * @param array  $params 参数
      *
      *  @return string
      */
@@ -275,9 +275,9 @@ class Database extends PDO
         return $statement;
     }
 
-    /***
-    * 错误处理
-    */
+    /**
+     * 错误处理
+     */
     private function error()
     {
         $this->_status = false;

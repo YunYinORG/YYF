@@ -139,7 +139,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * 读取数据 字段或者全部数据
      * 如果有直接读取，无数据库读取,遵循field别名设置
      *
-     *
      * @param string $key [字段名称，无此参数时返回全部数据]
      * @param bool $auto_query [是否自动尝试从数据库获取]
      *
@@ -171,7 +170,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * 单条插入数据库(忽略前置条件)
      * 如果设置了字段field会使用设置的字段过滤(如果设置了alias与其一致)，取二者交集
      *
-     *
      * @param  array $data     [要插入的数据，键值对数组(单条)]
      *
      * @return int|bool        [返回插入数据的id,注，如果改记录中无自增主键将返回TRUE或者FALSE]
@@ -199,7 +197,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * 批量插入数据（忽略前置条件)
      * 支持字段过滤,如果某条字段数据不足直接丢弃
      * 如果没有设置字段以第一条数据字段为准,过滤后面的数据
-     *
      *
      * @param array $data [数据，二维数组]
      *
@@ -242,7 +239,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * 新增数据(保留之前的set)
      * 合并现有的data属性
      *
-     *
      * @return $this|FALSE
      */
     public function add()
@@ -264,7 +260,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 设置数据
      *
-     *
      * @param mixed $key  [字段或者数组]
      * @param mixed $value [值]
      *
@@ -284,7 +279,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 更新数据[支持字段过滤]
      * 直接跟新忽略之前set的数据
-     *
      *
      * @param array $data [要更新的数据]
      *
@@ -308,7 +302,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 保存数据 用于set的连贯操作
-     *
      *
      * @param int $id [保存到主键,可不设置]
      *
@@ -335,7 +328,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 修改并写入数据 对set和save的简化
      *
-     *
      * @param string $key   [保存的键值]
      * @param scalar $value [修改后的键值]
      *
@@ -357,7 +349,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 删除数据[危险操作]
      *
-     *
      * @param int $id [删除id]
      *
      * @return int 删除的条数
@@ -375,7 +366,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 查询结果是否结果是否去重
      *
-     *
      * @param bool $is_distinct [是否去重]
      *
      * @return $this
@@ -388,7 +378,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 设置别名
-     *
      *
      * @param string $alias 设置的别名
      *
@@ -403,7 +392,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * where AND 条件
-     *
      *
      * @param mixed  $field    [键值,条件数组,条件SQL]
      * @param string $operator [比较操作符]
@@ -423,7 +411,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * where 字段比较，和where一样但是值按照字段处理
-     *
      *
      * @param mixed  $field    [键值,条件数组,条件SQL]
      * @param string $operator [比较操作符]
@@ -459,10 +446,9 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * exists 存在 子查询
      *
-     *
-     * @param  Orm    $query     [包含查询的ORM对象]
+     * @param Orm    $query     [包含查询的ORM对象]
      * @param boolen $not [为true时，not exists]
-     * @param  string $type    ['AND'或者'OR' 默认AND]
+     * @param string $type    ['AND'或者'OR' 默认AND]
      *
      * @return Orm $this
      */
@@ -481,6 +467,9 @@ class Orm implements \JsonSerializable, \ArrayAccess
      *
      * @see Orm::exists()
      *
+     * @param Orm  $query 子查询
+     * @param bool $not
+     *
      * @return Orm $this
      */
     public function orExists(Orm $query, $not = false)
@@ -490,7 +479,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * having  条件
-     *
      *
      * @param string $field    [键值,条件数组,条件SQL]
      * @param string $operator [比较操作符]
@@ -506,7 +494,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * having OR 条件
-     *
      *
      * @param string $field    [键值,条件数组,条件SQL]
      * @param string $operator [比较操作符]
@@ -525,8 +512,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 设置字段，设置读写字段过滤和字段别名
      *
-     *
-     * @param mixed  $field [字段设置]
+     * @param mixed  $data  [字段设置]
      * @param string $alias [description]
      *
      * @return Orm $this
@@ -567,7 +553,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 排序条件
      *
-     *
      * @param string $fields [排序字段]
      * @param bool   $desc   [是否降序]
      *
@@ -582,7 +567,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 限制查询条目和起始偏移量
-     *
      *
      * @param int $maxsize [查询条目]
      * @param int $offset  [偏移量,默认不偏移]
@@ -608,7 +592,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 翻页
      *
-     *
      * @param int $number [页码]
      * @param int $size   [每页条目数]
      *
@@ -622,7 +605,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * join(多表连接)
      * 拥有的内容，[参数$table的外键是此表的主键][LEFT JOIN]
-     *
      *
      * @param string $type  [连接方式]
      * @param string $table [对应表名]
@@ -667,7 +649,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * has(一对一或者一对多)
      * 拥有的内容，[参数$table的外键是此表的主键][LEFT JOIN]
      *
-     *
      * @param string $table    [对应表名]
      * @param string $table_fk [对应表中的外键，缺省使用$this->_table.'_id']
      * @param string $related_key    [与之关联的主键或者表加主键，默认采用本表主键]
@@ -684,7 +665,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 从属关系(一对多或者多对多)
      * 此表的外键 关联参数表的主键是[inner join]
-     *
      *
      * @param string $table [表名]
      * @param string  [$related_key]    [ 此表外键，默认$table.‘_id']
@@ -720,7 +700,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * union 多查询结果合并
      *
-     *
      * @param  Orm  $orm 一个包含查询的orm数据
      * @param  bool  [$is_all=FALSE]    [union all 默认 false]
      *
@@ -736,7 +715,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * union all 多查询拼接合并
      *
-     *
      * @param  Orm  $orm 一个包含查询的orm数据
      *
      * @return Orm $this
@@ -748,7 +726,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 统计【聚合函数】
-     *
      *
      * @param string $column_name [默认*]
      * @param bool   $is_distinct [是否对该字段去重]
@@ -767,7 +744,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 最小值【聚合函数】
      *
-     *
      * @param string $column_name [字段名称]
      *
      * @return mixed 最小值
@@ -779,7 +755,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 最大值【聚合函数】
-     *
      *
      * @param string $column_name [字段名称]
      *
@@ -793,7 +768,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 平均值【聚合函数】
      *
-     *
      * @param string $column_name [字段名称]
      *
      * @return int|string 均值
@@ -805,7 +779,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 求和【聚合函数】
-     *
      *
      * @param string $column_name [字段名称]
      *
@@ -819,9 +792,9 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 字段自增
      *
-     *
      * @param string $field 自增字段
      * @param int    $step  [增加步长默认1]
+     * @param mixed  $key
      *
      * @return int [影响条数]
      */
@@ -841,7 +814,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 字段自减
      *
-     *
      * @param string $field 自减字段
      * @param int    $step  [自减步长默认1]
      *
@@ -854,7 +826,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 事务封装
-     *
      *
      * @param callable $func，事务回调函数，参数是当前Database，
      *  回调返回false或者出现异常回滚，否则提交
@@ -883,8 +854,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 设定数据库
      *
-     *
-     * @param mixed Databse 对象或者连接配置
+     * @param mixed $db 对象或者连接配置
      *
      * @return $this
      */
@@ -902,7 +872,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 安全模式设置
      *
-     *
      * @param bool $enable [默认开启]
      *
      * @return $this
@@ -915,7 +884,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 自动查询完自动清空
-     *
      *
      * @param bool $clear [默认开启]
      *
@@ -930,7 +898,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 开启模式，输出sql而不执行
      *
-     *
      * @param bool $enable [默认开启]
      *
      * @return $this
@@ -944,6 +911,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 清空
      *
+     * @param bool $retain 保留数据
      *
      * @return Orm $this
      */
@@ -979,6 +947,8 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 数组操作接口实现
+     *
+     * @param int|string $offset
      */
     public function offsetExists($offset)
     {
@@ -987,6 +957,8 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 数组偏移接口
+     *
+     * @param int|string $offset
      */
     public function offsetGet($offset)
     {
@@ -1007,7 +979,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * 对字段和表名进行反引字符串
      * 并对字符进行安全断言 合法字符为[a-zA-Z_]
      *
-     *
      * @param string $key [字段名称]
      *
      * @return string
@@ -1020,7 +991,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 获取字段真名
-     *
      *
      * @param string $key [键值]
      *
@@ -1045,7 +1015,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * 获取数据库链接
      * 如果设置默认database 将直接返回此设置
      *
-     *
      * @param  string $name 数据库配置名[_read][Write]
      *
      * @return Database $db数据库链接
@@ -1058,8 +1027,8 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 构建insert 语句
      *
-     *
      * @param array $data  要插入的数据
+     * @param bool $is_sqlite 是否为SQLite
      *
      * @return string [sql语句]
      *
@@ -1105,7 +1074,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 构建update 语句
      *
-     *
      * @param array &$data 跟新的数据(参数已经替换)，
      *
      * @return string [生成的sql语句]
@@ -1127,7 +1095,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 构建select 语句
-     *
      *
      * @param string $exp=null，
      *
@@ -1166,7 +1133,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 构建delete 语句
      *
-     *
      * @return string
      *
      * @todo sql语句缓存
@@ -1190,7 +1156,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * 构建FROM sql分句
      * From
      *
-     *
      * @return string
      *
      * @todo 是否对多表扩展支持？
@@ -1207,7 +1172,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 构建条件Join sql分句
-     *
      *
      * @return string [''或者JOIN(xxx)]
      */
@@ -1243,6 +1207,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 构建条件WhERE sql分句
      *
+     * @param bool $check_pk 检查主键值
      *
      * @return string [''或者WHERE(xxx)]
      */
@@ -1263,7 +1228,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 构建 GROUP 和 HAVING sql分句
-     *
      *
      * @return string [''或者GROUP(xxx)]
      */
@@ -1296,6 +1260,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 构建尾部 sql 分句 limt,order by,等
      *
+     * @param bool $offset
      *
      * @return string
      */
@@ -1360,7 +1325,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 构建子查询
      *
-     *
      * @param Orm &$orm [ORM对象]
      *
      * @return string [SQL语句]
@@ -1376,7 +1340,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 聚合函数
      *
-     *
      * @param string $exp [聚合表达式]
      *
      * @return int|string [返回聚合操作结果]
@@ -1388,7 +1351,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 数据写入修改操作
-     *
      *
      * @param string $sql [sql语句]
      *
@@ -1409,8 +1371,8 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 数据读取操作
      *
-     *
      * @param string $sql [sql语句]
+     * @param bool  $fetchAll 全部获取
      *
      * @return array [结果数组]
      */
@@ -1428,7 +1390,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 数据读取操作,返回一个值
-     *
      *
      * @param string $sql [sql语句]
      *
@@ -1457,7 +1418,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 字段过滤 [支持别名方式的字段，别名得数据将被替换成证实字段名]
-     *
      *
      * @param array $fields [字段,会被过滤]
      * @param array &$data  [数据,被过滤的数据]
@@ -1598,7 +1558,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * 解析where条件
      *
      * @param array $where [where 参数数组]
-     * @param  string $addition [附加条件，'AND'或者'OR']
+     * @param string $type [附加条件，'AND'或者'OR']
      * @param bool $bind_value [是否绑定参数]
      *
      * @return array 格式化的三元或者多元元索引数组
@@ -1622,7 +1582,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
     /**
      * 解析条件 数组
-     *
      *
      * @param array $condition [条件数组]
      * @param string $addition [附加条件，'AND'或者'OR']

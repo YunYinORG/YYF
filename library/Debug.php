@@ -140,6 +140,9 @@ class Debug
 
     /**
      * 监视 数据库sql查询
+     *
+     * @param string $type        数据库监听方式
+     * @param bool   $show_result 是否显示结果
      */
     public function initSQL($type, $show_result)
     {
@@ -148,6 +151,8 @@ class Debug
 
     /**
      * 监视 日志写入记录
+     *
+     * @param string $type 日志类型
      */
     public function initLog($type)
     {

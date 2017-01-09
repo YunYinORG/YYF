@@ -61,8 +61,8 @@ class Qiniu
     /**
      * 复制文件
      *
-     * @param string $file     源文件
-     * @param string $copyName 目标文件名
+     * @param string $from   源文件
+     * @param string $saveas 目标文件名
      *
      * @return bool 操作结果
      */
@@ -74,9 +74,11 @@ class Qiniu
     }
 
     /**
-     * 获取token
+     * 获取上传token
      *
-     * @param strin $uri     URL
+     * @param mixed $bucket  存储位置
+     * @param mixed $key     文件名
+     * @param mixed $max     文件上限
      * @param int   $timeout 过期时间
      *
      * @return string
@@ -96,7 +98,7 @@ class Qiniu
     /**
      * 删除
      *
-     * @param string $file [文件名]
+     * @param string $uri [完整文件名]
      *
      * @return bool [description]
      */
@@ -122,8 +124,9 @@ class Qiniu
     /**
      * 转pdf
      *
-     * @param string $file     源文件
-     * @param string $saveName 保存文件名
+     * @param mixed $bucket 存储位置
+     * @param mixed $key    文件名
+     * @param mixed $saveas 保存文件名
      *
      * @return bool 操作结果
      */
@@ -138,7 +141,9 @@ class Qiniu
     /**
      * 七牛操作
      *
-     * @param string $op [操作命令]
+     * @param string     $op   [操作命令]
+     * @param null|array $data
+     * @param string     $host 主机
      *
      * @return bool [操作结果]
      */
@@ -191,6 +196,8 @@ class Qiniu
 
     /**
      * 七牛安全编码
+     *
+     * @param string $str
      */
     private static function qiniuEncode($str)
     {

@@ -61,7 +61,7 @@ class Encrypt
      *
      * @param string $str [编码前字符串]
      *
-     * @return string            [安全base64编码后字符串]
+     * @return string [安全base64编码后字符串]
      */
     public static function base64Encode($str)
     {
@@ -73,7 +73,7 @@ class Encrypt
      *
      * @param string $str [解码前字符串]
      *
-     * @return string          [安全base64解码后字符串]
+     * @return string [安全base64解码后字符串]
      */
     public static function base64Decode($str)
     {
@@ -372,7 +372,6 @@ class Encrypt
     }
 
     /**
-     *  decrypt_mid($midEncode, $snum, $id)
      *  中间6位数解密函数
      *
      * @param string $midEncode 加密后的6位数字
@@ -398,11 +397,10 @@ class Encrypt
     }
 
     /**
-     *  _decryptShortMid($midNum, $snum)
      *  短加密中间4位数解密
      *
-     * @param string $midNum 4位数字
-     * @param string $snum   编号字符串,用于混淆密钥
+     * @param string $midEncode 4位数字
+     * @param string $snum      编号字符串,用于混淆密钥
      *
      * @return string (4) 加密后的4位数字
      */
@@ -422,7 +420,6 @@ class Encrypt
     }
 
     /**
-     * cipher_table($key)
      *  获取密码表
      *  现在缓存中查询,如果存在,则直接读取,否则重新生成
      *

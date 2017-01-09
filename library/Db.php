@@ -35,6 +35,9 @@ class Db
 
     /**
      * 静态方式调用Database的方法
+     *
+     * @param string $method Database函数名
+     * @param array  $params 参数
      */
     public static function __callStatic($method, $params)
     {
@@ -44,7 +47,6 @@ class Db
 
     /**
      * 数据库初始化 并取得数据库类实例
-     *
      *
      * @param mixed $config 连接配置
      *
@@ -87,7 +89,6 @@ class Db
 
     /**
      * 获取或者设置当前数据库连接,如果没有数据库事例将读取默认配置
-     *
      *
      * @param Database $db 要设定的数据库，空返回当前数据库
      *
@@ -157,8 +158,6 @@ class Db
 
     /**
      * 获取数据库表进行后续操作
-     *
-     * @static
      *
      * @param string $name   数据库表名
      * @param string $pk     主键

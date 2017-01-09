@@ -34,6 +34,7 @@ $rules = array(
     'combine_consecutive_unsets'                   => true,
     'concat_space'                                 => array('spacing' => 'none'), //.字符串连接空格
     'cast_spaces'                                  => true, //case 空格
+    'declare_equal_normalize'                      => true,
     'elseif'                                       => true, //else if 转elseif
     'encoding'                                     => true, //utf8 无bom头编码
     'full_opening_tag'                             => true,
@@ -81,6 +82,7 @@ $rules = array(
     'no_useless_return'                            => true, //删除无用return
     'ordered_class_elements'                       => true,
     'ordered_imports'                              => true,
+    'phpdoc_add_missing_param_annotation'          => true, //添加参数说明
     'phpdoc_align'                                 => true,
     'phpdoc_indent'                                => true,
     'phpdoc_order'                                 => true,
