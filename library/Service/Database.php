@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -42,7 +42,6 @@ class Database extends PDO
     private $_errorInfo = null;
 
     /**
-     * @method query
      * 查询数据库,返回数组或者null
      *
      * @param string $sql
@@ -78,13 +77,10 @@ class Database extends PDO
     /**
      * 执行sql语句
      *
-     * @method exec
+     * @param string $sql    sql预处理语句
+     * @param array  $params 查询参数
      *
-     * @param [string] $sql       [description]
-     * @param [array]  $params    [description]
-     * @param [type]   $fetchmode [description]
-     *
-     * @return [int] [影响条数]
+     * @return int [影响条数]
      */
     public function exec($sql, array $params = null)
     {
@@ -118,13 +114,12 @@ class Database extends PDO
     }
 
     /**
-     *	@method column
-     *	按行查询
+     *  按行查询
      *
-     *	@param  string $query
-     *	@param  array  $params
+     *  @param  string $query
+     *  @param  array  $params
      *
-     *	@return string
+     *  @return string
      */
     public function column($sql, array $params = null)
     {
@@ -150,9 +145,7 @@ class Database extends PDO
     }
 
     /**
-     * @method isOk
-     *
-     * @return bool [上次查询状态]
+     * @return bool 上次查询状态
      */
     public function isOk()
     {
@@ -160,9 +153,7 @@ class Database extends PDO
     }
 
     /**
-     * @method errorInfo
-     *
-     * @return array [上次出错信息]
+     * @return array 上次出错信息
      */
     public function errorInfo()
     {
@@ -172,12 +163,11 @@ class Database extends PDO
     /**
      * 事务封装
      *
-     * @method transact
+     * @param callable $func，事务回调函数，参数是当前Database，
+     *      回调返回false或者出现异常回滚，否则提交
+     * @param bool $err_exp 错误抛出异常默认会自动设置并切换回来
      *
-     * @param callable $func，事务回调函数，参数是当前Database，回调返回false或者出现异常回滚，否则提交
-     * @param bool     $err_exp                                                                                                        错误抛出异常默认会自动设置并切换回来
-     *
-     * @return 回调函数的返回值(执行异常自动回滚，返回false)
+     * @return bool or null 回调函数的返回值(执行异常自动回滚，返回false)
      */
     public function transact($func, $err_exp = true)
     {
@@ -211,9 +201,7 @@ class Database extends PDO
     /**
      * 获取PDO参数绑定类型
      *
-     * @method getType
-     *
-     * @return PARAM_*
+     * @return int PARAM_*
      */
     public static function getType(&$value)
     {
@@ -223,7 +211,7 @@ class Database extends PDO
                 return \PDO::PARAM_STR;
             case 'integer':
                 return \PDO::PARAM_INT;
-            case  'boolean':
+            case 'boolean':
                 return \PDO::PARAM_BOOL;
             case 'NULL':
                 return \PDO::PARAM_NULL;
@@ -233,13 +221,12 @@ class Database extends PDO
     }
 
     /**
-     * @method execute
-     * @description 预处理方式执行sql
+     * 预处理方式执行sql
      *
      * @param string $sql    [description]
      * @param array  $params [索引型数组(?),键值对数组会自动加(:$key,$value)]
      *
-     * @return [type] [description]
+     * @return PDOStatement
      */
     private function execute($sql, &$params)
     {
@@ -288,7 +275,9 @@ class Database extends PDO
         return $statement;
     }
 
-    /*错误处理*/
+    /***
+    * 错误处理
+    */
     private function error()
     {
         $this->_status = false;

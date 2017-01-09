@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -30,6 +30,11 @@
 // | Copyright (c) 2014 ~ 2016云印南天团队 All rights reserved.
 // +------------------------------------------------------------------
 
+/**
+ * 加密类
+ *
+ * @author NewFuture
+ */
 class Encrypt
 {
     //最大混淆ID限制
@@ -40,14 +45,10 @@ class Encrypt
     /**
      * 加密密码
      *
-     * @method encodePwd
+     * @param string $pwd  [密码]
+     * @param string $salt [混淆salt]
      *
-     * @param [string] $pwd  [密码]
-     * @param [string] $salt [混淆salt]
-     *
-     * @return [string] [加密后的32字符串]
-     *
-     * @author NewFuture
+     * @return string [加密后的32字符串]
      */
     public static function encryptPwd($pwd, $salt)
     {
@@ -58,13 +59,9 @@ class Encrypt
      * 路径安全base64编码
      * +,=,/替换成-,_,.
      *
-     * @method base64Encode
-     *
      * @param string $str [编码前字符串]
      *
      * @return string            [安全base64编码后字符串]
-     *
-     * @author NewFuture
      */
     public static function base64Encode($str)
     {
@@ -74,13 +71,9 @@ class Encrypt
     /**
      * 路径安全形base64解码
      *
-     * @method base64Decode
-     *
      * @param string $str [解码前字符串]
      *
      * @return string          [安全base64解码后字符串]
-     *
-     * @author NewFuture
      */
     public static function base64Decode($str)
     {
@@ -92,9 +85,9 @@ class Encrypt
      *  aes加密函数,$data引用传真，直接变成密码
      *  采用mcrypt扩展,为保证一致性,初始向量设为0
      *
-     * @param $data 原文
-     * @param $key 密钥
-     * @param $safe_view=false 是否进行安全Base64编码
+     * @param string $data 原文
+     * @param string $key  密钥
+     * @param bool $safe_view=false 是否进行安全Base64编码
      *
      * @return string [加密后的密文 或者 base64编码后密文]
      */
@@ -111,9 +104,9 @@ class Encrypt
      * aes_decode(&$cipher, $key)
      *  aes解密函数,$cipher引用传真也会改变
      *
-     * @param &$cipher 密文
-     * @param $key 密钥
-     * @param $safe_view=false 是否是安全Base64编码的密文
+     * @param string $cipher 密文
+     * @param string $key    密钥
+     * @param bool $safe_view=false 是否是安全Base64编码的密文
      *
      * @return string 解密后的明文
      */
@@ -136,7 +129,7 @@ class Encrypt
      *  可逆加密邮箱
      *  保留首字母和@之后的内容
      *
-     * @param $email 邮箱
+     * @param string $email 邮箱
      *
      * @return string 加密后的邮箱
      */
@@ -161,7 +154,7 @@ class Encrypt
      *  decryptEmail($email)
      *  解密邮箱
      *
-     * @param $email 邮箱
+     * @param string $email 邮箱
      *
      * @return string 解密后的邮箱
      */
@@ -190,11 +183,11 @@ class Encrypt
      *  所有手机号加密后四位的加密方式全局一致
      *  大于10位[6(2混淆+4)+4] 大于8位[4+4] 其他[4]
      *
-     * @param $phone string 手机号[4位以上]
-     * @param $salt string 字符串用于混淆密钥
-     * @param $id int 用户id,在1~100000之间的整数,用于混淆原文
+     * @param string $phone 手机号[4位以上]
+     * @param string $salt  字符串用于混淆密钥
+     * @param int    $id    用户id,在1~100000之间的整数,用于混淆原文
      *
-     * @return string(11) 加密后的手机号
+     * @return string 加密后的手机号
      */
     public static function encryptPhone($phone, $salt = null, $id = null)
     {
@@ -233,11 +226,11 @@ class Encrypt
      *  dncrypt_phone($phone, $salt, $id)
      *  手机号格式保留解密
      *
-     * @param $phone string 11位手机号
-     * @param $salt string 用户编号
-     * @param $id int 用户id,
+     * @param string $phone 11位手机号
+     * @param string $salt  用户编号
+     * @param int    $id    唯一混淆ID,
      *
-     * @return string(11) 加密后的手机号
+     * @return string (11) 加密后的手机号
      */
     public static function decryptPhone($phone, $salt, $id)
     {
@@ -276,9 +269,9 @@ class Encrypt
      *  encryptPhoneTail($endNum)
      *  4位尾号加密
      *
-     * @param $endNum 4位尾号
+     * @param string $endNum 4位尾号
      *
-     * @return string(4) 加密后的4位数字
+     * @return string (4) 加密后的4位数字
      */
     public static function encryptPhoneTail($endNum)
     {
@@ -307,11 +300,11 @@ class Encrypt
      *  encrypt_mid($midNum, $snum, $id)
      *  中间6位数加密
      *
-     * @param $midNum string 6位数字
-     * @param $snum string 编号字符串,用于混淆密钥
-     * @param $id int 用户id,在1~100000之间的整数,用于混淆原文
+     * @param string $midNum 6位数字
+     * @param string $snum   编号字符串,用于混淆密钥
+     * @param int    $id     用户id,在1~100000之间的整数,用于混淆原文
      *
-     * @return string(6) 加密后的6位数字
+     * @return string (6) 加密后的6位数字
      */
     private static function _encryptMid($midNum, $snum, $id)
     {
@@ -336,10 +329,10 @@ class Encrypt
      *  _encryptShortMid($midNum, $snum)
      *  短加密中间4位数加密
      *
-     * @param $midNum string 4位数字
-     * @param $snum string 编号字符串,用于混淆密钥
+     * @param string $midNum 4位数字
+     * @param string $snum   编号字符串,用于混淆密钥
      *
-     * @return string(4) 加密后的4位数字
+     * @return string (4) 加密后的4位数字
      */
     private static function _encryptShortMid($midNum, $snum)
     {
@@ -360,9 +353,9 @@ class Encrypt
      * decrypt_end($encodeEnd)
      *  4位尾号解密
      *
-     * @param $encodeEnd 加密后4位尾号
+     * @param string $encodeEnd 加密后4位尾号
      *
-     * @return string(4) 解密后的后四位
+     * @return string (4) 解密后的后四位
      */
     private static function _decryptEnd($encodeEnd)
     {
@@ -382,11 +375,11 @@ class Encrypt
      *  decrypt_mid($midEncode, $snum, $id)
      *  中间6位数解密函数
      *
-     * @param $midEncode string 加密后的6位数字
-     * @param $snum string 编号字符串,用于混淆密钥
-     * @param $id int 用户id,在1~100000之间的整数,用于混淆原文
+     * @param string $midEncode 加密后的6位数字
+     * @param string $snum      编号字符串,用于混淆密钥
+     * @param int    $id        用户id,在1~100000之间的整数,用于混淆原文
      *
-     * @return string(6)/int 解密后的6位数字
+     * @return int 解密后的6位数字
      */
     private static function _decryptMid($midEncode, $snum, $id)
     {
@@ -408,10 +401,10 @@ class Encrypt
      *  _decryptShortMid($midNum, $snum)
      *  短加密中间4位数解密
      *
-     * @param $midNum string 4位数字
-     * @param $snum string 编号字符串,用于混淆密钥
+     * @param string $midNum 4位数字
+     * @param string $snum   编号字符串,用于混淆密钥
      *
-     * @return string(4) 加密后的4位数字
+     * @return string (4) 加密后的4位数字
      */
     private static function _decryptShortMid($midEncode, $snum)
     {
@@ -433,7 +426,7 @@ class Encrypt
      *  获取密码表
      *  现在缓存中查询,如果存在,则直接读取,否则重新生成
      *
-     * @param $key 加密的密钥
+     * @param string $key 加密的密钥
      *
      * @return array 密码映射表
      */
@@ -461,13 +454,9 @@ class Encrypt
     /**
      * 读取配置
      *
-     * @method config
+     * @param  string $key [配置变量名]
      *
-     * @param  [string] $key [配置变量名]
-     *
-     * @return [mixed]      [配置信息]
-     *
-     * @author NewFuture
+     * @return mixed      [配置信息]
      */
     private static function config($key)
     {

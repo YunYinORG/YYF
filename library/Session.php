@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -18,8 +18,6 @@ class Session
     private static $_id;
 
     /**
-     * @method start
-     *
      * @return string [session id]
      */
     public static function start($id = null)
@@ -40,10 +38,8 @@ class Session
     /**
      * 设置session
      *
-     * @method set
-     *
-     * @param [string] $name  [description]
-     * @param [mixed]  $value [description]
+     * @param string $name  键值
+     * @param mixed  $value 对应值
      */
     public static function set($name, $value)
     {
@@ -54,9 +50,7 @@ class Session
     /**
      * 读取
      *
-     * @method get
-     *
-     * @param [string] $name [description]
+     * @param string $name 键值
      */
     public static function get($name)
     {
@@ -67,9 +61,7 @@ class Session
     /**
      * 删除
      *
-     * @method del
-     *
-     * @param [string] $name [description]
+     * @param string $name 键值
      */
     public static function del($name)
     {
@@ -77,7 +69,9 @@ class Session
         unset($_SESSION[$name]);
     }
 
-    /*清空session*/
+    /**
+     * 清空session
+     */
     public static function flush()
     {
         self::start();

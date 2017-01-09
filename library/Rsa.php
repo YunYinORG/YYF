@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -19,8 +19,6 @@ class Rsa
     /**
      * 获取公钥文件
      *
-     * @method pubKey
-     *
      * @return string
      */
     public static function pubKey()
@@ -30,8 +28,6 @@ class Rsa
 
     /**
      * 解密
-     *
-     * @method decode
      *
      * @return string
      */
@@ -48,9 +44,7 @@ class Rsa
     /**
      * 加密
      *
-     * @method encode
-     *
-     * @param [type] $str [原文]
+     * @param string $str [原文]
      *
      * @return string
      */
@@ -63,7 +57,6 @@ class Rsa
     /**
      * 生成和保存密钥对
      *
-     * @method init
      *
      * @param  bool $return_pri [返回公钥或者私钥]
      *

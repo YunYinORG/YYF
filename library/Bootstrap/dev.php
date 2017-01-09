@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -24,8 +24,6 @@ class Bootstrap extends Bootstrap_Abstract
 {
     /**
      * 添加路由
-     *
-     * @method _initRoute
      */
     public function _initRoute(Yaf_Dispatcher $dispatcher)
     {
@@ -36,8 +34,6 @@ class Bootstrap extends Bootstrap_Abstract
 
     /**
      * 断言设置
-     *
-     * @method _initAssert
      */
     public function _initAssert()
     {
@@ -47,8 +43,6 @@ class Bootstrap extends Bootstrap_Abstract
 
     /**
      * 开启调试输出
-     *
-     * @method _initDebug
      */
     public function _initDebug()
     {
@@ -73,8 +67,6 @@ class Bootstrap extends Bootstrap_Abstract
 
     /**
      * 开启日志监控
-     *
-     * @method _initLogListener
      */
     public function _initLogListener()
     {
@@ -85,8 +77,6 @@ class Bootstrap extends Bootstrap_Abstract
 
     /**
      * 记录数据库查询
-     *
-     * @method _initSqlListener
      */
     public function _initSqlListener()
     {
@@ -102,8 +92,6 @@ class Bootstrap extends Bootstrap_Abstract
 
     /**
      * 加载统计插件
-     *
-     * @method _initTracer
      *
      * @param Yaf_Dispatcher $dispatcher
      */

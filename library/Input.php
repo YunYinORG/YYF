@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -21,12 +21,10 @@ class Input
     /**
      * 输入过滤
      *
-     * @method I
-     *
-     * @param  [string] $param   [输入参数]
-     * @param [mixed] &$export [description]
-     * @param [mixed] $filter  [过滤条件]
-     * @param [type]  $default [description]
+     * @param  string $param   [输入参数]
+     * @param mixed &$export [description]
+     * @param mixed $filter  [过滤条件]
+     * @param type  $default [description]
      *
      * @example if(I('post.phone',$phone,'phone')){}//phone()方法验证
      * @example if(I('get.id',$uid,'int',1)){}//数字，int函数验证,默认1
@@ -71,14 +69,12 @@ class Input
     /**
      * 过滤器
      *
-     * @method filter
-     *
      * @param string &$input  [输入参数]
      * @param mixed &$index  [description]
      * @param mixed &$export [description]
      * @param mixed $filter  [过滤条件]
      *
-     * @return bool [description]
+     * @return bool 验证是否有效
      */
     private static function filter(&$input, &$index, &$export, $filter)
     {

@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -63,6 +63,9 @@ EOF;
         ob_flush();
     }
 
+    /**
+     * 初始化断言拦截
+     */
     public static function init(array $config)
     {
         if (!static::$instance) {
@@ -95,8 +98,6 @@ EOF;
     /**
      * Assertion Handler
      * 断言错误回调
-     *
-     * @method callback
      */
     public static function callback($file, $line, $code, $message = null)
     {

@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -20,12 +20,10 @@ class Safe
     /**
      * 检查尝试次数是否超限
      *
-     * @method checkTry
+     * @param string $key        [标识KEY]
+     * @param int    $timesLimit 次数
      *
-     * @param [type] $key        [description]
-     * @param int    $timesLimit [description]
-     *
-     * @return [type] [description]
+     * @return bool 是否有效
      */
     public static function checkTry($key, $timesLimit = 0)
     {

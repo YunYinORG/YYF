@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -29,8 +29,8 @@ class File
     protected $_serialized     = false; //是否序列化存取
 
     /**
-     * @param [type] $dir [存储目录]
-     * @param  [bool]        [是否序列化，用于记录缓存]
+     * @param string $dir        [存储目录]
+     * @param bool   $serialized [是否序列化，用于记录缓存]
      */
     public function __construct($dir, $serialized = false)
     {
@@ -48,13 +48,11 @@ class File
     /**
      * 保存数据
      *
-     * @method set
-     *
-     * @param [type] $name   [description]
-     * @param [type] $value  [description]
-     * @param mixed  $expire [有效时间]
+     * @param string $name   键
+     * @param mxied  $value  值
+     * @param int    $expire [有效时间]
      */
-    public function set($name, $value, $expire=0)
+    public function set($name, $value, $expire = 0)
     {
         if ($this->_serialized) {
             //序列化写入文件
@@ -69,12 +67,10 @@ class File
     /**
      * 批量保存数据
      *
-     * @method mset
-     *
      * @param array $data   [数据(键值对)]
      * @param int   $expire [有效时间]
      */
-    public function mset(array $data, $expire=0)
+    public function mset(array $data, $expire = 0)
     {
         $dir    =$this->_dir;
         $result = true;
@@ -95,11 +91,9 @@ class File
     /**
      * 读取数据
      *
-     * @method get
+     * @param string $name 名称
      *
-     * @param [type] $name [description]
-     *
-     * @return [type] [description]
+     * @return mixed
      */
     public function get($name)
     {
@@ -125,8 +119,6 @@ class File
     /**
      * 批量读取数据
      *
-     * @method mget
-     *
      * @param array $data [数据(键值对)]
      */
     public function mget(array $data)
@@ -142,11 +134,9 @@ class File
     /**
      * 删除数据
      *
-     * @method delete
+     * @param string name [数据名称]
      *
-     * @param [type] $name [数据名称]
-     *
-     * @return [bool] [description]
+     * @return bool 操作结果
      */
     public function delete($name)
     {
@@ -157,19 +147,18 @@ class File
     /**
      * 删除全部缓存数据
      *
-     * @method flush
-     *
-     * @return [type] [description]
+     * @return File 返回自身
      */
     public function flush()
     {
-        return File::cleanDir($this->_dir);
+        File::cleanDir($this->_dir);
+        return $this;
     }
 
     /**
      * 清空目录
      *
-     * @param [type] $dir [存储目录]
+     * @param string $dir [存储目录]
      */
     public static function cleanDir($dir)
     {

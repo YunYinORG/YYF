@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -49,8 +49,6 @@ abstract class Model
     /**
      * 构造函数
      *
-     * @method __construct
-     *
      * @param  array       $data [传入数据]
      * @access public
      */
@@ -78,10 +76,8 @@ abstract class Model
     /**
      * 直接修改字段
      *
-     * @method __set
-     *
-     * @param [type] $name  [description]
-     * @param [type] $value [description]
+     * @param string $name  [description]
+     * @param mixed  $value [description]
      * @access public
      */
     public function __set($name, $value)
@@ -92,9 +88,7 @@ abstract class Model
     /**
      * 直接读取字段
      *
-     * @method __get
-     *
-     * @return [type] [description]
+     * @return mixed 对应的值
      * @access public
      */
     public function __get($name)
@@ -121,9 +115,7 @@ abstract class Model
     /**
      * 获取模型实例
      *
-     * @method getOrm
-     *
-     * @return [type] [description]
+     * @return Orm 返回对应ORM对象
      */
     public function getOrm()
     {
@@ -138,9 +130,7 @@ abstract class Model
     /**
      * 数据转成json
      *
-     * @method toJson
-     *
-     * @param constant   JSON_ENCODE type
+     * @param int constant JSON_ENCODE type
      */
     public function toJson($type=256)//256isJSON_UNESCAPED_UNICODE
     {

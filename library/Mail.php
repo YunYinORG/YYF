@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -14,6 +14,8 @@ use \Service\Smtp;
  * Mail 邮件发送类
  *
  * @author NewFuture
+ *
+ * @todo 完善和可配置
  */
 class Mail
 {
@@ -34,13 +36,11 @@ class Mail
     /**
      * 发送验证邮件
      *
-     * @method sendVerify
-     *
      * @param string $email [邮箱]
      * @param string $name  [姓名]
-     * @param [type] $link  [验证链接]
+     * @param string $link  [验证链接]
      *
-     * @return [type] [发送结果]
+     * @return bool 发送结果
      */
     public static function sendVerify($email, $name, $link)
     {
@@ -60,13 +60,11 @@ class Mail
     /**
      * 发送邮件
      *
-     * @method send
-     *
      * @param string $from [发送方邮箱]
      * @param string $to   [接收方邮箱]
      * @param array  $msg  [发送信息]
      *
-     * @return [bool] [发送结果]
+     * @return bool [发送结果]
      */
     public function send($from, $to, $msg)
     {
@@ -80,6 +78,9 @@ class Mail
                     ->send($Message);
     }
 
+    /**
+     *获取邮件服务对象
+     */
     public static function getInstance()
     {
         return self::$_instance ?: (self::$_instance = new self());

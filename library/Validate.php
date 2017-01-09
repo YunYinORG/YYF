@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -20,52 +20,62 @@ class Validate
     /**
      * 验证邮箱格式
      *
-     * @method email
+     * @param string &$email    邮箱
+     * @param bool   $ignore_mx 是否验证MX记录(需要联网)
      *
-     * @param [type] &$email    [description]
-     * @param bool   $ignore_mx [是否忽略对mx记录的检查]
-     *
-     * @return [boolean] [验证结果]
+     * @return bool 验证结果
      *
      * @todo 邮箱存在性验证 https://github.com/zytzagoo/smtp-validate-email
      */
-    public static function email(&$email, $ignore_mx = false)
+    public static function email($email, $ignore_mx = false)
     {
         return preg_match(Config::get('regex.email'), $email)
         && ($ignore_mx || checkdnsrr(substr(strrchr($email, '@'), 1)));
     }
 
-    /*验证手机格式*/
+    /**
+     * 验证手机格式
+     */
     public static function phone(&$phone)
     {
         return preg_match(Config::get('regex.phone'), $phone);
     }
 
-    /*验证账号格式*/
+    /**
+     * 验证账号格式
+     */
     public static function account(&$account)
     {
         return preg_match(Config::get('regex.account'), $account);
     }
 
-    /*验证姓名格式*/
+    /**
+     * 验证姓名格式
+     */
     public static function name(&$name)
     {
         return preg_match(Config::get('regex.name'), $name);
     }
 
-    /*验证字符串是否仅由字母，_，数字线组成*/
+    /**
+     * 验证字符串是否仅由字母，_，数字线组成
+     */
     public static function char_num($str)
     {
         return ctype_alnum(strtr($str, '_', 'A'));
     }
 
-    /*验证字符串是否仅由字母，_，数字线组成*/
+    /**
+     * 验证字符串是否仅由字母，_，数字线组成
+     */
     public static function fileName($str)
     {
         return ctype_alnum(strtr($str, '_.', 'AA'));
     }
 
-    /*md5后的字符串*/
+    /**
+     * md5后的字符串
+     */
     public static function isMD5($md5pwd)
     {
         return (strlen($md5pwd) == 32) && ctype_alnum($md5pwd);
@@ -75,12 +85,10 @@ class Validate
      * 验证字符串是否安全含有不安全字符
      *
      * @todo 过于简单暴力
+
+     * @param string $str
      *
-     * @method safeChar
-     *
-     * @param [type] $str [description]
-     *
-     * @return [type] [description]
+     * @return bool
      */
     public static function safeChar($str)
     {

@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -15,18 +15,20 @@
  */
 class Cookie
 {
-    private static $_config = null; //配置
+    /**
+     * 配置
+     *
+     *@var array
+     */
+    private static $_config = null;
+
     /**
      * 设置cookie
      *
-     * @method set
-     *
-     * @param [string] $name   [cookie名称]
-     * @param [mixed]  $value  [cookie值]
-     * @param [string] $path   [存取路径]
-     * @param [int]    $expire 有效时间
-     *
-     * @author NewFuture
+     * @param string $name   cookie名称
+     * @param mixed  $value  cookie值
+     * @param string $path   [存取路径]
+     * @param int    $expire 有效时间
      */
     public static function set($name, $value, $path = '', $expire = null, $domain = null)
     {
@@ -45,13 +47,9 @@ class Cookie
     /**
      * 获取cookie
      *
-     * @method get
+     * @param string $name [cookie名称]
      *
-     * @param [string] $name [cookie名称]
-     *
-     * @return [json]
-     *
-     * @author NewFuture
+     * @return mixed string|array
      */
     public static function get($name)
     {
@@ -63,11 +61,7 @@ class Cookie
     /**
      * 删除
      *
-     * @method del
-     *
-     * @param [string] $name [cookie名称]
-     *
-     * @author NewFuture
+     * @param string $name cookie名称
      */
     public static function del($name, $path = null, $domain = null)
     {
@@ -87,21 +81,16 @@ class Cookie
         if (empty($_COOKIE)) {
             return null;
         }
-
-            /*逐个删除*/
-            foreach ($_COOKIE as $key => $val) {
-                self::del($key);
-            }
+        /*逐个删除*/
+        foreach ($_COOKIE as $key => $val) {
+            self::del($key);
+        }
     }
 
     /**
      * 获取加密密钥
      *
-     * @method key
-     *
-     * @return [type] [description]
-     *
-     * @author NewFuture
+     * @return string 密钥
      */
     public static function key()
     {
@@ -116,13 +105,9 @@ class Cookie
     /**
      * Cookie数据加密编码
      *
-     * @method encode
+     * @param mixed $data 数据
      *
-     * @param [type] $data [description]
-     *
-     * @return [type] [description]
-     *
-     * @author NewFuture
+     * @return string
      */
     private static function encode($data)
     {
@@ -132,13 +117,9 @@ class Cookie
     /**
      * Cookie数据解密
      *
-     * @method encode
+     * @param string $data 待解密字符串
      *
-     * @param [type] $data [description]
-     *
-     * @return [type] [description]
-     *
-     * @author NewFuture
+     * @return mixed
      */
     private static function decode($data)
     {
@@ -150,13 +131,9 @@ class Cookie
     /**
      * 获取cookie配置
      *
-     * @method config
+     * @param string $name 配置变量名
      *
-     * @param  [string] $name [配置变量名]
-     *
-     * @return [mixed] [description]
-     *
-     * @author NewFuture
+     * @return mixed 配置项
      */
     private static function config($name)
     {

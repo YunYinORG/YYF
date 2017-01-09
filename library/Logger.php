@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -13,9 +13,11 @@ use Storage\File as File;
 /**
  * Logger 日志记录
  *
- * @see 遵循 https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
+ * @link https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
  *
  * @author NewFuture
+ *
+ * @example
  * Logger::write($msg, $level = 'NOTICE')//快速写入
  * Logger::log($level, $message [, array $context = array()])
  *
@@ -37,13 +39,23 @@ class Logger
      * @var callable
      */
     public static $listener = null;
+
+    /**
+     * 配置
+     *
+     * @var array
+     */
     private static $_conf   = null;
+
+    /**
+     * 写入文件或者位置
+     *
+     * @var array
+     */
     private static $_files  = null;
 
     /**
      * 写入日志
-     *
-     * @method write
      *
      * @param string $msg   [消息]
      * @param string $level [日志级别]
@@ -89,8 +101,6 @@ class Logger
 
     /**
      * 清空日志(仅对文件模式有效)
-     *
-     * @method write
      */
     public static function clear()
     {
@@ -262,11 +272,9 @@ class Logger
     /**
      * 获取写入流
      *
-     * @method getFile
-     *
      * @param string $tag [日志级别]
      *
-     * @return array [description]
+     * @return string 写入的文件
      */
     private static function getFile($tag)
     {

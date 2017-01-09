@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -25,8 +25,6 @@ class Config
     /**
      * 获取配置
      *
-     * @method get
-     *
      * @param string $key     键值
      * @param type   $default [默认值]
      *
@@ -43,8 +41,6 @@ class Config
 
     /**
      * 获取私密配置
-     *
-     * @method secret
      *
      * @param string $name 配置名
      * @param string $key [键]

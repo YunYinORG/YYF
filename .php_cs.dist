@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -12,7 +12,7 @@ $date   = date('Y');
 $header = <<<EOF
 YYF - A simple, secure, and high performance PHP RESTful Framework.
 
-@see https://github.com/YunYinORG/YYF/
+@link https://github.com/YunYinORG/YYF/
 
 @license Apache2.0
 @copyright 2015-${date} NewFuture@yunyin.org
@@ -30,6 +30,7 @@ $rules = array(
         'align_double_arrow' => true,
         'align_equals'       => true,
     ),
+    'blank_line_after_namespace'                   => true,
     'combine_consecutive_unsets'                   => true,
     'concat_space'                                 => array('spacing' => 'none'), //.字符串连接空格
     'cast_spaces'                                  => true, //case 空格
@@ -49,7 +50,7 @@ $rules = array(
     'lowercase_constants'                          => true, //常量小写
     'method_argument_space'                        => true, //函数参数空格
     'normalize_index_brace'                        => true,
-    'no_alias_functions'                           => true, //Master functions shall be used instead of aliases
+    'no_alias_functions'                           => true, //替换别名函数
     'no_blank_lines_after_class_opening'           => true,
     'no_empty_comment'                             => true, //删除空注释
     'no_empty_statement'                           => true, //删除无用空语句
@@ -70,7 +71,8 @@ $rules = array(
     'no_singleline_whitespace_before_semicolons'   => true,
     'no_trailing_comma_in_list_call'               => true,
     'no_trailing_comma_in_singleline_array'        => true, //单行数组去逗号
-    'no_whitespace_in_blank_line'                  => true, //删除空白行中多余的空格;
+    'no_trailing_whitespace_in_comment'            => true, //去掉注释中尾部空格
+    'no_whitespace_in_blank_line'                  => true, //删除空白行中多余的空格
     'no_whitespace_before_comma_in_array'          => true, //数组去空格
 
     'no_unreachable_default_argument_value'        => true, //去掉不可达的默认参数
@@ -87,7 +89,6 @@ $rules = array(
     'phpdoc_trim'                                  => true,
     'pre_increment'                                => true, //++前置
     'single_blank_line_before_namespace'           => true,
-    'blank_line_after_namespace'                   => true,
     'single_blank_line_at_eof'                     => true, //文件结束后换行
     'single_import_per_statement'                  => true,
     'single_quote'                                 => true, //转单引号

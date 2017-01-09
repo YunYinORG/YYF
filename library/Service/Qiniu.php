@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -21,12 +21,16 @@ use \Logger as Log;
 class Qiniu
 {
     const QINIU_RS         = 'http://rs.qbox.me';
+
+    /**
+     * 参数配置
+     *
+     * @var array
+     */
     public static $_config = null;
 
     /**
-     * 获取文件
-     *
-     * @method download
+     * 获取文件下载链接
      *
      * @param string $domain 域名
      * @param string $name   [文件名]
@@ -44,10 +48,8 @@ class Qiniu
     /**
      * 重命名【移动】
      *
-     * @method move
-     *
-     * @param [type] $from [description]
-     * @param [type] $to   [description]
+     * @param string $from 原文件名
+     * @param string $to   新文件名
      */
     public static function move($from, $to)
     {
@@ -59,12 +61,10 @@ class Qiniu
     /**
      * 复制文件
      *
-     * @method copy
+     * @param string $file     源文件
+     * @param string $copyName 目标文件名
      *
-     * @param [type] $file     [description]
-     * @param [type] $copyName [description]
-     *
-     * @return [type] [description]
+     * @return bool 操作结果
      */
     public static function copy($from, $saveas)
     {
@@ -76,12 +76,10 @@ class Qiniu
     /**
      * 获取token
      *
-     * @method getToken
+     * @param strin $uri     URL
+     * @param int   $timeout 过期时间
      *
-     * @param [type] $uri     [description]
-     * @param int    $timeout [description]
-     *
-     * @return [type] [description]
+     * @return string
      */
     public static function getToken($bucket, $key, $max = 10485760, $timeout = 600)
     {
@@ -98,8 +96,6 @@ class Qiniu
     /**
      * 删除
      *
-     * @method delete
-     *
      * @param string $file [文件名]
      *
      * @return bool [description]
@@ -113,10 +109,9 @@ class Qiniu
     /**
      * 判断文件是否存在
      *
-     * @param [type] $bucket [description]
-     * @param [type] $key    [description]
+     * @param string $uri
      *
-     * @return bool [description]
+     * @return bool 是否存在
      */
     public static function has($uri)
     {
@@ -127,10 +122,10 @@ class Qiniu
     /**
      * 转pdf
      *
-     * @param [type] $file     [description]
-     * @param [type] $saveName [description]
+     * @param string $file     源文件
+     * @param string $saveName 保存文件名
      *
-     * @return [type] [description]
+     * @return bool 操作结果
      */
     public static function toPdf($bucket, $key, $saveas)
     {
@@ -142,8 +137,6 @@ class Qiniu
 
     /**
      * 七牛操作
-     *
-     * @method opration
      *
      * @param string $op [操作命令]
      *
@@ -184,11 +177,9 @@ class Qiniu
     /**
      * 获取url签名
      *
-     * @method sign
+     * @param string $url url
      *
-     * @param [type] $url [description]
-     *
-     * @return [type] [description]
+     * @return string 签名字符串
      */
     private static function sign($url)
     {

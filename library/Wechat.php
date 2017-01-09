@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -17,17 +17,17 @@ use Logger as Log;
  * @author NewFuture
  *
  * @example
- *生成跳转URl
+ * 生成跳转URl
  * $url = Wechat::getAuthUrl();//生成微信认证跳转url
  * $url = Wechat::getAuthUrl('base');//对于关注微信号用户静默跳转链接
  * $url = Wechat::getAuthUrl('login');//网页登录URl
- *前端微信js配置
+ * 前端微信js配置
  * $config = Wechat::signJs('http://yyf.yunyin.org/Wechat/');//生成JS签名
  * $config = Wechat::loginConfig();//生成微信登录配置，供网页端配合微信登录js使用
- *后端微信验证
+ * 后端微信验证
  * $userinfo = Wechat::getUserInfo();//跳转后获取用户信息
  * $openid = Wechat::checkCode();//静默认证获取openid
- *设置获取state [主要防止CSRF】
+ * 设置获取state [主要防止CSRF】
  * 默认根据state的配置自动生成和验证，无需干预
  * 自定义state ： Wechat::state('your state code')->getAuthUrl('baseinfo');
  * 关闭state验证： Wechat::state(FALSE)->checkCode();
@@ -306,7 +306,6 @@ class Wechat
     }
 
     /**
-     * @method _httpGet
      * https请求
      *
      * @param string $url

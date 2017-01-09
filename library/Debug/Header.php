@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -16,14 +16,18 @@ use \Yaf_Application as Application;
 
 /**
  * 响应头输出调试信息
+ * 支持链式调用
  *
- * @author NewFuture
+ * @method Header key($value) 快速调用
+ *
+ * @example
  * Header::log('some log info');
  * Header::warn('unexpected messages');
  * Header::error('error');
  * Header::dump('data');
- * 支持链式调用
  * Header::warn('wrong message')->dump($data);
+ *
+ * @author NewFuture
  */
 class Header
 {
@@ -45,8 +49,8 @@ class Header
     /**
      * 通过http header dump数据
      *
-     * @param string $key   [description]
-     * @param [type] $value [description]
+     * @param string $key   header键
+     * @param mixed  $value 对应值
      */
     public function __invoke($key, $value)
     {
@@ -103,10 +107,10 @@ class Header
         $head = static::instance();
         if (isset($params[1])) {
             //多参数
-          return  $head($Type, $params);
+            return  $head($Type, $params);
         } elseif (isset($params[0])) {
             //单参数
-           return $head($Type, $params[0]);
+            return $head($Type, $params[0]);
         }
     }
 
@@ -142,7 +146,7 @@ class Header
     /**
      * 获取事例
      *
-     * @return [type] [description]
+     * @return Header 自身实体
      */
     public static function instance()
     {
@@ -152,7 +156,7 @@ class Header
     /**
      * 转换object->array
      *
-     * @param [type] $object [description]
+     * @param Object $object [description]
      *
      * @return array
      */

@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -42,9 +42,6 @@ abstract class Rest extends Controller_Abstract
 
     /**
      * 结束时自动输出信息
-     *
-     * @method __destruct
-     * @access public
      */
     public function __destruct()
     {
@@ -58,7 +55,6 @@ abstract class Rest extends Controller_Abstract
      * 初始化 REST 路由
      * 修改操作 和 绑定参数
      *
-     * @method init
      * @access protected
      */
     protected function init()
@@ -134,7 +130,6 @@ abstract class Rest extends Controller_Abstract
     /**
      * 设置返回信息，立即返回
      *
-     * @method response
      * @access protected
      *
      * @param int   $status 返回状态
@@ -154,7 +149,6 @@ abstract class Rest extends Controller_Abstract
     /**
      * 快速返回成功信息(status为1)
      *
-     * @method success
      * @access protected
      *
      * @param mixed $data 返回数据内容
@@ -173,7 +167,6 @@ abstract class Rest extends Controller_Abstract
     /**
      * 快速返回失败信息(status为0)
      *
-     * @method fail
      * @access protected
      *
      * @param mixed $data 返回数据内容
@@ -192,7 +185,7 @@ abstract class Rest extends Controller_Abstract
     /**
      * CORS 跨域请求响应头处理
      *
-     * @method corsHeader
+     * @param array $cors CORS配置
      * @access private
      */
     private function corsHeader(array $cors)

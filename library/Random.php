@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -19,8 +19,6 @@ class Random
 {
     /**
      * 生成指定长度的随机数字
-     *
-     * @method number
      *
      * @param int $n [description]
      */
@@ -50,9 +48,7 @@ class Random
      * 验证码生成
      * 会过滤掉0O1lL等不易辨识字符
      *
-     * @method code
-     *
-     * @param [integer] $n [description]
+     * @param int $n 个数
      *
      * @return string
      */

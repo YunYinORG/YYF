@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -13,6 +13,9 @@
  */
 class ErrorController extends Yaf_Controller_Abstract
 {
+    /**
+     * 错误处理函数
+     */
     public function errorAction($exception)
     {
         Yaf_Dispatcher::getInstance()->disableView();

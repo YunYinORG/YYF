@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -16,11 +16,6 @@ use Storage\File as File;
  * 缓存类 Cache
  *
  * @author NewFuture
- * Function list:
- * - set()
- * - get()
- * - del()
- * - flush()
  */
 class Cache
 {
@@ -29,8 +24,6 @@ class Cache
 
     /**
      * 设置缓存
-     *
-     * @method set
      *
      * @param string|array $name   键
      * @param mixed        $value  值
@@ -51,17 +44,16 @@ class Cache
                     return $handler->setMulti($name, $value);
 
                 case 'redis':
-
                     $result = true;
-                     if ($value) {
-                         foreach ($name as $k => &$v) {
-                             $result = $result && $handler->setEx($k, $value, serialize($v));//memcache 原始时间
-                         }
-                     } else {
-                         foreach ($name as $k => &$v) {
-                             $result = $result && $handler->set($k, serialize($v));//memcache 原始时间
-                         }
-                     }
+                    if ($value) {
+                        foreach ($name as $k => &$v) {
+                            $result = $result && $handler->setEx($k, $value, serialize($v));//memcache 原始时间
+                        }
+                    } else {
+                        foreach ($name as $k => &$v) {
+                            $result = $result && $handler->set($k, serialize($v));//memcache 原始时间
+                        }
+                    }
                     return  $result;
 
                 case 'file':
@@ -91,8 +83,6 @@ class Cache
     /**
      * 读取缓存数据
      *
-     * @method get
-     *
      * @param string|array $name    键
      * @param mixed        $default [默认值false]
      *
@@ -110,7 +100,7 @@ class Cache
                     if (count($default) === count($name)) {
                         return $default;
                     }
-                        return array_merge(array_fill_keys($name, false), $default);
+                    return array_merge(array_fill_keys($name, false), $default);
 
                 case 'file':
                     return $handler->mget($name);
@@ -119,7 +109,7 @@ class Cache
                     if ($value = $handler->mget($name)) {
                         return array_combine($name, array_map('unserialize', $value));
                     }
-                        return array_fill_keys($name, $default);
+                    return array_fill_keys($name, $default);
 
                 case 'memcache':
                     $result = array();
@@ -137,8 +127,6 @@ class Cache
     /**
      * 删除缓存数据
      *
-     * @method del
-     *
      * @param string $name 键值
      *
      * @return bool
@@ -150,8 +138,6 @@ class Cache
 
     /**
      * 清空缓存
-     *
-     * @method fush
      *
      * @return bool 操作结果
      */
@@ -167,7 +153,7 @@ class Cache
     /**
      * 获取处理方式
      *
-     * @return $_handler
+     * @return objecct $_handler
      */
     public static function handler()
     {
@@ -179,18 +165,18 @@ class Cache
             case 'memcached': //redis 存储
                   $config = Config::getSecret('memcached');
                   $config = $config->get('cache') ?: $config->get('_');
-                  if ($mcid = $config->get('mcid')) {
-                      //共享长连接
-                      $handler = new \Memcached($mcid);
-                      if (!$handler->getServerList()) {
-                          //无可用服务器时建立连接
-                          $handler->addServer($config->get('host'), $config->get('port'));
-                      }
-                  } else {
-                      $handler = new \Memcached();
-                      $handler->addServer($config->get('host'), $config->get('port'));
-                  }
-               break;
+                if ($mcid = $config->get('mcid')) {
+                    //共享长连接
+                    $handler = new \Memcached($mcid);
+                    if (!$handler->getServerList()) {
+                        //无可用服务器时建立连接
+                        $handler->addServer($config->get('host'), $config->get('port'));
+                    }
+                } else {
+                    $handler = new \Memcached();
+                    $handler->addServer($config->get('host'), $config->get('port'));
+                }
+                break;
 
             case 'redis': //redis 存储
                   $config = Config::getSecret('redis');
@@ -202,11 +188,11 @@ class Cache
                   ($value = $config->get('auth')) && $handler->auth($value);
                   //限定数据库
                   ($value = $config->get('db')) && $handler->select($value);
-               break;
+                break;
 
             case 'file': //文件存储
-               $handler = new File(Config::get('runtime').'cache', true);
-               break;
+                $handler = new File(Config::get('runtime').'cache', true);
+                break;
 
             case 'memcache': // memcahe 包括 sae
                 $config  = Config::getSecret('memcahe', 'cache');

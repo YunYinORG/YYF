@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -28,8 +28,6 @@ class Kv
 
     /**
      * 设置缓存
-     *
-     * @method set
      *
      * @param string $name   [缓存名称]
      * @param mixed  $value  [缓存值]
@@ -57,8 +55,6 @@ class Kv
 
     /**
      * 读取缓存数据
-     *
-     * @method get
      *
      * @param string|array $name [缓存名称]
      *
@@ -90,8 +86,6 @@ class Kv
 
     /**
      * 清空存储
-     *
-     * @method fush
      */
     public static function flush()
     {
@@ -112,8 +106,6 @@ class Kv
 
     /**
      * 清空存储
-     *
-     * @method clear
      */
     public static function clear()
     {
@@ -124,7 +116,7 @@ class Kv
     /**
      * 获取处理方式
      *
-     * @return $_handler
+     * @return Object 存储管理类 $_handler
      */
     public static function handler()
     {

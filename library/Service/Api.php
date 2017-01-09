@@ -2,7 +2,7 @@
 /**
  * YYF - A simple, secure, and high performance PHP RESTful Framework.
  *
- * @see https://github.com/YunYinORG/YYF/
+ * @link https://github.com/YunYinORG/YYF/
  *
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
@@ -24,14 +24,12 @@ class Api
      * 连接远程服务器
      * curl扩展未开启时尝试file_get_contents
      *
-     * @method connect
-     *
      * @param string $url    [服务器url地址]
      * @param array  $header [请求头]
      * @param string $method [请求方式POST,GET]
      * @param string $data   [附加数据，body]
      *
-     * @return array($header,$body)[请求响应结果]
+     * @return array ($header,$body)[请求响应结果]
      */
     public static function connect($url, $header = array(), $method = 'POST', $data = '')
     {
