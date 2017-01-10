@@ -8,6 +8,7 @@
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
 
+use \DomainException as DomainException;
 use \InvalidArgumentException as InvalidArgumentException;
 use \Logger as Logger;
 
@@ -36,11 +37,17 @@ class Orm implements \JsonSerializable, \ArrayAccess
     protected $_data  = array(); //数据
     protected $_alias = null; //别名
 
-    protected $_safe         = true; //安全模式
-    protected $_debug        = false;//调试输出
-    protected $_db           = null;//此orm优先使用的数据库
-    protected $_clear        = true;
-    private static $_paramid = 0; //参数ID
+    protected $_safe  = true; //安全模式
+    protected $_debug = false;//调试输出
+    protected $_db    = null;//此orm优先使用的数据库
+    protected $_clear = true;
+
+    /**
+     * 自增参数ID
+     *
+     * @var int
+     */
+    private static $_paramid = 0;
 
     private $_param    = array(); //查询参数
     private $_joins    = array(); //join 表
@@ -182,11 +189,11 @@ class Orm implements \JsonSerializable, \ArrayAccess
             /*字段过滤，支持字段别名*/
             $fields = Orm::fieldFilter($fields, $data);
         } else {
-            ksort($data);
+            //使用键作为字段名
             $fields = array_keys($data);
         }
 
-        foreach ($data as &$value) {
+        foreach ($data as &$value) {//绑定参数
             $value = $this->bindParam($value);
         }
         $sql    = $this->buildInsert($data);
@@ -230,9 +237,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
             //清理后无有效数据
              return false;
         }
-        $db        = $this->getDb('_write');
-        $is_sqlite = 'sqlite' === $db->getAttribute(PDO::ATTR_DRIVER_NAME) && version_compare('3.7.11', $db->getAttribute(PDO::ATTR_SERVER_VERSION), '>');
-        $sql       = $this->buildInsert($data, $is_sqlite);
+        $db     = $this->getDb('_write');
+        $sqlite = 'sqlite' === $db->getAttribute(PDO::ATTR_DRIVER_NAME) &&
+                    version_compare('3.7.11', $db->getAttribute(PDO::ATTR_SERVER_VERSION), '>');
+        $sql    = $this->buildInsert($data, $sqlite);
         return $this->execute($sql);
     }
 
@@ -561,7 +569,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
      */
     public function order($fields, $desc = false)
     {
-        assert('is_bool($desc)||in_array(strtoupper($desc),array("DESC","ASC"))', '[Orm::order]第二个参数$desc,请留空或者使用bool型(TRUE降序):'.$desc);
+        assert(
+            'is_bool($desc)||in_array(strtoupper($desc),array("DESC","ASC"))',
+            '[Orm::order]第二个参数$desc,请留空或者使用bool型(TRUE降序):'.$desc
+        );
         $this->_order[$fields] = $desc && strtoupper($desc) !== 'ASC' ? 'DESC' : '';
         return $this;
     }
@@ -582,10 +593,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
             $this->_param[$limit[1]] = intval($offset);
         } else {
             //第一次设置
-             $limit = array(
-                        $this->bindParam(intval($maxsize)),
-                        $this->bindParam(intval($offset))
-                    );
+            $limit = array(
+                $this->bindParam(intval($maxsize)),
+                $this->bindParam(intval($offset))
+            );
         }
         return $this;
     }
@@ -609,15 +620,15 @@ class Orm implements \JsonSerializable, \ArrayAccess
      *
      * @param string $type  [连接方式]
      * @param string $table [对应表名]
-     * @param  amixed $on    [JOIN ON的条件或者$table连接的键]
-     * @param  string $related_key    [JOIN 与table关联的键]
+     * @param mixed  $on    [JOIN ON的条件或者$table连接的键]
+     * @param string $related_key    [JOIN 与table关联的键]
      *
      * @return $this
      */
     public function join($type, $table, $on, $related_key = null)
     {
         if (!in_array($type, array('INNER', 'LEFT', 'RIGHT', 'OUTER', 'FULL OUTER'))) {
-            throw new Exception('[Orm::join] 第二个参数type不是JOIN支持的关联方式:'.$type, 1);
+            throw new InvalidArgumentException('[Orm::join] 第二个参数type不是JOIN支持的关联方式:'.$type, 1);
         }
         $fun_num = func_num_args();
         if (4 === $fun_num) {
@@ -1040,7 +1051,14 @@ class Orm implements \JsonSerializable, \ArrayAccess
         $sql    = 'INSERT INTO'.Orm::backQoute($this->_pre.$this->_table).'(';
         $fields = &$this->_fields;
         foreach ($fields as $field => $alias) {
-            $sql .= Orm::backQoute(is_int($field) ? $alias : $field).',';
+            if (is_int($field)) {//无别名设置
+                $field = $alias;
+                if ($pos = strpos($field, '(')) {//含有括号(函数)
+                    $func         = Orm::execFuncParse($field, $pos);
+                    $data[$alias] = $func.'('.$data[$alias].')';
+                }
+            }
+            $sql .= Orm::backQoute($field).',';
         }
         $sql[strlen($sql) - 1] = ')'; //去掉最后的，
 
@@ -1086,20 +1104,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
     {
         $sql = 'UPDATE'.Orm::backQoute($this->_pre.$this->_table).'SET ';
         foreach ($data as $key => $value) {
-            if ($pos = strpos($key, '(')) {
-                //函数表达式
+            if ($pos = strpos($key, '(')) {//函数表达式
                 //FUNC(field) => value 转成 field => FUNC(value)
-                $fun = strtoupper(trim(substr($key, 0, $pos)));
-                if (ctype_alnum(strtr($fun, '_', 'A'))) {
-                    //非法字符(除字母，数字，下划线以外的字符)
-                    throw new InvalidArgumentException('字段函数包含非法字符(unsafe char find in field)'.$key);
-                }
-                assert(
-                    'strncmp($fun, "GEOMFROM", 8)===0 || substr_compare($fun, "FROMTEXT", -8)===0)',
-                    '[Orm::buildUpdate] 更新函数不是安全的函数: '.$key
-                );
-                $value = "$fun($v)";
-                $key   = trim(substr($key, $pos + 1, -1));
+                $func  = Orm::execFuncParse($key, $pos);
+                $value = "$func($value)";
             }
             $sql .= Orm::backQoute($key).'='.$value.',';
         }
@@ -1297,14 +1305,18 @@ class Orm implements \JsonSerializable, \ArrayAccess
                     }
                     $limit = ' LIMIT '.$limit[0];
                 }
-            } elseif ('sqlite' === $driver
-                && !in_array(array('compile_option' => 'ENABLE_UPDATE_DELETE_LIMIT'), $db->query('PRAGMA compile_options'))) {
+            } elseif ('sqlite' === $driver &&
+                !in_array(array('compile_option' => 'ENABLE_UPDATE_DELETE_LIMIT'), $db->query('PRAGMA compile_options'))
+            ) {
                 //sqlite and not support ENABLE_UPDATE_DELETE_LIMIT
                 // clear limit
                 // risk
                 $this->_limit = null;
                 if ($limit) {
                     if ($param[$limit[0]] > 1) {
+                        if ($this->_safe) {
+                            throw new LogicException('当前SQLITE驱动不支持update with limit'.$param[$limit[0]]);
+                        }
                         Logger::error('[ORM] 当前SQLITE不支持update with limit, limit条件('.$param[$limit[0]].')已被自动忽略!(重新编译sqlite加上参数 ENABLE_UPDATE_DELETE_LIMIT)');
                     }
                     unset($param[$limit[0]]);
@@ -1434,25 +1446,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
     }
 
     /**
-     * 字段过滤 [支持别名方式的字段，别名得数据将被替换成证实字段名]
-     *
-     * @param array $fields [字段,会被过滤]
-     * @param array &$data  [数据,被过滤的数据]
-     *
-     * @return array 过滤后的字段
-     */
-    protected static function fieldFilter(array $fields, array &$data)
-    {
-        assert('is_array($fields)&&is_array($data)', '[Orm::fieldFilter]过滤字段和数据都应该是数组');
-        asort($fields);
-        ksort($data);
-        $fields = array_intersect($fields, array_keys($data)); //合并后的字段
-        $data   = array_intersect_key($data, array_flip($fields));
-        assert('count($fields)===count($data)', '[Orm::fieldFilter]过滤后字段和数据大小不一致');
-        return $fields;
-    }
-
-    /**
      * 字段加引号
      *
      * @param string $field_str     [字段名称或者$table.$field]
@@ -1481,7 +1474,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
                 break;
             default:
                 if ($this->_safe) {
-                    throw new Exception('[无法解析表名.字段]:'.$field_str);
+                    throw new DomainException('[无法解析表名.字段]:'.$field_str);
                 }
                 return $field_str;
         }
@@ -1506,12 +1499,14 @@ class Orm implements \JsonSerializable, \ArrayAccess
         if (strlen($fun) === strlen($str)) {
             //不是函数按照字段处理
             return $this->qouteField($str);
-        } elseif (in_array($fun, array('ABS', 'ASWKT', 'ASBINARY', 'ASTEXT', 'AVG', 'COUNT', 'LCASE', 'LENGTH', 'MAX', 'MIN', 'SIGN', 'SUM', 'UCASE'))) {
+        } elseif (in_array($fun, array('ABS', 'ASWKT', 'ASBINARY', 'ASTEXT', 'AVG',
+        'COUNT', 'LCASE', 'LENGTH', 'MAX', 'MIN', 'SIGN', 'SUM', 'UCASE'))) {
+            //求值函数
             $arg = trim(strtok(')'));//字段
             assert('false===strtok(")")', '[Orm::parseFunction]函数表达式解析异常'.$str);
             return $fun.'('.$this->qouteField($arg).')';
         }
-        throw new Exception('无法解析表达式'.$str);
+        throw new DomainException('无法解析表达式'.$str);
     }
 
     /**
@@ -1534,8 +1529,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
                     break;
                 case 5://字段与字段关系，对字段编码
                     if (is_array($w[3])) {
-                        assert('in_array($w[2],array("BETWEEN","NOT BETWEEN","IN","NOT IN"))',
-                            '[Orm::buildCondition]只有IN和between后可接数组参数');
+                        assert(
+                            'in_array($w[2],array("BETWEEN","NOT BETWEEN","IN","NOT IN"))',
+                            '[Orm::buildCondition]只有IN和between后可接数组参数'
+                        );
                         foreach ($w[3] as &$f) {
                             $f = $this->qouteField($f);
                         }
@@ -1557,14 +1554,17 @@ class Orm implements \JsonSerializable, \ArrayAccess
                             $value = $value[0].' AND '.$value[1];
                         } else {
                             //IN
-                            assert('in_array($operator, array("IN","NOT IN"))', '[Orm::buildCondition] 只有IN和BETWEEN相关操作能使用数组'.$w[2]);
+                            assert(
+                                'in_array($operator, array("IN","NOT IN"))',
+                                '[Orm::buildCondition] 只有IN和BETWEEN相关操作能使用数组'.$w[2]
+                            );
                             $value = '('.implode(',', $value).')';
                         }
                     }
                     $sql .= $this->qouteField($w[1]).$operator.' '.$value;
                     break;
                 default:
-                    throw new Exception('无法处理的条件:'.json_encode($w), 1);
+                    throw new DomainException('无法处理的条件:'.json_encode($w), 1);
             }
             $sql .= ')';
         }
@@ -1611,7 +1611,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
     {
         assert('is_array($condition)', '[Orm::parseCondition]条件解析数据必须是数组');
         assert('is_string($condition[0])', '[Orm::parseCondition]条件数组的第一个元素必须是字符串');
-        assert('!isset($condition[1])||(is_scalar($condition[1])||is_null($condition[1]))', '[Orm::parseCondition]条件数组第二个参数必须是基本类型');
+        assert(
+            '!isset($condition[1])||(is_scalar($condition[1])||is_null($condition[1]))',
+            '[Orm::parseCondition]条件数组第二个参数必须是基本类型'
+        );
         $result = $addition ? array($addition,$condition[0]) : array($condition[0]);
         switch (count($condition)) {
             case 2: //两个值,相等条件
@@ -1628,8 +1631,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
                 $operator = strtoupper($condition[1]);
                 $value    = &$condition[2];
                 if (null === $value) { //NULL值判断标准化
-                    assert('in_array($condition[1],array("=","<>","!=","IS"))',
-                     '[Orm::parseCondition]NULL值判读只允许 [等于] 或者[不等于]');
+                    assert(
+                        'in_array($condition[1],array("=","<>","!=","IS"))',
+                        '[Orm::parseCondition]NULL值判读只允许 [等于] 或者[不等于]'
+                    );
                     assert('!$bind_value', '[Orm::parseCondition]NULL值时不能设为字段');
                     $result[] = 'IS';
                     $result[] = (('=' === $operator) || ('IS' === $operator)) ? 'NULL' : 'NOT NULL';
@@ -1639,15 +1644,19 @@ class Orm implements \JsonSerializable, \ArrayAccess
                     if ($bind_value) {
                         //绑定参数
                         if (is_array($value)) {
-                            assert('in_array($operator,array("BETWEEN","NOT BETWEEN","IN","NOT IN"))',
-                                '[Orm::parseCondition]只有IN和between后可接数组参数');
+                            assert(
+                                'in_array($operator,array("BETWEEN","NOT BETWEEN","IN","NOT IN"))',
+                                '[Orm::parseCondition]只有IN和between后可接数组参数'
+                            );
                             foreach ($value as &$v) {
                                 $v = $this->bindParam($v);
                             }
                             unset($v);
                         } else {
-                            assert('in_array($operator,array("=","<>","!=",">",">=","<","<=","LIKE","NOT LIKE","LIKE BINARY","NOT LIKE BINARY"))',
-                                '[Orm::parseCondition]只有值比较可以使用这些类型');
+                            assert(
+                                'in_array($operator,array("=","<>","!=",">",">=","<","<=","LIKE","NOT LIKE","LIKE BINARY","NOT LIKE BINARY"))',
+                                '[Orm::parseCondition]只有值比较可以使用这些类型'
+                            );
                             $value = $this->bindParam($value);
                         }
                     }
@@ -1656,8 +1665,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
                 break;
             case 4: //4元表达式between
                 $operator = strtoupper($condition[1]);
-                assert('in_array($operator,array("BETWEEN","NOT BTWEEN"))',
-                    '[Orm::parseCondition] 四参数条件只支持[not ]between表达式 :'.$operator);
+                assert(
+                    'in_array($operator,array("BETWEEN","NOT BTWEEN"))',
+                    '[Orm::parseCondition] 四参数条件只支持[not ]between表达式 :'.$operator
+                );
                 $result[] = $operator;
                 $result[] = $bind_value ?
                     array($this->bindParam($condition[2]),$this->bindParam($condition[3])) :
@@ -1665,19 +1676,63 @@ class Orm implements \JsonSerializable, \ArrayAccess
                 break;
             case 1: //表达式
                 if ($this->_safe) {
-                    throw new Exception('安全模式，where条件不允许设置一个参数的或者单条sql条件语句[此语句不会解析和封装]');
+                    throw new DomainException('安全模式，where条件不允许设置一个参数的或者单条sql条件语句[此语句不会解析和封装]');
                     return;
                 }
                 $result = array(null,$condition[0]);
                 break;
             default:
-                throw new Exception('where条件参数太多，无法解析.'.json_encode($condition, 256));
+                throw new InvalidArgumentException('where条件参数太多，无法解析.'.json_encode($condition, 256));
                 break;
         }
         if (!$bind_value) {
             $result[] = true;
         }
         return $result;
+    }
+
+    /**
+     * 字段过滤 [支持别名方式的字段，别名得数据将被替换成证实字段名]
+     *
+     * @param array $fields [字段,会被过滤]
+     * @param array &$data  [数据,被过滤的数据]
+     *
+     * @return array 过滤后的字段
+     */
+    private static function fieldFilter(array $fields, array &$data)
+    {
+        assert('is_array($fields)&&is_array($data)', '[Orm::fieldFilter]过滤字段和数据都应该是数组');
+        asort($fields);
+        ksort($data);
+        $fields = array_intersect($fields, array_keys($data)); //合并后的字段
+        $data   = array_intersect_key($data, array_flip($fields));
+        assert('count($fields)===count($data)', '[Orm::fieldFilter]过滤后字段和数据大小不一致');
+        return $fields;
+    }
+
+    /**
+     * 解析写入操作中的字段函数
+     *
+     * @param string &$key 字符串
+     * @param int    $pos  括号位置
+     *
+     * @return string function name
+     */
+    private static function execFuncParse(&$key, $pos)
+    {
+        //提取函数名
+        $fun = strtoupper(trim(substr($key, 0, $pos)));
+        if (!ctype_alnum(strtr($fun, '_', 'A'))) {
+            //非法字符(除字母，数字，下划线以外的字符)
+            throw new InvalidArgumentException('字段函数包含非法字符(unsafe char find in field)'.$key);
+        }
+        assert(
+            'strncmp($fun, "GEOMFROM", 8)===0 || substr_compare($fun, "FROMTEXT", -8)===0',
+            '[Orm::execFuncParse] 更新函数不是安全的函数: '.$key
+        );
+        assert('substr($key,-1) === ")"', '[Orm::execFuncParse]函数格式有误'.$key);
+        $key = trim(substr($key, $pos + 1, -1));//提取字段名
+        return $fun;
     }
 
     // /*implements IteratorAggregate 迭代器 php 版本>=5.5*/
