@@ -8,6 +8,7 @@
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
 
+use \InvalidArgumentException as InvalidArgumentException;
 use \Logger as Logger;
 
 /**
@@ -1036,7 +1037,6 @@ class Orm implements \JsonSerializable, \ArrayAccess
      */
     protected function buildInsert(array &$data, $is_sqlite = false)
     {
-        reset($data);
         $sql    = 'INSERT INTO'.Orm::backQoute($this->_pre.$this->_table).'(';
         $fields = &$this->_fields;
         foreach ($fields as $field => $alias) {
@@ -1044,7 +1044,12 @@ class Orm implements \JsonSerializable, \ArrayAccess
         }
         $sql[strlen($sql) - 1] = ')'; //去掉最后的，
 
-        if ($is_sqlite) {
+        reset($data);
+        if (is_string(key($data))) { //单条记录插入
+            assert('is_array($data) && count($fields)===count($data)', '[Orm::buildInsert] $data 应该是数组');
+            $sql .= 'VALUES('.implode(',', $data).')';
+        } elseif ($is_sqlite) { //多条SQLite插入
+            //参看 http://stackoverflow.com/questions/1609637/is-it-possible-to-insert-multiple-rows-at-a-time-in-an-sqlite-database
             $sql .= 'SELECT ';
             foreach (current($data) as $key => $value) {
                 $sql .= $value.' AS'.Orm::backQoute($key).',';
@@ -1053,20 +1058,17 @@ class Orm implements \JsonSerializable, \ArrayAccess
             while ($next = next($data)) {
                 $sql .= 'UNION ALL SELECT '.implode(',', $next).PHP_EOL;
             }
-        } else {
+        } else { //多条SQL插入
+            assert(
+                'is_array($data[0]) && count($fields)===count($data[0])',
+                '[Orm::buildInsert] $data 应该是一个二维数组,其中每个数组是一条记录'
+            );
             $sql .= 'VALUES';
-            // reset($data);
-            if (is_string(key($data))) {
-                assert('is_array($data)&&count($fields)===count($data)', '[Orm::buildInsert] $data 应该是数组');
-                $sql .= '('.implode(',', $data).'),';
-            } else {
-                assert('is_array($data[0])&&count($fields)===count($data[0])', '[Orm::buildInsert] $data 应该是一个二维数组,其中每个数组是一条记录');
-                foreach ($data as &$row) {
-                    $sql .= '('.implode(',', $row).'),';
-                }
-                unset($row);
+            foreach ($data as &$row) {
+                $sql .= '('.implode(',', $row).'),';
             }
             $sql[strlen($sql) - 1] = ' ';
+            unset($row);
         }
         return $sql;
     }
@@ -1083,8 +1085,23 @@ class Orm implements \JsonSerializable, \ArrayAccess
     protected function buildUpdate(array &$data)
     {
         $sql = 'UPDATE'.Orm::backQoute($this->_pre.$this->_table).'SET ';
-        foreach ($data as $key => $v) {
-            $sql .= Orm::backQoute($key).'='.$v.',';
+        foreach ($data as $key => $value) {
+            if ($pos = strpos($key, '(')) {
+                //函数表达式
+                //FUNC(field) => value 转成 field => FUNC(value)
+                $fun = strtoupper(trim(substr($key, 0, $pos)));
+                if (ctype_alnum(strtr($fun, '_', 'A'))) {
+                    //非法字符(除字母，数字，下划线以外的字符)
+                    throw new InvalidArgumentException('字段函数包含非法字符(unsafe char find in field)'.$key);
+                }
+                assert(
+                    'strncmp($fun, "GEOMFROM", 8)===0 || substr_compare($fun, "FROMTEXT", -8)===0)',
+                    '[Orm::buildUpdate] 更新函数不是安全的函数: '.$key
+                );
+                $value = "$fun($v)";
+                $key   = trim(substr($key, $pos + 1, -1));
+            }
+            $sql .= Orm::backQoute($key).'='.$value.',';
         }
         $sql[strlen($sql) - 1] = ' ';
         $sql .= $this->buildJoin()
