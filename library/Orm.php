@@ -13,21 +13,13 @@ use \InvalidArgumentException as InvalidArgumentException;
 use \Logger as Logger;
 
 /**
- * 数据库表
+ * 数据库表操作封装
  * ORM
- * join 类型 JOIN_TYPE = array('INNER', 'LEFT', 'RIGHT', 'OUTER', 'FULL OUTER');
- * 查询支持的函数 FUNCTIONS = array('ABS','AVG','COUNT','LCASE','LENGTH','MAX','MIN','SIGN','SUM','UCASE',);
- * where 表达式 比较符
- *  'op' => array('=', '<>', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'LIKE BINARY', 'NOT LIKE BINARY'), //值比较
- *  'BT' => array('BETWEEN', 'NOT BETWEEN'),
- *  'IN' => array('IN', 'NOT IN'),
  *
  * @author NewFuture
  *
  * @todo sql缓存
- * @todo where字段 set别名支持(修改数据库时需要)
  * @todo where嵌套构建
- * @todo 计算表达式解析?
  */
 class Orm implements \JsonSerializable, \ArrayAccess
 {
@@ -1317,7 +1309,8 @@ class Orm implements \JsonSerializable, \ArrayAccess
                         if ($this->_safe) {
                             throw new LogicException('当前SQLITE驱动不支持update with limit'.$param[$limit[0]]);
                         }
-                        Logger::error('[ORM] 当前SQLITE不支持update with limit, limit条件('.$param[$limit[0]].')已被自动忽略!(重新编译sqlite加上参数 ENABLE_UPDATE_DELETE_LIMIT)');
+                        Logger::error('[ORM] 当前SQLITE不支持update with limit, limit条件('.$param[$limit[0]]
+                            .')已被自动忽略!(若要启用:重新编译sqlite加上参数 ENABLE_UPDATE_DELETE_LIMIT)');
                     }
                     unset($param[$limit[0]]);
                     if (isset($limit[1]) && isset($param[$limit[1]])) {
@@ -1529,18 +1522,20 @@ class Orm implements \JsonSerializable, \ArrayAccess
                     break;
                 case 5://字段与字段关系，对字段编码
                     if (is_array($w[3])) {
+                        //数组条件(多个值)
                         assert(
                             'in_array($w[2],array("BETWEEN","NOT BETWEEN","IN","NOT IN"))',
-                            '[Orm::buildCondition]只有IN和between后可接数组参数'
+                            '[Orm::buildCondition]只有IN和between后可接数组参数:'.$w[2]
                         );
                         foreach ($w[3] as &$f) {
                             $f = $this->qouteField($f);
                         }
                         unset($f);
                     } else {
+                        //单个值比较
                         assert(
                             'in_array($w[2],array("=","<>",">",">=","<","<=","LIKE","NOT LIKE","LIKE BINARY","NOT LIKE BINARY"))',
-                            '[Orm::buildCondition]只有值比较可以使用这些类型'
+                            '[Orm::buildCondition]只有值比较可以使用这些类型: '.$w[2]
                         );
                         $w[3] = $this->qouteField($w[3]);
                     }
@@ -1655,7 +1650,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
                         } else {
                             assert(
                                 'in_array($operator,array("=","<>","!=",">",">=","<","<=","LIKE","NOT LIKE","LIKE BINARY","NOT LIKE BINARY"))',
-                                '[Orm::parseCondition]只有值比较可以使用这些类型'
+                                '[Orm::parseCondition]只有值比较可以使用这些类型:'.$operator
                             );
                             $value = $this->bindParam($value);
                         }
