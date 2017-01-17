@@ -1,47 +1,107 @@
 <?php
+/**
+ * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ *
+ * @link https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+
+$date   = date('Y');
+$header = <<<EOF
+YYF - A simple, secure, and high performance PHP RESTful Framework.
+
+@link https://github.com/YunYinORG/YYF/
+
+@license Apache2.0
+@copyright 2015-${date} NewFuture@yunyin.org
+EOF;
 
 $finder = PhpCsFixer\Finder::create()
     ->exclude('runtime/')
-    ->in(__DIR__);
+    ->in(__DIR__)
+;
+
+$rules = array(
+    '@PSR2'                                        => true, //以PSR2为基准
+    'array_syntax'                                 => array('syntax' => 'long'), //数组统一转array
+    'binary_operator_spaces'                       => array(//箭头对齐
+        'align_double_arrow' => true,
+        'align_equals'       => true,
+    ),
+    'blank_line_after_namespace'                   => true,
+    'combine_consecutive_unsets'                   => true,
+    'concat_space'                                 => array('spacing' => 'none'), //.字符串连接空格
+    'cast_spaces'                                  => true, //case 空格
+    'declare_equal_normalize'                      => true,
+    'elseif'                                       => true, //else if 转elseif
+    'encoding'                                     => true, //utf8 无bom头编码
+    'full_opening_tag'                             => true,
+    'hash_to_slash_comment'                        => true, //注释#转//
+    'heredoc_to_nowdoc'                            => true, //heredoc转nowdoc
+    'header_comment'                               => array(
+        'header'      => $header,
+        'separate'    => 'none',
+        'commentType' => 'PHPDoc',
+    ),
+    'indentation_type'                             => true,
+    'line_ending'                                  => true,
+    'lowercase_cast'                               => true, //case 小写
+    'lowercase_constants'                          => true, //常量小写
+    'method_argument_space'                        => true, //函数参数空格
+    'normalize_index_brace'                        => true,
+    'no_alias_functions'                           => true, //替换别名函数
+    'no_blank_lines_after_class_opening'           => true,
+    'no_empty_comment'                             => true, //删除空注释
+    'no_empty_statement'                           => true, //删除无用空语句
+    'no_extra_consecutive_blank_lines'             => array(
+        'continue',
+        'extra',
+        'throw',
+        'use',
+        'parenthesis_brace_block',
+        'square_brace_block',
+        'curly_brace_block',
+    ),
+    'no_leading_namespace_whitespace'              => true,
+    'no_multiline_whitespace_around_double_arrow'  => true,
+    'no_mixed_echo_print'                          => array('use' => 'echo'), //print转echo
+    'no_spaces_inside_parenthesis'                 => true,
+    'no_spaces_around_offset'                      => array('inside', 'outside'),
+    'no_singleline_whitespace_before_semicolons'   => true,
+    'no_trailing_comma_in_list_call'               => true,
+    'no_trailing_comma_in_singleline_array'        => true, //单行数组去逗号
+    'no_trailing_whitespace_in_comment'            => true, //去掉注释中尾部空格
+    'no_whitespace_in_blank_line'                  => true, //删除空白行中多余的空格
+    'no_whitespace_before_comma_in_array'          => true, //数组去空格
+
+    'no_unreachable_default_argument_value'        => true, //去掉不可达的默认参数
+    'no_unused_imports'                            => true, //删除无用引入
+    'no_useless_else'                              => true, //删除无用else
+    'no_useless_return'                            => true, //删除无用return
+    'ordered_class_elements'                       => true,
+    'ordered_imports'                              => true,
+    'phpdoc_add_missing_param_annotation'          => true, //添加参数说明
+    'phpdoc_align'                                 => true,
+    'phpdoc_indent'                                => true,
+    'phpdoc_order'                                 => true,
+    'phpdoc_scalar'                                => true,
+    'phpdoc_separation'                            => true,
+    'phpdoc_trim'                                  => true,
+    'pre_increment'                                => true, //++前置
+    'single_blank_line_before_namespace'           => true,
+    'single_blank_line_at_eof'                     => true, //文件结束后换行
+    'single_import_per_statement'                  => true,
+    'single_quote'                                 => true, //转单引号
+    'short_scalar_cast'                            => true, //短名称integer=>int
+    'ternary_operator_spaces'                      => true, //三元操作符空格
+    'trim_array_spaces'                            => true, //数组去空格
+    'unary_operator_spaces'                        => true,
+    'visibility_required'                          => true,
+);
 
 return PhpCsFixer\Config::create()
-    ->setRules(array(
-        // 'indentation'                    => true,
-        'indentation_type'                                     => true,
-        '@PSR2'                                                 => true,
-        'array_syntax'                                          => array('syntax' => 'long'),
-        'trim_array_spaces'                                => true,        
-        'no_multiline_whitespace_around_double_arrow'           => true,
-        'lowercase_constants'                                   => true,
-        'pre_increment'                                         => true,
-        'no_unreachable_default_argument_value'                 => true,
-        'ternary_operator_spaces'                               => true,
-        'cast_spaces'                                           => true,
-        'binary_operator_spaces'                                => array('align_double_arrow' => true),
-        'phpdoc_align'                                          => true,
-        'phpdoc_annotation_without_dot'                         => true,
-        'phpdoc_separation'                                     => true,
-        'phpdoc_indent'                                         => true,
-        'phpdoc_order'                                          => true,
-        'single_quote'                                          => true,
-        'elseif'                                                => true,
-        'no_empty_comment'                                      => true,
-        'single_blank_line_at_eof'                              => true,
-        'single_import_per_statement'                           => true,
-        'no_leading_namespace_whitespace'                       => true,
-        'encoding'                                              => true,
-        'method_argument_space'                                 => true,
-        'no_trailing_comma_in_singleline_array'                 => true,
-        'no_trailing_comma_in_list_call'                        => true,
-        'lowercase_cast'                                        => true,
-        'lowercase_constants'                                   => true,
-        'no_extra_consecutive_blank_lines'                      => array('break', 'continue', 'extra', 'return', 'throw', 'use', 'parenthesis_brace_block', 'square_brace_block', 'curly_brace_block'),
-        'no_useless_else'                                       => true,
-        'no_useless_return'                                     => true,
-        'ordered_class_elements'                                => true,
-        'ordered_imports'                                       => true,
-        'no_whitespace_before_comma_in_array'                   => true,
-        'no_mixed_echo_print'                       => array('use' => 'echo'),
-        // 'header_comment' => array('header' => $header),
-    ))
-    ->setFinder($finder);
+    ->setRules($rules)
+    ->setFinder($finder)
+;

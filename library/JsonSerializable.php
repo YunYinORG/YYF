@@ -1,9 +1,17 @@
 <?php
 /**
-* PHP5.3 json 接口兼容
-* 仅保证代码运行
-* Just do NOTHING
-*/
-interface JsonSerializable{
+ * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ *
+ * @link https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+
+/**
+ * PHP53兼容
+ */
+interface JsonSerializable
+{
     public function jsonSerialize();
 }

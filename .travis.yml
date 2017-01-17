@@ -60,7 +60,8 @@ install:
     fi;
   # allow yaf autoload
   - echo 'yaf.use_spl_autoload = 1' >> $PHP_CONF/php.ini
-
+  - wget https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v2.0.0/php-cs-fixer.phar -O ../php-cs-fixer
+  - chmod +x ../php-cs-fixer
 
 # execute any number of scripts before the test run, custom env's are available as variables
 before_script:
@@ -81,6 +82,12 @@ before_script:
 script: 
   # test php
   - phpunit -c tests/phpunit.xml
+  # check format style
+  # disabled xdebug to speed up
+  # php-cs-fixer fix --config=.php_cs.dist -v --dry-run --using-cache=no --path-mode=intersection `git diff --name-only --diff-filter=ACMRTUXB $TRAVIS_COMMIT_RANGE`
+  - phpenv config-rm xdebug.ini
+  - ../php-cs-fixer fix -v --dry-run --using-cache=no library/
+  - ../php-cs-fixer fix -v --dry-run --using-cache=no app/
   # test server
   - if [[ "$environ" == "dev" && $TRAVIS_PHP_VERSION != "5.3" ]];then
       curl -sS localhost:1122|grep -iPo '(?<=<title>)(.*)(?=</title>)';

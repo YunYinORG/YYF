@@ -1,30 +1,42 @@
 <?php
+/**
+ * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ *
+ * @link https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+
 namespace Debug;
 
+/**
+ * 调试环境断言处理
+ * 兼容php5.3
+ *
+ * @author NewFuture
+ */
 class Assertion
 {
-    protected static $instance = null;
+    protected static $instance  = null;
     protected static $assertion = null;
-
-    public static function init(array $config)
-    {
-        if (!static::$instance) {
-            $active = isset($config['active']) ? $config['active'] : true;
-            $warning = isset($config['warning']) ? $config['warning'] : false;
-            $bail = isset($config['bail']) ? $config['bail'] : true;
-            static::$instance = new static($active, $warning, $bail);
-        }
-    }
 
     protected function __construct($active, $warning, $bail)
     {
         ob_start();
         if ($active) {
             if (version_compare(PHP_VERSION, '7.0.0', '>=')) { //for php7
-
                 //判断环境
                 if (-1 == ini_get('zend.assertions')) {
-                    exit("调试环境，请开启php7的断言，以便更早发现问题！\n<br>(<u>在php.ini 中的设置 zend.assertions = 1 开启断言【推荐】</u>;或者在 conf/app.ini 中设置 assert.active = 0 关闭此警告【不推荐】。)\n<br>In development environment, please open assertion for php7 to debug ! \n<br> (set 'zend.assertions = 1' in [php.ini][recommended]; or set 'assert.active = 0' in [conf/app.ini] to ignore this [not recommender].)");
+                    $msg=<<<'EOF'
+调试环境，请开启php7的断言，以便更早发现问题！<br>
+(<u>在php.ini 中的设置 zend.assertions = 1 开启断言【推荐】</u>;
+或者在 conf/app.ini 中设置 assert.active = 0 关闭此警告【不推荐】。)<br>
+In development environment, please open assertion for php7 to debug !<br>
+(set 'zend.assertions = 1' in [php.ini][recommended]; 
+or set 'assert.active = 0' in [conf/app.ini] to ignore this [not recommender].)
+EOF;
+                    exit($msg);
                 }
                 //PHP7配置
                 ini_set('zend.assertions', 1);//开启断言
@@ -44,6 +56,24 @@ class Assertion
         assert_options(ASSERT_QUIET_EVAL, false);//关闭在断言表达式求值时禁用error_reporting
         assert_options(ASSERT_WARNING, $warning);//为每个失败的断言产生一个 PHP 警告（warning)
         assert_options(ASSERT_BAIL, $bail);//在断言失败时中止执行
+    }
+
+    public function __destory()
+    {
+        ob_flush();
+    }
+
+    /**
+     * 初始化断言拦截
+     */
+    public static function init(array $config)
+    {
+        if (!static::$instance) {
+            $active           = isset($config['active']) ? $config['active'] : true;
+            $warning          = isset($config['warning']) ? $config['warning'] : false;
+            $bail             = isset($config['bail']) ? $config['bail'] : true;
+            static::$instance = new static($active, $warning, $bail);
+        }
     }
 
     /**
@@ -69,7 +99,10 @@ class Assertion
      * Assertion Handler
      * 断言错误回调
      *
-     * @method callback
+     * @param string $file
+     * @param int    $line
+     * @param string $code
+     * @param string $message
      */
     public static function callback($file, $line, $code, $message = null)
     {
@@ -115,10 +148,5 @@ class Assertion
             echo '</pre></li>';
         }
         echo '</ol>';
-    }
-
-    public function __destory()
-    {
-        ob_flush();
     }
 }

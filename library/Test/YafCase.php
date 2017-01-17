@@ -1,12 +1,21 @@
 <?php
+/**
+ * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ *
+ * @link https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+
 namespace Test;
 
-use \Yaf_Application as Application;
-use \Yaf_Loader as Loader;
 use \Debug\Assertion as Assertion;
 use \PHPUnit_Framework_TestCase as TestCase;
+use \Yaf_Application as Application;
+use \Yaf_Loader as Loader;
 
-defined('APP_PATH') || define('APP_PATH', realpath(__DIR__ . '/../../'));
+defined('APP_PATH') || define('APP_PATH', realpath(__DIR__.'/../../'));
 
 Loader::import(__DIR__.'/functions.php');
 
@@ -21,7 +30,6 @@ Loader::import(__DIR__.'/functions.php');
  */
 abstract class YafCase extends TestCase
 {
-
     /*是否自动加载bootstrap*/
     protected static $bootstrap = true;
     /*是否自动启动yaf app*/
@@ -42,6 +50,21 @@ abstract class YafCase extends TestCase
         }
     }
 
+    public function __sleep()
+    {
+        $keys = array();
+        return $keys;
+    }
+
+    public function __wakeup()
+    {
+        if (static::$auto_init) {
+            if (!$this->app = static::app()) {
+                $this->markTestSkipped('APP 启动失败！');
+            }
+        }
+    }
+
     /**
      * 获取当前APP
      *
@@ -51,8 +74,8 @@ abstract class YafCase extends TestCase
     {
         if (!$app = Application::app()) {
             //加载APP
-            $conf = APP_PATH . '/conf/app.ini';
-            $app = new Application(APP_PATH . '/conf/app.ini');
+            $conf = APP_PATH.'/conf/app.ini';
+            $app  = new Application(APP_PATH.'/conf/app.ini');
             $conf = $app->getConfig();
             //加载启动项 app Bootstrap
             if (static::$bootstrap && $conf->get('application.bootstrap')) {
@@ -70,6 +93,7 @@ abstract class YafCase extends TestCase
     /**
      * 检查文件权限，
      *
+     * @param mixed $path 路径
      * @param $base 基础值，文件0666 目录0777
      * @param $umask
      * @requires OS Linux
@@ -84,20 +108,5 @@ abstract class YafCase extends TestCase
         }
         clearstatcache();
         $this->assertSame(fileperms($path) & $mode, $mode, $path.'文件权限与预设不符(file permission not the same)');
-    }
-
-    public function __sleep()
-    {
-        $keys = array();
-        return $keys;
-    }
-
-    public function __wakeup()
-    {
-        if (static::$auto_init) {
-            if (!$this->app = static::app()) {
-                $this->markTestSkipped('APP 启动失败！');
-            }
-        }
     }
 }

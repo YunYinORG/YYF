@@ -137,13 +137,14 @@ class DbTest extends TestCase
             'test' => array('test'),
             'mysql' => array(
                 array(
-                    'dsn' => 'mysql:host=localhost;port=3306;dbname=yyf;charset=utf8',
-                    'username' => 'root',
+                    'dsn' => getenv('MYSQL_DSN') ?: 'mysql:host=localhost;port=3306;dbname=yyf;charset=utf8',
+                    'username' => getenv('DB_USER') ?: 'root',
+                    'password' => getenv('DB_PWD'),
                 ),
             ),
             'sqlite' => array(
                 array(
-                    'dsn' => 'sqlite:'. APP_PATH.'/runtime/yyf.db',
+                    'dsn' => getenv('SQLITE_DSN') ?: 'sqlite:'. APP_PATH.'/runtime/yyf.db',
                 ),
             ),
         );

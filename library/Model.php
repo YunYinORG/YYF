@@ -1,6 +1,19 @@
 <?php
 /**
+ * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ *
+ * @link https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+
+/**
+ * Model 数据Model基类
  * 基本的Facde接口，对model封装
+ *
+ * @author NewFuture
+ *
  * @example
  * 	class UserModel extends Model{}
  *
@@ -20,7 +33,7 @@
  *  UserModel::where('name','LIKE','%future%')->count();//统计name中包含future的字数
  *
  * 也可以实例化操作 $user=new UserModel;
- * $user->find（1）;//
+ * $user->find（1）;
  */
 abstract class Model
 {
@@ -34,10 +47,8 @@ abstract class Model
 
     /**
      * 构造函数
-     * @method __construct
-     * @param  array       $data [传入数据]
-     * @access public
-     * @author NewFuture
+     *
+     * @param array $data 传入数据
      */
     final public function __construct(array $data = null)
     {
@@ -45,7 +56,7 @@ abstract class Model
             $name=strtolower(preg_replace('/.(?=[A-Z])/', '$1_', substr(get_called_class(), 0, -5)));
         }
         $this->_orm = new Orm($name, $this->pk, $this->prefix);
-        
+
         if ($this->fields) {
             //字段设置
             $this->_orm->field($this->fields);
@@ -61,10 +72,55 @@ abstract class Model
     }
 
     /**
+     * 直接修改字段
+     *
+     * @param string $name  字段名
+     * @param mixed  $value 对应值
+     */
+    public function __set($name, $value)
+    {
+        return $this->_orm->set($name, $value);
+    }
+
+    /**
+     * 直接读取字段
+     *
+     * @param string $name 字段名
+     *
+     * @return mixed 对应的值
+     */
+    public function __get($name)
+    {
+        return $this->_orm->get($name, false);
+    }
+
+    /**
+     * 直接调用model的操作
+     *
+     * @param string $method
+     * @param array  $params
+     */
+    public function __call($method, $params)
+    {
+        return call_user_func_array(array($this->getOrm(), $method), $params);
+    }
+
+    /**
+     * 静态调用model的操作
+     *
+     * @param string $method
+     * @param array  $params
+     */
+    public static function __callStatic($method, $params)
+    {
+        $model = new static();
+        return call_user_func_array(array($model->getOrm(), $method), $params);
+    }
+
+    /**
      * 获取模型实例
-     * @method getOrm
-     * @return [type]   [description]
-     * @author NewFuture
+     *
+     * @return Orm 返回对应ORM对象
      */
     public function getOrm()
     {
@@ -78,55 +134,11 @@ abstract class Model
 
     /**
      * 数据转成json
-     * @method toJson
-     * @param constant   JSON_ENCODE type
-     * @author NewFuture
+     *
+     * @param int $type JSON_ENCODE type 【256 是JSON_UNESCAPED_UNICODE值】
      */
-    public function toJson($type=256)//256isJSON_UNESCAPED_UNICODE
+    public function toJson($type = 256)
     {
         return json_encode($this->_orm->get(), $type);
-    }
-
-    /**
-     * 直接修改字段
-     * @method __set
-     * @param  [type]  $name  [description]
-     * @param  [type]  $value [description]
-     * @access public
-     * @author NewFuture
-     */
-    public function __set($name, $value)
-    {
-        return $this->_orm->set($name, $value);
-    }
-
-    /**
-     * 直接读取字段
-     * @method __get
-     * @return [type]  [description]
-     * @access public
-     * @author NewFuture
-     */
-    public function __get($name)
-    {
-        return $this->_orm->get($name, false);
-    }
-
-    /**
-     * 直接调用model的操作
-     * @author NewFuture
-     */
-    public function __call($method, $params)
-    {
-        return call_user_func_array(array($this->getOrm(), $method), $params);
-    }
-
-    /**
-     * 静态调用model的操作
-     * @author NewFuture
-     */
-    public static function __callStatic($method, $params)
-    {
-        return call_user_func_array(array((new static)->getOrm(), $method), $params);
     }
 }

@@ -1,5 +1,15 @@
 <?php 
+/**
+ * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ *
+ * @link https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+
 namespace Service;
+
 /***************************************************\
  *
  *  Mailer (https://github.com/txthinking/Mailer)
@@ -68,7 +78,7 @@ class Message
     /**
      * charset
      */
-    protected $charset = "UTF-8";
+    protected $charset = 'UTF-8';
 
     /**
      * header multipart boundaryMixed
@@ -82,97 +92,119 @@ class Message
 
     /**
      * $this->CRLF
+     *
      * @var string
      */
     protected $CRLF = "\r\n";
 
     /**
      * set mail from
+     *
      * @param string $name
      * @param string $email
+     *
      * @return $this
      */
     public function setFrom($name, $email)
     {
-        $this->fromName = $name;
+        $this->fromName  = $name;
         $this->fromEmail = $email;
         return $this;
     }
 
-
     /**
      * set mail fake from
+     *
      * @param string $name
      * @param string $email
+     *
      * @return $this
      */
     public function setFakeFrom($name, $email)
     {
-        $this->fakeFromName = $name;
+        $this->fakeFromName  = $name;
         $this->fakeFromEmail = $email;
         return $this;
     }
 
     /**
      * set mail receiver
+     *
      * @param string $name
      * @param string $email
+     *
      * @return $this
      */
-    public function setTo($name, $email){
+    public function setTo($name, $email)
+    {
         $this->to[$name] = $email;
         return $this;
     }
 
     /**
      * add mail receiver
+     *
      * @param string $name
      * @param string $email
+     *
      * @return $this
      */
-    public function addTo($name, $email){
+    public function addTo($name, $email)
+    {
         $this->to[$name] = $email;
         return $this;
     }
 
     /**
      * set mail subject
+     *
      * @param string $subject
+     *
      * @return $this
      */
-    public function setSubject($subject){
+    public function setSubject($subject)
+    {
         $this->subject = $subject;
         return $this;
     }
 
     /**
      * set mail body
+     *
      * @param string $body
+     *
      * @return $this
      */
-    public function setBody($body){
+    public function setBody($body)
+    {
         $this->body = $body;
         return $this;
     }
 
     /**
      * add mail attachment
+     *
      * @param $name
      * @param $path
+     *
      * @return $this
      */
-    public function setAttachment($name, $path){
+    public function setAttachment($name, $path)
+    {
         $this->attachment[$name] = $path;
         return $this;
     }
 
     /**
      * add mail attachment
+     *
      * @param $name
      * @param $path
+     *
      * @return $this
      */
-    public function addAttachment($name, $path){
+    public function addAttachment($name, $path)
+    {
         $this->attachment[$name] = $path;
         return $this;
     }
@@ -192,7 +224,6 @@ class Message
     {
         return $this->fromEmail;
     }
-
 
     /**
      * @return string
@@ -242,34 +273,52 @@ class Message
         return $this->attachment;
     }
 
+    public function toString()
+    {
+        $in = '';
+        $this->createHeader();
+        foreach ($this->header as $key => $value) {
+            $in .= $key.': '.$value.$this->CRLF;
+        }
+        if (empty($this->attachment)) {
+            $in .= $this->createBody();
+        } else {
+            $in .= $this->createBodyWithAttachment();
+        }
+        $in .= $this->CRLF.$this->CRLF.'.'.$this->CRLF;
+        return $in;
+    }
+
     /**
      * Create mail header
+     *
      * @return $this
      */
-    protected function createHeader(){
+    protected function createHeader()
+    {
         $this->header['Date'] = date('r');
 
-        if(!empty($this->fakeFromEmail)){
+        if (!empty($this->fakeFromEmail)) {
             $this->header['Return-Path'] = $this->fakeFromEmail;
-            $this->header['From'] = $this->fakeFromName . " <" . $this->fakeFromEmail . ">";
-        } else{
+            $this->header['From']        = $this->fakeFromName.' <'.$this->fakeFromEmail.'>';
+        } else {
             $this->header['Return-Path'] = $this->fromEmail;
-            $this->header['From'] = $this->fromName . " <" . $this->fromEmail .">";
+            $this->header['From']        = $this->fromName.' <'.$this->fromEmail.'>';
         }
 
         $this->header['To'] = '';
         foreach ($this->to as $toName => $toEmail) {
-            $this->header['To'] .= $toName . " <" . $toEmail . ">, ";
+            $this->header['To'] .= $toName.' <'.$toEmail.'>, ';
         }
-        $this->header['To'] = substr($this->header['To'], 0, -2);
-        $this->header['Subject'] = $this->subject;
-        $this->header['Message-ID'] = '<' . md5('TX'.md5(time()).uniqid()) . '@' . $this->fromEmail . '>';
-        $this->header['X-Priority'] = '3';
-        $this->header['X-Mailer'] = 'YunYin Mailer';
+        $this->header['To']           = substr($this->header['To'], 0, -2);
+        $this->header['Subject']      = $this->subject;
+        $this->header['Message-ID']   = '<'.md5('TX'.md5(time()).uniqid()).'@'.$this->fromEmail.'>';
+        $this->header['X-Priority']   = '3';
+        $this->header['X-Mailer']     = 'YunYin Mailer';
         $this->header['MIME-Version'] = '1.0';
-        if (!empty($this->attachment)){
-            $this->boundaryMixed = md5(md5(time().'TxMailer').uniqid());
-            $this->header['Content-Type'] = "multipart/mixed; \r\n\tboundary=\"" . $this->boundaryMixed . "\"";
+        if (!empty($this->attachment)) {
+            $this->boundaryMixed          = md5(md5(time().'TxMailer').uniqid());
+            $this->header['Content-Type'] = "multipart/mixed; \r\n\tboundary=\"".$this->boundaryMixed.'"';
         }
         $this->boundaryAlternative = md5(md5(time().'TXMailer').uniqid());
         return $this;
@@ -280,23 +329,24 @@ class Message
      *
      * @return string
      */
-    protected function createBody(){
-        $in = "";
-        $in .= "Content-Type: multipart/alternative; boundary=\"$this->boundaryAlternative\"" . $this->CRLF;
+    protected function createBody()
+    {
+        $in = '';
+        $in .= "Content-Type: multipart/alternative; boundary=\"$this->boundaryAlternative\"".$this->CRLF;
         $in .= $this->CRLF;
-        $in .= "--" . $this->boundaryAlternative . $this->CRLF;
-        $in .= "Content-Type: text/plain; charset=\"" . $this->charset . "\"" . $this->CRLF;
-        $in .= "Content-Transfer-Encoding: base64" . $this->CRLF;
+        $in .= '--'.$this->boundaryAlternative.$this->CRLF;
+        $in .= 'Content-Type: text/plain; charset="'.$this->charset.'"'.$this->CRLF;
+        $in .= 'Content-Transfer-Encoding: base64'.$this->CRLF;
         $in .= $this->CRLF;
-        $in .= chunk_split(base64_encode(filter_var($this->body,FILTER_SANITIZE_STRING,FILTER_FLAG_NO_ENCODE_QUOTES))) . $this->CRLF;
+        $in .= chunk_split(base64_encode(filter_var($this->body, FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES))).$this->CRLF;
         $in .= $this->CRLF;
-        $in .= "--" . $this->boundaryAlternative . $this->CRLF;
-        $in .= "Content-Type: text/html; charset=\"" . $this->charset ."\"" . $this->CRLF;
-        $in .= "Content-Transfer-Encoding: base64" . $this->CRLF;
+        $in .= '--'.$this->boundaryAlternative.$this->CRLF;
+        $in .= 'Content-Type: text/html; charset="'.$this->charset.'"'.$this->CRLF;
+        $in .= 'Content-Transfer-Encoding: base64'.$this->CRLF;
         $in .= $this->CRLF;
-        $in .= chunk_split(base64_encode($this->body)) . $this->CRLF;
+        $in .= chunk_split(base64_encode($this->body)).$this->CRLF;
         $in .= $this->CRLF;
-        $in .= "--" . $this->boundaryAlternative . "--" . $this->CRLF;
+        $in .= '--'.$this->boundaryAlternative.'--'.$this->CRLF;
         return $in;
     }
 
@@ -305,54 +355,39 @@ class Message
      *
      * @return string
      */
-    protected function createBodyWithAttachment(){
-        $in = "";
-        $in .= $this->CRLF;
-        $in .= $this->CRLF;
-        $in .= '--' . $this->boundaryMixed . $this->CRLF;
-        $in .= "Content-Type: multipart/alternative; boundary=\"$this->boundaryAlternative\"" . $this->CRLF;
-        $in .= $this->CRLF;
-        $in .= "--" . $this->boundaryAlternative . $this->CRLF;
-        $in .= "Content-Type: text/plain; charset=\"" . $this->charset . "\"" . $this->CRLF;
-        $in .= "Content-Transfer-Encoding: base64" . $this->CRLF;
-        $in .= $this->CRLF;
-        $in .= chunk_split(base64_encode($this->body)) . $this->CRLF;
-        $in .= $this->CRLF;
-        $in .= "--" . $this->boundaryAlternative . $this->CRLF;
-        $in .= "Content-Type: text/html; charset=\"" . $this->charset ."\"" . $this->CRLF;
-        $in .= "Content-Transfer-Encoding: base64" . $this->CRLF;
-        $in .= $this->CRLF;
-        $in .= chunk_split(base64_encode($this->body)) . $this->CRLF;
-        $in .= $this->CRLF;
-        $in .= "--" . $this->boundaryAlternative . "--" . $this->CRLF;
-        foreach ($this->attachment as $name => $path){
-            $in .= $this->CRLF;
-            $in .= '--' . $this->boundaryMixed . $this->CRLF;
-            $in .= "Content-Type: application/octet-stream; name=\"". $name ."\"" . $this->CRLF;
-            $in .= "Content-Transfer-Encoding: base64" . $this->CRLF;
-            $in .= "Content-Disposition: attachment; filename=\"" . $name . "\"" . $this->CRLF;
-            $in .= $this->CRLF;
-            $in .= chunk_split(base64_encode(file_get_contents($path))) . $this->CRLF;
-        }
-        $in .= $this->CRLF;
-        $in .= $this->CRLF;
-        $in .= '--' . $this->boundaryMixed . '--' . $this->CRLF;
-        return $in;
-    }
-
-    public function toString(){
+    protected function createBodyWithAttachment()
+    {
         $in = '';
-        $this->createHeader();
-        foreach ($this->header as $key => $value) {
-            $in .= $key . ': ' . $value . $this->CRLF;
+        $in .= $this->CRLF;
+        $in .= $this->CRLF;
+        $in .= '--'.$this->boundaryMixed.$this->CRLF;
+        $in .= "Content-Type: multipart/alternative; boundary=\"$this->boundaryAlternative\"".$this->CRLF;
+        $in .= $this->CRLF;
+        $in .= '--'.$this->boundaryAlternative.$this->CRLF;
+        $in .= 'Content-Type: text/plain; charset="'.$this->charset.'"'.$this->CRLF;
+        $in .= 'Content-Transfer-Encoding: base64'.$this->CRLF;
+        $in .= $this->CRLF;
+        $in .= chunk_split(base64_encode($this->body)).$this->CRLF;
+        $in .= $this->CRLF;
+        $in .= '--'.$this->boundaryAlternative.$this->CRLF;
+        $in .= 'Content-Type: text/html; charset="'.$this->charset.'"'.$this->CRLF;
+        $in .= 'Content-Transfer-Encoding: base64'.$this->CRLF;
+        $in .= $this->CRLF;
+        $in .= chunk_split(base64_encode($this->body)).$this->CRLF;
+        $in .= $this->CRLF;
+        $in .= '--'.$this->boundaryAlternative.'--'.$this->CRLF;
+        foreach ($this->attachment as $name => $path) {
+            $in .= $this->CRLF;
+            $in .= '--'.$this->boundaryMixed.$this->CRLF;
+            $in .= 'Content-Type: application/octet-stream; name="'.$name.'"'.$this->CRLF;
+            $in .= 'Content-Transfer-Encoding: base64'.$this->CRLF;
+            $in .= 'Content-Disposition: attachment; filename="'.$name.'"'.$this->CRLF;
+            $in .= $this->CRLF;
+            $in .= chunk_split(base64_encode(file_get_contents($path))).$this->CRLF;
         }
-        if (empty($this->attachment)) {
-            $in .= $this->createBody();
-        } else {
-            $in .= $this->createBodyWithAttachment();
-        }
-        $in .= $this->CRLF . $this->CRLF . "." . $this->CRLF;
+        $in .= $this->CRLF;
+        $in .= $this->CRLF;
+        $in .= '--'.$this->boundaryMixed.'--'.$this->CRLF;
         return $in;
     }
-
 }

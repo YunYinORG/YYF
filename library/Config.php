@@ -1,10 +1,21 @@
 <?php
+/**
+ * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ *
+ * @link https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+
 use \Yaf_Application as Application;
 use \Yaf_Config_Ini as Ini;
 
 /**
- * 对应用配置的封装，方便读取
+ * Config 对应用配置的封装，方便读取
  * Config::get('config')
+ *
+ * @author NewFuture
  */
 class Config
 {
@@ -13,11 +24,11 @@ class Config
 
     /**
      * 获取配置
-     * @method get
-     * @param  [string]	$key     [键值]
-     * @param  [type] 	$default [默认值]
-     * @return [mixed]         	 [返回结果]
-     * @author NewFuture
+     *
+     * @param string $key     键值
+     * @param type   $default [默认值]
+     *
+     * @return mixed [返回结果]
      */
     public static function get($key, $default = null)
     {
@@ -30,11 +41,12 @@ class Config
 
     /**
      * 获取私密配置
-     * @method secret
-     * @param  [string] $name     [配置名]
-     * @param  [string] $key 		[键值]
-     * @return [mixed]          [结果]
-     * @author NewFuture
+     *
+     * @param string $name 配置名
+     * @param string $key [键]
+     *
+     * @return mixed 结果
+     *
      * @example
      *  Config::getSecrect('encrypt') 获取取私密配置中的encrypt所有配置
      *  Config::getSecrect('encrypt'，'key') 获取取私密配置中的encrypt配置的secret值

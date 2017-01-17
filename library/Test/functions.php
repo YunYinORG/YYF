@@ -1,5 +1,12 @@
 <?php
-//import functions
+/**
+ * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ *
+ * @link https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
 
 if (!function_exists('array_column')) {
     function array_column($array, $column_name)
@@ -9,7 +16,6 @@ if (!function_exists('array_column')) {
         }, $array);
     }
 }
-
 
 if (!function_exists('test_log')) {
     //log test
