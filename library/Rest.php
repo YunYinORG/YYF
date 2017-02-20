@@ -152,7 +152,7 @@ abstract class Rest extends Controller_Abstract
      * @access protected
      *
      * @param mixed $data 返回数据内容
-     * @param int $code 设置状态码[默认200]
+     * @param int   $code 设置状态码[默认200]
      */
     protected function success($data = null, $code = 200)
     {
@@ -170,7 +170,7 @@ abstract class Rest extends Controller_Abstract
      * @access protected
      *
      * @param mixed $data 返回数据内容
-     * @param int $code 设置状态码[默认200]
+     * @param int   $code 设置状态码[默认200]
      */
     protected function fail($data = null, $code = 200)
     {

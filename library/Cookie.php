@@ -22,6 +22,12 @@ class Cookie
      */
     private static $_config = null;
 
+    private function __construct()
+    {
+        self::$_config        = Config::get('cookie')->toArray();
+        self::$_config['key'] = self::key();
+    }
+
     /**
      * 设置cookie
      *
@@ -40,7 +46,7 @@ class Cookie
                 $expire = ($expire === 0) ? null : self::config('expire');
             }
             $expire = $expire ? $_SERVER['REQUEST_TIME'] + $expire : null;
-            if($domain === null) {
+            if ($domain === null) {
                 $domain = self::config('domain');
             }
             return setrawcookie($name, $value, $expire, $path, $domain, self::config('secure'), self::config('httponly'));
@@ -50,12 +56,12 @@ class Cookie
     /**
      * 获取cookie
      *
-     * @param string $name cookie名称
-     * @param mixed $default 默认值
+     * @param string $name    cookie名称
+     * @param mixed  $default 默认值
      *
      * @return mixed string|array
      */
-    public static function get($name, $default = null )
+    public static function get($name, $default = null)
     {
         if (isset($_COOKIE[$name]) && $data = $_COOKIE[$name]) {
             return self::decode($data);
@@ -110,6 +116,21 @@ class Cookie
     }
 
     /**
+     * 设置cookie配置
+     *
+     * @param string $key   配置变量名
+     * @param mixed  $value 配置值
+     *
+     * @return Cookie self 设置
+     */
+    public static function setConfig($key, $value)
+    {
+        //修改配置参数
+        $config[$key] = $value;
+        return self;
+    }
+
+    /**
      * Cookie数据加密编码
      *
      * @param mixed $data 数据
@@ -151,28 +172,5 @@ class Cookie
             self::$_config = $config;
         }
         return isset($config[$name]) ? $config[$name] : null;
-    }
-
-
-    private function __construct()
-    {
-        self::$_config = Config::get('cookie')->toArray();
-        self::$_config['key'] = self::key();
-    }
-
-    /**
-     * 设置cookie配置
-     *
-     * @param string $key 配置变量名
-     * @param mixed $value 配置值
-     *
-     * @return Cookie self 设置
-     */
-    public static function setConfig($key,$value)
-    {
-
-        //修改配置参数
-        $config[$key] = $value;
-        return self;        
     }
 }

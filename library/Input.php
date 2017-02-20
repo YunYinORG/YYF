@@ -21,10 +21,10 @@ class Input
     /**
      * 输入过滤
      *
-     * @param  string $param   [输入参数]
-     * @param mixed &$export [description]
-     * @param mixed $filter  [过滤条件]
-     * @param type  $default [description]
+     * @param string $param   [输入参数]
+     * @param mixed  &$export [description]
+     * @param mixed  $filter  [过滤条件]
+     * @param type   $default [description]
      *
      * @example if(I('post.phone',$phone,'phone')){}//phone()方法验证
      * @example if(I('get.id',$uid,'int',1)){}//数字，int函数验证,默认1
@@ -70,9 +70,9 @@ class Input
      * 过滤器
      *
      * @param string &$input  [输入参数]
-     * @param mixed &$index  [description]
-     * @param mixed &$export [description]
-     * @param mixed $filter  [过滤条件]
+     * @param mixed  &$index  [description]
+     * @param mixed  &$export [description]
+     * @param mixed  $filter  [过滤条件]
      *
      * @return bool 验证是否有效
      */

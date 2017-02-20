@@ -121,7 +121,7 @@ class Db
     /**
      * 设定换数据库,可以覆盖默认数据库配置
      *
-     * @param string $name 设置名称，‘_’,'_read','_write'
+     * @param string $name   设置名称，‘_’,'_read','_write'
      * @param mixed  $config 配置名称
      *
      * @return Database
@@ -199,10 +199,10 @@ class Db
     /**
      * 数据库查询加速
      *
-     * @param string $sql    SQL语句
-     * @param array  $params 参数
-     * @param bool $fetchAll 默认全部获取(selecy)
-     * @param bool $fetchmode 获取模式
+     * @param string $sql       SQL语句
+     * @param array  $params    参数
+     * @param bool   $fetchAll  默认全部获取(selecy)
+     * @param bool   $fetchmode 获取模式
      *
      * @return mixed 查询结果
      */

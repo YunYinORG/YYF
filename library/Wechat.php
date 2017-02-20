@@ -83,7 +83,7 @@ class Wechat
      *
      * @param string $redirect [验证回调地址]
      *
-     * @return array            [配置]
+     * @return array [配置]
      */
     public static function loginConfig($redirect = null)
     {
@@ -103,11 +103,11 @@ class Wechat
      * 生成微信认证重定向URL
      * 获取授权URL
      *
-     * @param string $scope [授权信息：默认为userinfo]
-     *                      $scope = base (不弹出授权页面，直接跳转，只能获取用户openid）
-     *                      $scope = userinfo （弹出授权页面，可通过openid拿到昵称、性别、所在地）
-     *                      $scope = login (网页端登录)
-     * @param  string  $redirect   [回调验证URL:默认读取配置]
+     * @param string $scope    [授权信息：默认为userinfo]
+     *                         $scope = base (不弹出授权页面，直接跳转，只能获取用户openid）
+     *                         $scope = userinfo （弹出授权页面，可通过openid拿到昵称、性别、所在地）
+     *                         $scope = login (网页端登录)
+     * @param string $redirect [回调验证URL:默认读取配置]
      *
      * @return string [重定向URL]
      */
@@ -135,7 +135,7 @@ class Wechat
      * @param string $key  [制定默认openid]
      *
      * @return string ,制定的参数如openid] [array 全部返回数据]
-     * @return false 获取失败
+     * @return false  获取失败
      */
     public static function checkCode($key = 'openid', $code = false)
     {
@@ -208,9 +208,9 @@ class Wechat
      * @method _getConfig
      * 获取微信配置
      *
-     * @param  string $key 配置Key
+     * @param string $key 配置Key
      *
-     * @return mixed  配置信息
+     * @return mixed 配置信息
      */
     private static function _getConfig($key)
     {
