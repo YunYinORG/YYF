@@ -60,7 +60,7 @@ class Rsa
      * 生成和保存密钥对
      *
      *
-     * @param  bool $return_pri [返回公钥或者私钥]
+     * @param bool $return_pri [返回公钥或者私钥]
      *
      * @return string [公钥或者私钥]
      */

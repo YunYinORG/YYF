@@ -60,7 +60,7 @@ class Logger
      * @param string $msg   [消息]
      * @param string $level [日志级别]
      *
-     * @return bool         [写入状态]
+     * @return bool [写入状态]
      */
     public static function write($msg, $level = 'NOTICE')
     {

@@ -47,7 +47,7 @@ class Database extends PDO
      * @param string $sql
      * @param array  $params
      * @param bool   $fetchAll 全部查询模式fetchAll，false 使用fetch
-     * @param int $mode 查询模式,默认读取配置
+     * @param int    $mode     查询模式,默认读取配置
      *
      * @return array 查询结果
      */
@@ -164,8 +164,8 @@ class Database extends PDO
      * 事务封装
      *
      * @param callable $func，事务回调函数，参数是当前Database，
-     *      回调返回false或者出现异常回滚，否则提交
-     * @param bool $err_exp 错误抛出异常默认会自动设置并切换回来
+     *                                                                         回调返回false或者出现异常回滚，否则提交
+     * @param bool     $err_exp                                                错误抛出异常默认会自动设置并切换回来
      *
      * @return bool or null 回调函数的返回值(执行异常自动回滚，返回false)
      */

@@ -43,7 +43,7 @@ class Config
      * 获取私密配置
      *
      * @param string $name 配置名
-     * @param string $key [键]
+     * @param string $key  [键]
      *
      * @return mixed 结果
      *

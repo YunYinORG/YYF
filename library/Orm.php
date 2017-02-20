@@ -55,8 +55,8 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 构造函数
      *
-     * @param string $table 数据库表名
-     * @param string $pk    [主键，默认id]
+     * @param string $table  数据库表名
+     * @param string $pk     [主键，默认id]
      * @param string $prefix [数据库表前缀,默认读取配置]
      */
     public function __construct($table, $pk = false, $prefix = true)
@@ -139,8 +139,8 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * 读取数据 字段或者全部数据
      * 如果有直接读取，无数据库读取,遵循field别名设置
      *
-     * @param string $key [字段名称，无此参数时返回全部数据]
-     * @param bool $auto_query [是否自动尝试从数据库获取]
+     * @param string $key        [字段名称，无此参数时返回全部数据]
+     * @param bool   $auto_query [是否自动尝试从数据库获取]
      *
      * @return mixed [读取的结果]
      */
@@ -170,9 +170,9 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * 单条插入数据库(忽略前置条件)
      * 如果设置了字段field会使用设置的字段过滤(如果设置了alias与其一致)，取二者交集
      *
-     * @param  array $data     [要插入的数据，键值对数组(单条)]
+     * @param array $data [要插入的数据，键值对数组(单条)]
      *
-     * @return int|bool        [返回插入数据的id,注，如果改记录中无自增主键将返回TRUE或者FALSE]
+     * @return int|bool [返回插入数据的id,注，如果改记录中无自增主键将返回TRUE或者FALSE]
      */
     public function insert(array $data)
     {
@@ -261,7 +261,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 设置数据
      *
-     * @param mixed $key  [字段或者数组]
+     * @param mixed $key   [字段或者数组]
      * @param mixed $value [值]
      *
      * @return $this
@@ -447,9 +447,9 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * exists 存在 子查询
      *
-     * @param Orm    $query     [包含查询的ORM对象]
-     * @param boolen $not [为true时，not exists]
-     * @param string $type    ['AND'或者'OR' 默认AND]
+     * @param Orm    $query [包含查询的ORM对象]
+     * @param boolen $not   [为true时，not exists]
+     * @param string $type  ['AND'或者'OR' 默认AND]
      *
      * @return Orm $this
      */
@@ -610,10 +610,10 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * join(多表连接)
      * 拥有的内容，[参数$table的外键是此表的主键][LEFT JOIN]
      *
-     * @param string $type  [连接方式]
-     * @param string $table [对应表名]
-     * @param mixed  $on    [JOIN ON的条件或者$table连接的键]
-     * @param string $related_key    [JOIN 与table关联的键]
+     * @param string $type        [连接方式]
+     * @param string $table       [对应表名]
+     * @param mixed  $on          [JOIN ON的条件或者$table连接的键]
+     * @param string $related_key [JOIN 与table关联的键]
      *
      * @return $this
      */
@@ -653,9 +653,9 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * has(一对一或者一对多)
      * 拥有的内容，[参数$table的外键是此表的主键][LEFT JOIN]
      *
-     * @param string $table    [对应表名]
-     * @param string $table_fk [对应表中的外键，缺省使用$this->_table.'_id']
-     * @param string $related_key    [与之关联的主键或者表加主键，默认采用本表主键]
+     * @param string $table       [对应表名]
+     * @param string $table_fk    [对应表中的外键，缺省使用$this->_table.'_id']
+     * @param string $related_key [与之关联的主键或者表加主键，默认采用本表主键]
      *
      * @return Orm $this
      */
@@ -704,7 +704,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * union 多查询结果合并
      *
-     * @param  Orm  $orm 一个包含查询的orm数据
+     * @param Orm $orm 一个包含查询的orm数据
      * @param  bool  [$is_all=FALSE]    [union all 默认 false]
      *
      * @return Orm $this
@@ -719,7 +719,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * union all 多查询拼接合并
      *
-     * @param  Orm  $orm 一个包含查询的orm数据
+     * @param Orm $orm 一个包含查询的orm数据
      *
      * @return Orm $this
      */
@@ -832,7 +832,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * 事务封装
      *
      * @param callable $func，事务回调函数，参数是当前Database，
-     *  回调返回false或者出现异常回滚，否则提交
+     *                                                                         回调返回false或者出现异常回滚，否则提交
      *
      * @return bool 回调函数的返回值(执行异常自动回滚，返回false)
      */
@@ -1019,7 +1019,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * 获取数据库链接
      * 如果设置默认database 将直接返回此设置
      *
-     * @param  string $name 数据库配置名[_read][Write]
+     * @param string $name 数据库配置名[_read][Write]
      *
      * @return Database $db数据库链接
      */
@@ -1031,8 +1031,8 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 构建insert 语句
      *
-     * @param array $data  要插入的数据
-     * @param bool $is_sqlite 是否为SQLite
+     * @param array $data      要插入的数据
+     * @param bool  $is_sqlite 是否为SQLite
      *
      * @return string [sql语句]
      *
@@ -1393,8 +1393,8 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 数据读取操作
      *
-     * @param string $sql [sql语句]
-     * @param bool  $fetchAll 全部获取
+     * @param string $sql      [sql语句]
+     * @param bool   $fetchAll 全部获取
      *
      * @return array [结果数组]
      */
@@ -1478,7 +1478,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
      * 校验聚合函数，并将字段加反引号
      * 关闭安全模式将停止解析
      *
-     * @param string $str     [字段名称或者$table.$field]
+     * @param string $str [字段名称或者$table.$field]
      *
      * @return string [description]
      */
@@ -1569,9 +1569,9 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 解析where条件
      *
-     * @param array $where [where 参数数组]
-     * @param string $type [附加条件，'AND'或者'OR']
-     * @param bool $bind_value [是否绑定参数]
+     * @param array  $where      [where 参数数组]
+     * @param string $type       [附加条件，'AND'或者'OR']
+     * @param bool   $bind_value [是否绑定参数]
      *
      * @return array 格式化的三元或者多元元索引数组
      */
@@ -1595,12 +1595,12 @@ class Orm implements \JsonSerializable, \ArrayAccess
     /**
      * 解析条件 数组
      *
-     * @param array $condition [条件数组]
-     * @param string $addition [附加条件，'AND'或者'OR']
-     * @param bool $bind_value [是否绑定参数]
+     * @param array  $condition  [条件数组]
+     * @param string $addition   [附加条件，'AND'或者'OR']
+     * @param bool   $bind_value [是否绑定参数]
      *
      * @return array 格式化的三元或者多元元索引数组
-     *         array([$addition,],$field,$operator,$value[,NO_BIND_FLAG])
+     *               array([$addition,],$field,$operator,$value[,NO_BIND_FLAG])
      */
     protected function parseCondition(array $condition, $addition = null, $bind_value = true)
     {

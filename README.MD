@@ -1,8 +1,8 @@
-YYF (云印Yaf框架)
+YYF (Yunyin Yaf Framework)
 ============================
-Yunyin Yaf Framework
+
+基于PHP yaf扩展,构建的安全高性能RESTful后端框架。
 --------------
-基于YAF扩展,构建安全高性能RESTful后端PHP框架。
 
 YYF致力于提高生产环境下的运行性能和开发环境下的开发效率。
 [核心库](library/)高效封装常用库和操作,兼容php5.3及以上,并对php7做最大优化。
@@ -10,10 +10,11 @@ YYF致力于提高生产环境下的运行性能和开发环境下的开发效�
 
 ## 链接
 
-* [**YYF开发文档 yyf-book**(正在更新中)](http://yyf.newfuture.cc/)
-* [**稳定版( master分支)演示** [生产环境]](https://yyf.yunyin.org/)
-* [**最新版(develop分支)演示** [开发环境]](http://yyf.yunyin.org/)
-* [YYF-Debugger浏览器命令行调试扩展](http://debugger.newfuture.cc/)
+* [**YYF-BOOK** 开发文档 (更新中)](https://yyf.newfuture.cc/)
+* [**稳定版演示**master分支(生产)](https://yyf.yunyin.org/)
+* [**最新版演示**develop分支(开发)](http://yyf.yunyin.org/)
+* [YYFJS前端JavaScript接口库](https://github.com/YunYinORG/YYFJS)
+* [YYF-Debugger浏览器输出查看](http://debugger.newfuture.cc/)
 
 ## 安装使用
 
@@ -25,7 +26,6 @@ YYF致力于提高生产环境下的运行性能和开发环境下的开发效�
 1. 下载解压，或者clone仓库 `git clone https://github.com/YunYinORG/YYF.git` ;
 2. 运行 `./init.cmd` (windows下双击即可) ;
 3. 使用YYF虚拟机开发环境或者配置服务器环境 ;
-
 
 
 ## 目录结构

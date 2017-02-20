@@ -85,9 +85,9 @@ class Encrypt
      *  aes加密函数,$data引用传真，直接变成密码
      *  采用mcrypt扩展,为保证一致性,初始向量设为0
      *
-     * @param string $data 原文
-     * @param string $key  密钥
-     * @param bool $safe_view=false 是否进行安全Base64编码
+     * @param string $data            原文
+     * @param string $key             密钥
+     * @param bool   $safe_view=false 是否进行安全Base64编码
      *
      * @return string [加密后的密文 或者 base64编码后密文]
      */
@@ -104,9 +104,9 @@ class Encrypt
      * aes_decode(&$cipher, $key)
      *  aes解密函数,$cipher引用传真也会改变
      *
-     * @param string $cipher 密文
-     * @param string $key    密钥
-     * @param bool $safe_view=false 是否是安全Base64编码的密文
+     * @param string $cipher          密文
+     * @param string $key             密钥
+     * @param bool   $safe_view=false 是否是安全Base64编码的密文
      *
      * @return string 解密后的明文
      */
@@ -451,9 +451,9 @@ class Encrypt
     /**
      * 读取配置
      *
-     * @param  string $key [配置变量名]
+     * @param string $key [配置变量名]
      *
-     * @return mixed      [配置信息]
+     * @return mixed [配置信息]
      */
     private static function config($key)
     {
