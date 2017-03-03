@@ -2,24 +2,57 @@
 <html>
     <head>
         <title>YYF-YUNYIN YAF FRAMEWORK</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <style type="text/css">
         body,button,a{text-align: center;color: rgb(255,255,255);background: rgb(26,188,156);}
+        .form {
+            border: 1px solid;
+            margin: .5em auto;
+            padding: .3em;
+            max-width:30rem;
+        }
+        body{padding:1em}
+        main{margin: 6%}
+        Input,button{
+            font-size:1.1rem;
+            margin: .1em;
+            border-radius: .2em;
+        }
+        ul{padding: 0}
+        ul li{
+            display:inline-block;
+            font-size:.9em;
+            padding:.5em;
+        }
         </style>
     </head>
     <body>
         <h1>YYF<small><sub>v<?php echo $version?></sub></small></h1>
         <h2>高效，安全，简单，优雅 <small>的框架</small></h2>
-        <br/><hr/><br/>
-        <form action="<?php echo $url?>/Index/test" method='post'>
+        <hr/>
+        
+        <main>
+        <form class="form" action="<?php echo $url?>/Index/test" method='post'>
             <h3>POST /Index/test 测试</h3>
             <input name="data" placeholder='data' type="text"/><button>POST</button>
         </form>
-        <form action="<?php echo $url?>/Index/test" method='get'>
+        <form class="form" action="<?php echo $url?>/Index/test" method='get'>
             <h3>GET /Index/test 测试</h3>
             <input name="data" placeholder='data' type="text"/><button>GET</button>
         </form>
+        <div class="form">
             <h3>id参数绑定<a href="<?php echo $url?>/Index/123">/index/123测试</a></h3>
-        <br/><hr/><br/>
-    <footer><small><a href="https://github.com/YunYinORG/YYF/">view YYF on Github</a></small></footer>
+        </div>
+        </main>
+
+       <hr/>
+    <footer>
+        <ul>
+            <li><a href="https://github.com/YunYinORG/YYF/">YYF最新源码</a></li>
+            <li><a href="https://yyf.newfuture.cc/">YYF-book中文文档</a></li>
+            <li><a href="https://github.com/YunYinORG/YYFJS">YYFJS前端JavaScript库</a></li>
+            <li><a href="http://debugger.newfuture.cc/">YYF-Debugger调试插件</a></li>
+        </ul>
+    </footer>
 </body>
 </html>
