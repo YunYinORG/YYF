@@ -108,7 +108,7 @@ class Tracer extends Plugin
     /**
      * dispaly 资源统计监听回调
      *
-     * @param array $mem 内存消耗记录
+     * @param array $mem   内存消耗记录
      * @param array $time  时间消耗记录
      * @param array $files 文件加载记录
      */

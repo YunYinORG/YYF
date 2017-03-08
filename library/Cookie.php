@@ -22,6 +22,12 @@ class Cookie
      */
     private static $_config = null;
 
+    private function __construct()
+    {
+        self::$_config        = Config::get('cookie')->toArray();
+        self::$_config['key'] = self::key();
+    }
+
     /**
      * 设置cookie
      *
@@ -40,23 +46,27 @@ class Cookie
                 $expire = ($expire === 0) ? null : self::config('expire');
             }
             $expire = $expire ? $_SERVER['REQUEST_TIME'] + $expire : null;
-            $domain = $domain === null ? self::config('domain') : $domain;
-            return setcookie($name, $value, $expire, $path, $domain, self::config('secure'), self::config('httponly'));
+            if ($domain === null) {
+                $domain = self::config('domain');
+            }
+            return setrawcookie($name, $value, $expire, $path, $domain, self::config('secure'), self::config('httponly'));
         }
     }
 
     /**
      * 获取cookie
      *
-     * @param string $name [cookie名称]
+     * @param string $name    cookie名称
+     * @param mixed  $default 默认值
      *
      * @return mixed string|array
      */
-    public static function get($name)
+    public static function get($name, $default = null)
     {
         if (isset($_COOKIE[$name]) && $data = $_COOKIE[$name]) {
             return self::decode($data);
         }
+        return $default;
     }
 
     /**
@@ -72,7 +82,7 @@ class Cookie
             unset($_COOKIE[$name]);
             $path   = $path ?: self::config('path');
             $domain = $domain === null ? self::config('domain') : $domain;
-            setcookie($name, '', 100, $path, $domain, self::config('secure'), self::config('httponly'));
+            setrawcookie($name, '', 100, $path, $domain, self::config('secure'), self::config('httponly'));
         }
     }
 
@@ -103,6 +113,21 @@ class Cookie
             Kv::set('COOKIE_aes_key', $key);
         }
         return $key;
+    }
+
+    /**
+     * 设置cookie配置
+     *
+     * @param string $key   配置变量名
+     * @param mixed  $value 配置值
+     *
+     * @return Cookie self 设置
+     */
+    public static function setConfig($key, $value)
+    {
+        //修改配置参数
+        $config[$key] = $value;
+        return self;
     }
 
     /**
@@ -138,7 +163,7 @@ class Cookie
      *
      * @return mixed 配置项
      */
-    private static function config($name)
+    private function config($name)
     {
         if (!$config = self::$_config) {
             $config = Config::get('cookie')->toArray();

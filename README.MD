@@ -1,8 +1,7 @@
-YYF (云印Yaf框架)
+YYF (Yunyin Yaf Framework)
 ============================
-Yunyin Yaf Framework
---------------
-基于YAF扩展,构建安全高性能RESTful后端PHP框架。
+
+基于PHP yaf扩展,构建的安全高性能RESTful后端框架。
 
 YYF致力于提高生产环境下的运行性能和开发环境下的开发效率。
 [核心库](library/)高效封装常用库和操作,兼容php5.3及以上,并对php7做最大优化。
@@ -10,10 +9,11 @@ YYF致力于提高生产环境下的运行性能和开发环境下的开发效�
 
 ## 链接
 
-* [**YYF开发文档 yyf-book**(正在更新中)](http://yyf.newfuture.cc/)
-* [**稳定版( master分支)演示** [生产环境]](https://yyf.yunyin.org/)
-* [**最新版(develop分支)演示** [开发环境]](http://yyf.yunyin.org/)
-* [YYF-Debugger浏览器命令行调试扩展](http://debugger.newfuture.cc/)
+* [**YYF-BOOK** 开发文档 (更新中)](https://yyf.newfuture.cc/)
+* [**稳定版演示**master分支(生产)](https://yyf.yunyin.org/)
+* [**最新版演示**develop分支(开发)](http://yyf.yunyin.org/)
+* [YYFJS前端JavaScript接口库](https://github.com/YunYinORG/YYFJS)
+* [YYF-Debugger浏览器输出查看](http://debugger.newfuture.cc/)
 
 ## 安装使用
 
@@ -27,7 +27,6 @@ YYF致力于提高生产环境下的运行性能和开发环境下的开发效�
 3. 使用YYF虚拟机开发环境或者配置服务器环境 ;
 
 
-
 ## 目录结构
 >
 ```
@@ -36,8 +35,8 @@ YYF致力于提高生产环境下的运行性能和开发环境下的开发效�
 │  init.cmd     开发环境初始化通用脚本 
 │  LICENSE      Apache 2.0 许可证
 │  README.MD
-│  
-├─app  
+│
+├─app      应用目录【添加代码目录】
 │  │
 │  │  README.MD
 │  │  
@@ -54,13 +53,13 @@ YYF致力于提高生产环境下的运行性能和开发环境下的开发效�
 │  └─views           视图目录
 │      └─index
 │              index.phtml
-│              
+│
 ├─conf      配置目录
 │      app.ini            基础配置
 │      secret.common.ini  示例私密配置
 │      secret.product.ini 生产环境私密配置
-│ 
-├─library   库目录
+│
+├─library   核心库目录
 │  │  Cache.php    缓存管理类
 │  │  Config.php   配置读取类
 │  │  Cookie.php   安全Cookie接口
@@ -82,7 +81,6 @@ YYF致力于提高生产环境下的运行性能和开发环境下的开发效�
 │  │  Validate.php 类型验证类
 │  │  Wechat.php   微信登录接口库类
 │  │
-│  │
 │  ├─Bootstrap 启动加载
 │  │      dev.php       开发环境启动加载
 │  │      product.php   生产环境启动加载
@@ -92,11 +90,7 @@ YYF致力于提高生产环境下的运行性能和开发环境下的开发效�
 │  │      Header.php    header头输出类
 │  │      Listener.php  日志监听类
 │  │      Tracer.php    消耗统计类
-│  │ 
-│  ├─Parse 格式解析
-│  │      Filter.php
-│  │      Xml.php
-│  │               
+│  │
 │  ├─Service 系统基础服务
 │  │      Api.php
 │  │      Database.php
@@ -105,22 +99,25 @@ YYF致力于提高生产环境下的运行性能和开发环境下的开发效�
 │  │      README.MD
 │  │      Smtp.php
 │  │      Ucpaas.php
-│  │ 
+│  │
 │  ├─Storage 存储驱动
 │  │      File.php      文件缓存类
 │  │      
 │  └─Test 单元测试库
 │         YafTest.php   Yaf框架测试基类
-│          
+│
 ├─public 公共目录【前端资源目录，生产环境根目录】
 │      .htaccess    url重写
 │      favicon.ico
 │      index.php    入口文件
 │      robots.txt
-│      
-├─runtime 默认缓存日志临时文件夹【保证程序具有可读写权限】
 │
+├─runtime 默认缓存日志临时文件夹【保证程序具有可读写权限】
 │
 └─tests   单元测试目录
 ```
 >
+
+## 许可协议(LICENSE)
+
+[Apache2.0 开源协议](LICENSE) 授权
