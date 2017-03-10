@@ -11,7 +11,7 @@
 namespace Test;
 
 use \Debug\Assertion as Assertion;
-use \PHPUnit_Framework_TestCase as TestCase;
+use \PHPUnit\Framework\TestCase;
 use \Yaf_Application as Application;
 use \Yaf_Loader as Loader;
 
