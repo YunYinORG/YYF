@@ -11,7 +11,6 @@
 namespace Test;
 
 use \Debug\Assertion as Assertion;
-use \PHPUnit\Framework\TestCase;
 use \Yaf_Application as Application;
 use \Yaf_Loader as Loader;
 
@@ -28,7 +27,7 @@ Loader::import(__DIR__.'/functions.php');
  * @backupGlobals disabled
  * @backupStaticAttributes disabled
  */
-abstract class YafCase extends TestCase
+abstract class YafCase extends \PHPUnit_Framework_TestCase
 {
     /*是否自动加载bootstrap*/
     protected static $bootstrap = true;
