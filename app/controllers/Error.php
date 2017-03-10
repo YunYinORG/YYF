@@ -22,22 +22,37 @@ class ErrorController extends Yaf_Controller_Abstract
     {
         Yaf_Dispatcher::getInstance()->disableView();
         $code = $exception->getCode() ?: 500;
-        $url  = $this->_request->getRequestUri();
-
-        Logger::error('[exception: {code}]({url}): {exception}', array(
+        $data = array(
             'code'     => $code,
-            'url'      => $url,
+            'uri'      => $this->_request->getRequestUri(),
             'exception'=> $exception->__toString(),
-        ));
-
-        $response['status'] = -10;
-        $response['info']   = array(
-            'code' => $code,
-            'msg'  => '请求异常！',
-            'uri'  => $url
         );
+        Logger::error('[exception: {code}]({uri}): {exception}', $data);
+
+        if ('dev' !== Yaf_Application::app()->environ()) {
+            //非开发环境下错误打码
+            $data['exception']='请求异常！';
+        }
+        try {
+            $rest=Config::get('rest');
+        } catch (Exception $e) {
+            //配置读取异常
+            $data['exception'] .= '[配置获取出错]';
+            $rest=array(
+                'status' => 'status',
+                'data'   => 'data',
+                'error'  => -10,
+                'json'   => JSON_UNESCAPED_UNICODE,
+            );
+        }
 
         header('Content-Type: application/json; charset=utf-8', true, $code);
-        echo json_encode($response, JSON_UNESCAPED_UNICODE); //unicode不转码
+        echo json_encode(
+            array(
+                $rest['status'] => intval($rest['error']),
+                $rest['data']   => $data,
+            ),
+            $rest['json']
+        ); //json encode 输出错误状态
     }
 }
