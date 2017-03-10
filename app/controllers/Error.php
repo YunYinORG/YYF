@@ -21,16 +21,23 @@ class ErrorController extends Yaf_Controller_Abstract
     public function errorAction($exception)
     {
         Yaf_Dispatcher::getInstance()->disableView();
-        $code = $exception->getCode() ?: 500;
+        $code = $exception->getCode();
         $data = array(
             'code'     => $code,
             'uri'      => $this->_request->getRequestUri(),
             'exception'=> $exception->__toString(),
         );
+        // log
         Logger::error('[exception: {code}]({uri}): {exception}', $data);
 
+        // header
+        if (!($code >= 100 && $code < 1000)) {
+            $code = 500;
+        }
+        header('Content-Type: application/json; charset=utf-8', true, $code);
+        // output
         if ('dev' !== Yaf_Application::app()->environ()) {
-            //非开发环境下错误打码
+            //非开发环境下错误消息打码
             $data['exception']='请求异常！';
         }
         try {
@@ -45,8 +52,6 @@ class ErrorController extends Yaf_Controller_Abstract
                 'json'   => JSON_UNESCAPED_UNICODE,
             );
         }
-
-        header('Content-Type: application/json; charset=utf-8', true, $code);
         echo json_encode(
             array(
                 $rest['status'] => intval($rest['error']),
