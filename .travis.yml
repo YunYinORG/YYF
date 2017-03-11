@@ -88,6 +88,7 @@ script:
   - phpenv config-rm xdebug.ini
   - ../php-cs-fixer fix -v --dry-run --using-cache=no library/
   - ../php-cs-fixer fix -v --dry-run --using-cache=no app/
+  - ../php-cs-fixer fix -v --dry-run --using-cache=no public/
   # test server
   - if [[ "$environ" == "dev" && $TRAVIS_PHP_VERSION != "5.3" ]];then
       curl -sS localhost:1122|grep -iPo '(?<=<title>)(.*)(?=</title>)';
