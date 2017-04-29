@@ -1,6 +1,6 @@
 <?php
 /**
- * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
  *
  * @link https://github.com/YunYinORG/YYF/
  *
@@ -121,7 +121,12 @@ class Orm implements \JsonSerializable, \ArrayAccess
             $this->where($pkey, $id);//auto add table name if has other tables
         }
 
-        $this->limit(1);
+        //limit
+        if ($this->_limit) {
+            $this->_param[$this->_limit[0]] = 1;
+        } else {
+            $this->limit(1);
+        }
         $sql = $this->buildSelect();
 
         if ($result = $this->query($sql, false)) {
@@ -157,7 +162,13 @@ class Orm implements \JsonSerializable, \ArrayAccess
             /*自动查询*///判断是否有别名设置
             $field = array_search($key, $this->_fields, true);
             $field = is_string($field) ? $this->parseFunction($field) : Orm::backQoute($key);
-            $sql   = $this->limit(1)->buildSelect($field);
+            //limit
+            if ($this->_limit) {
+                $this->_param[$this->_limit[0]] = 1;
+            } else {
+                $this->limit(1);
+            }
+            $sql   = $this->buildSelect($field);
             $value = $this->value($sql); //单列查询
             if ($value !== false) {
                 $this->_data[$key] = $value;
