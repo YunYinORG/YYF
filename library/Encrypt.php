@@ -9,7 +9,7 @@
  */
 // | FileName:  Encrypt.php
 // |  加密函数库 使用前需对数据格式进行检查防止异常
-// |  必须开启mcrypt扩展（兼容任意版本）
+// | 改用openssl 函数
 // ===================================================================
 // # 电话号格式保留加密
 //   加密尾巴4位到10位(根据长度而定)
@@ -25,7 +25,7 @@
 // #### 截取用户名——>AES加密——>base64转码 ——>特殊字符替换——>字符拼接
 // +------------------------------------------------------------------
 // | author： NewFuture
-// | version： 2.0
+// | version： 3.0
 // +------------------------------------------------------------------
 // | Copyright (c) 2014 ~ 2016云印南天团队 All rights reserved.
 // +------------------------------------------------------------------
@@ -39,21 +39,11 @@ class Encrypt
 {
     //最大混淆ID限制
     const MAX_ID = 5000;
+
+    const METHOD = 'aes-256-ctr';
+
     //配置，key
     private static $_config = null;
-
-    /**
-     * 加密密码
-     *
-     * @param string $pwd  [密码]
-     * @param string $salt [混淆salt]
-     *
-     * @return string [加密后的32字符串]
-     */
-    public static function encryptPwd($pwd, $salt)
-    {
-        return md5(crypt($pwd, $salt));
-    }
 
     /**
      * 路径安全base64编码
@@ -81,46 +71,39 @@ class Encrypt
     }
 
     /**
-     *  aes_encode(&$data, $key)
-     *  aes加密函数,$data引用传真，直接变成密码
-     *  采用mcrypt扩展,为保证一致性,初始向量设为0
+     * aesEncode($data, $key)
+     * AES加密函数,$data引用传真，直接变成密码
+     * 改用openssl加密
      *
-     * @param string $data            原文
-     * @param string $key             密钥
-     * @param bool   $safe_view=false 是否进行安全Base64编码
+     * @param string $data         原文
+     * @param string $key          密钥
+     * @param bool   $safe64=false 是否进行安全Base64编码
+     * @param mixed  $safeB64
      *
      * @return string [加密后的密文 或者 base64编码后密文]
      */
-    public static function aesEncode($data, $key, $safe_view = false)
+    public static function aesEncode($data, $key, $safe64 = false)
     {
-        $td = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_ECB, '');
-        mcrypt_generic_init($td, $key, '0000000000000000');
-        $data = mcrypt_generic($td, $data);
-        mcrypt_generic_deinit($td);
-        return $safe_view ? self::base64Encode($data) : $data;
+        $data = openssl_encrypt($data, self::METHOD, $key, !$safe64);
+        return $safe64 ? strtr($data, array('+' => '-', '=' => '_', '/' => '.')) : $data;
     }
 
     /**
      * aes_decode(&$cipher, $key)
      *  aes解密函数,$cipher引用传真也会改变
      *
-     * @param string $cipher          密文
-     * @param string $key             密钥
-     * @param bool   $safe_view=false 是否是安全Base64编码的密文
+     * @param string $cipher       密文
+     * @param string $key          密钥
+     * @param bool   $safe64=false 是否是安全Base64编码的密文
      *
      * @return string 解密后的明文
      */
-    public static function aesDecode($cipher, $key, $safe_view = false)
+    public static function aesDecode($cipher, $key, $safe64 = false)
     {
         if ($cipher) {
-            $safe_view and $cipher = self::base64Decode($cipher);
-
-            $td = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_ECB, '');
-            mcrypt_generic_init($td, $key, '0000000000000000');
-            $cipher = mdecrypt_generic($td, $cipher);
-            mcrypt_generic_deinit($td);
-            $cipher = trim($cipher);
-            return $cipher;
+            $safe64 and $cipher = strtr($cipher, array('-' => '+', '_' => '=', '.' => '/'));
+            $cipher             = openssl_encrypt($cipher, self::METHOD, $key, !$safe64);
+            return trim($cipher);
         }
     }
 
@@ -200,7 +183,6 @@ class Encrypt
                 $end = substr($phone, -4);
                 return substr($phone, 0, -10).self::_encryptMid($mid, $salt, $id).self::encryptPhoneTail($end);
             }
-
             throw new Exception('超长手机号加密手机参数不足 salt 和 sid 混淆必须');
         } elseif ($len >= 8 && is_numeric($phone[0])) {
             /*手机号数字部分长度大于8-10位*/
@@ -210,7 +192,6 @@ class Encrypt
                 $end = substr($phone, -4);
                 return substr($phone, 0, -8).self::_encryptShortMid($mid, $salt).self::encryptPhoneTail($end);
             }
-
             throw new Exception('长手机号加密手机混淆参数salt 必须');
         } elseif ($len > 4) {
             /*4到7位手机号,只加密后4位，不混淆*/
@@ -292,7 +273,6 @@ class Encrypt
             throw new Exception('加密手机参数不足');
             return false;
         }
-
         return sprintf('%04s', $encryption); //转位4位字符串,不足4位补左边0
     }
 
@@ -320,7 +300,6 @@ class Encrypt
             //前密码表查找失败
             throw new Exception('中间加密异常,密码表匹配失败');
         }
-
         $mid2 = sprintf('%04s', $mid2);
         return substr_replace($midNum, $mid2, 2);
     }
@@ -345,7 +324,6 @@ class Encrypt
             //前密码表查找失败
             throw new Exception('中间加密异常,密码表匹配失败');
         }
-
         return sprintf('%04s', $midNum);
     }
 
@@ -360,15 +338,15 @@ class Encrypt
     private static function _decryptEnd($encodeEnd)
     {
         $key   = self::config('key_phone_end'); //获取配置密钥
-        $table = self::_cipherTable($key);      //读取密码表
-                                                //获取对应aes密码
+        $table = self::_cipherTable($key);    //读取密码表
+
         $end    = intval($encodeEnd);
-        $cipher = $table[$end];
+        $cipher = $table[$end];//获取对应aes密码
         if (!$cipher) {
             throw new Exception('尾号密码查找失败');
         }
-        $endNum = (int) self::aesDecode($cipher, $key); //对密码进行解密
-        return sprintf('%04s', $endNum);
+        $endNum = self::aesDecode($cipher, $key); //对密码进行解密
+        return sprintf('%04s', intval($endNum));
     }
 
     /**
@@ -387,8 +365,8 @@ class Encrypt
         $key   = substr($snum.$key, 0, 32);
         $table = self::_cipherTable($key);
         //解密
-        $mid2 = (int) substr($midEncode, 2, 4);
-        $mid2 = $table[$mid2];
+        $mid2 = substr($midEncode, 2, 4);
+        $mid2 = $table[intval($mid2)];
         $mid2 = sprintf('%04s', self::aesDecode($mid2, $key));
         //还原
         $num = substr_replace($midEncode, $mid2, 2);
@@ -410,13 +388,13 @@ class Encrypt
         $key   = substr($snum.$key, 0, 32);   //混淆密钥,每个人的密钥均不同
         $table = self::_cipherTable($key);
 
-        $mid    = intval($midEncode);
-        $cipher = $table[$mid];
+        $mid    = $midEncode;
+        $cipher = $table[intval($mid)];
         if (!$cipher) {
             throw new Exception('中间4位密码解密查找失败');
         }
-        $mid = (int) self::aesDecode($cipher, $key); //对密码进行解密
-        return sprintf('%04s', $mid);
+        $mid = self::aesDecode($cipher, $key); //对密码进行解密
+        return sprintf('%04s', intval($mid));
     }
 
     /**
@@ -434,14 +412,9 @@ class Encrypt
             /*读取缓存中的密码表*/
             $table = unserialize($table);
         } else {
-            /*密码表不存在则重新生成*/
-            //对所有数字,逐个进行AES加密生成密码表
-            $td = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_ECB, '');
-            mcrypt_generic_init($td, $key, '0000000000000000');
             for ($i = 0; $i < 10000; ++$i) {
-                $table[] = mcrypt_generic($td, $i);
+                $table[] = openssl_encrypt($i, self::METHOD, $key, true);
             }
-            mcrypt_generic_deinit($td);
             sort($table);                           //根据加密后内容排序得到密码表
             Kv::set($tableName, serialize($table)); //缓存密码表
         }
