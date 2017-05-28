@@ -19,25 +19,29 @@ class Rsa
     /**
      * 获取公钥文件
      *
+     * @param mixed $prefix 前缀用来区分多对key
+     *
      * @return string
      */
-    public static function pubKey()
+    public static function pubKey($prefix = '')
     {
-        return (Kv::get('RSA_life_time') > $_SERVER['REQUEST_TIME'] && $key = kv::get('RSA_pub_key')) ? $key : self::init();
+        $pair = Cache::get("${prefix}_pair.rsa") ?: Rsa::init($prefix);
+        return $pair['pub'];
     }
 
     /**
      * 解密
      *
-     * @param string $str 密文
+     * @param string $str    密文
+     * @param mixed  $prefix 密钥前缀
      *
-     * @return string
+     * @return string 原文
      */
-    public static function decode($str)
+    public static function decode($str, $prefix = '')
     {
         $str = base64_decode($str);
-        if ($key = Kv::get('RSA_pri_key')) {
-            $pri_key = openssl_pkey_get_private($key);
+        if ($pair = Cache::get("${prefix}_pair.rsa")) {
+            $pri_key = openssl_pkey_get_private($key['pri']);
             return openssl_private_decrypt($str, $decrypted, $pri_key) ? $decrypted : false;
         }
         return false;
@@ -46,36 +50,35 @@ class Rsa
     /**
      * 加密
      *
-     * @param string $str [原文]
+     * @param string $str    [原文]
+     * @param mixed  $prefix 秘钥前缀
      *
-     * @return string
+     * @return string 加密后base64编码
      */
-    public static function encode($str)
+    public static function encode($str, $prefix = '')
     {
-        $pub = openssl_pkey_get_public(self::pubKey());
+        $pub = openssl_pkey_get_public(Rsa::pubKey($prefix));
         return openssl_public_encrypt($str, $crypttext, $pub) ? base64_encode($crypttext) : false;
     }
 
     /**
      * 生成和保存密钥对
      *
+     * @param mixed $prefix 前缀
      *
-     * @param bool $return_pri [返回公钥或者私钥]
-     *
-     * @return string [公钥或者私钥]
+     * @return array [公钥和私钥对]
      */
-    private static function init($return_pri = false)
+    private static function init($prefix = '')
     {
         $res = openssl_pkey_new();
         openssl_pkey_export($res, $pri);
-        $d   = openssl_pkey_get_details($res);
-        $pub = $d['key'];
+        $d    = openssl_pkey_get_details($res);
+        $pair =array(
+            'pub'=> $d['key'],
+            'pri'=> $pri,
+        );
 
-        $time = time() + Config::get('rsa.lifetime') ?: 604800;
-
-        kv::set('RSA_life_time', $time);
-        kv::set('RSA_pri_key', $pri);
-        Kv::set('RSA_pub_key', $pub);
-        return $return_pri ? $pri : $pub;
+        Cache::set("${prefix}_rsa.pair", $pair, Config::get('rsa.lifetime'));
+        return $pair;
     }
 }
