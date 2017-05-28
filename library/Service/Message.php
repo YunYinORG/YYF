@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 /**
  * YYF - A simple, secure, and efficient PHP RESTful Framework.
  *

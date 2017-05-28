@@ -1,6 +1,6 @@
 <?php
 /**
- * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
  *
  * @link https://github.com/YunYinORG/YYF/
  *
@@ -76,7 +76,7 @@ $rules = array(
     'no_whitespace_in_blank_line'                  => true, //删除空白行中多余的空格
     'no_whitespace_before_comma_in_array'          => true, //数组去空格
 
-    'no_unreachable_default_argument_value'        => true, //去掉不可达的默认参数
+    // 'no_unreachable_default_argument_value'        => true, //去掉不可达的默认参数
     'no_unused_imports'                            => true, //删除无用引入
     'no_useless_else'                              => true, //删除无用else
     'no_useless_return'                            => true, //删除无用return

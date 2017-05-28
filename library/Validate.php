@@ -97,7 +97,7 @@ class Validate
      * 验证字符串是否安全含有不安全字符
      *
      * @todo 过于简单暴力
-
+     *
      * @param string $str
      *
      * @return bool
