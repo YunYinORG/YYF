@@ -14,9 +14,9 @@ use \Aes as AES;
 use \Test\YafCase as TestCase;
 
 /**
- * @coversDefaultClass \Encrypt
+ * @coversDefaultClass \Aes
  */
-class EncryptTest extends TestCase
+class AesTest extends TestCase
 {
     public function base64Provider()
     {

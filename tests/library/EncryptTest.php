@@ -18,57 +18,59 @@ use \Test\YafCase as TestCase;
  */
 class EncryptTest extends TestCase
 {
-    public function base64Provider()
+    public function emailProvider()
     {
         return array(
-          'en'   => array('YYF Encrypt','WVlGIEVuY3J5cHQ_'),
-          'zh'   => array('测试字符串','5rWL6K-V5a2X56ym5Liy'),
-          'char' => array('·39~！@#$%……&￥（#@*（+}{PL|>:AD>}WQE~"[]',
-            'wrczOX7vvIFAIyQl4oCm4oCmJu-.pe-8iCNAKu-8iCt9e1BMfD46QUQ-fVdRRX4iW10_'),
-          'empty'=> array('',''),
+            array('yyf@yunyin.org'),
+            array('t@t.cn'),
+            array('1@i.org'),
+            array('gmailtest@gmail.com'),
+            array('yyf@longlong.yunyin.org'),
+            array('testtestetetetet@163.com'),
         );
     }
 
     /**
      * 安全BASE64编码测试
      *
-     * @dataProvider base64Provider
+     * @dataProvider emailProvider
      *
-     * @param mixed $str    编码字符串
-     * @param mixed $result 结果
+     * @param mixed $email
      */
-    public function testBase64($str, $result)
+    public function testEmail($email)
     {
-        $this->assertSame($result, Encrypt::base64Encode($str));
-        $this->assertSame($str, Encrypt::base64Decode($result));
+        $encrypted = Encrypt::encryptEmail($email);
+        $this->assertSame($email, Encrypt::decryptEmail($encrypted), $encrypted);
     }
 
-    public function aesProvider()
+    public function phoneProvider()
     {
         return array(
-            array('YYF Encrypt','s'),
-            array('测试字符串','mysecretkey'),
-            'empty'=> array('',''),
-            'space'=> array('   hh  ','xxx'),
-            'emptykey'=> array('the key in empty',''),
+            array('13888888888','salt',1),
+            array('+8617012345679','%*(UWdx([]x',rand()),
+            array('13612345678',23445456),
+            array('12345','ss'),
+            array('123456','ss'),
+            array('1234567','salt'),
+            array('12345678','salt'),
+            array('12345679','salt'),
+            array('123456790','salt'),
         );
     }
 
     /**
-     * AES加密解密测试
+     * 安全BASE64编码测试
      *
-     * @dataProvider aesProvider
+     * @dataProvider phoneProvider
      *
-     * @param mixed $str 字符
-     * @param mixed $key 密钥
+     * @param mixed $phone
+     * @param mixed $salt
+     * @param mixed $offset
      */
-    public function testAES($str, $key)
+    public function testPhone($phone, $salt, $offset = false)
     {
-        $cipher = Encrypt::aesEncode($str, $key, false);
-        $this->assertNotEquals(false, $cipher);
-        $this->assertSame($str, Encrypt::aesDecode($cipher, $key, false), 'raw');
-        $cipher = Encrypt::aesEncode($str, $key, true);
-        $this->assertNotEquals(false, $cipher);
-        $this->assertSame($str, Encrypt::aesDecode($cipher, $key, true), 'safe64');
+        $encrypted = Encrypt::encryptPhone($phone, $salt, $offset);
+        $decrypted = Encrypt::decryptPhone($encrypted, $salt, $offset);
+        $this->assertSame($phone, $decrypted, $encrypted);
     }
 }
