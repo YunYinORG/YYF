@@ -139,7 +139,7 @@ class Cookie
      */
     private static function encode($data)
     {
-        return Encrypt::aesEncode(json_encode($data), self::config('key'), true);
+        return Aes::encrypt(json_encode($data), self::config('key'), true);
     }
 
     /**
@@ -151,7 +151,7 @@ class Cookie
      */
     private static function decode($data)
     {
-        if ($data = Encrypt::aesDecode($data, self::config('key'), true)) {
+        if ($data = Aes::decrypt($data, self::config('key'), true)) {
             return @json_decode($data, true);
         }
     }

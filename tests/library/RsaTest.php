@@ -45,12 +45,12 @@ class RsaTest extends TestCase
      * @param string $str
      * @param string $prefix
      */
-    public function testEncodeDecode($str, $prefix = '')
+    public function testRSA($str, $prefix = '')
     {
-        $pe=Rsa::encode($str, $prefix); //加密
+        $pe=Rsa::encrypt($str, $prefix); //加密
         $this->assertNotEquals(false, $pe, 'encode:'.$prefix);
         $this->assertNotEquals($pe, $str);
-        $data = Rsa::decode($pe, $prefix);//解密
+        $data = Rsa::decrypt($pe, $prefix);//解密
         $this->assertNotEquals(false, $data, 'decode:'.$prefix);
         $this->assertEquals($str, $data, 'encode decode :'.$prefix);
     }

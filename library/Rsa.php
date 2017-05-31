@@ -37,7 +37,7 @@ class Rsa
      *
      * @return string 原文
      */
-    public static function decode($str, $id = '')
+    public static function decrypt($str, $id = '')
     {
         $str = base64_decode($str);
         if ($pair = Cache::get("rsa.${id}.pair")) {
@@ -54,7 +54,7 @@ class Rsa
      *
      * @return string 加密后base64编码
      */
-    public static function encode($str, $id = '')
+    public static function encrypt($str, $id = '')
     {
         $pub = openssl_pkey_get_public(Rsa::pubKey($id));
         return openssl_public_encrypt($str, $crypttext, $pub) ? base64_encode($crypttext) : false;
