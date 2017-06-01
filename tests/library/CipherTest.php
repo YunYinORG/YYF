@@ -10,13 +10,13 @@
 
 namespace tests\library;
 
-use \Encrypt as Encrypt;
+use \Cipher as Encrypt;
 use \Test\YafCase as TestCase;
 
 /**
- * @coversDefaultClass \Encrypt
+ * @coversDefaultClass \Cipher
  */
-class EncryptTest extends TestCase
+class CipherTest extends TestCase
 {
     public function emailProvider()
     {
@@ -49,6 +49,7 @@ class EncryptTest extends TestCase
             array('13888888888','salt',1),
             array('+8617012345679','%*(UWdx([]x',rand()),
             array('13612345678',23445456),
+            array('1234','xxx'),
             array('12345','ss'),
             array('123456','ss'),
             array('1234567','salt'),
