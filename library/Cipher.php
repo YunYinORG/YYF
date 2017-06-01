@@ -25,7 +25,7 @@
 // #### 截取用户名——>AES加密——>base64转码 ——>特殊字符替换——>字符拼接
 // +------------------------------------------------------------------
 // | author： NewFuture
-// | version： 3.1
+// | version： 3.2
 // +------------------------------------------------------------------
 // | Copyright (c) 2014 ~ 2017云印南天团队 All rights reserved.
 // +------------------------------------------------------------------
@@ -193,10 +193,7 @@ class Cipher
      */
     public static function encryptPhoneTail($endNum)
     {
-        if (strlen($endNum) !== 4) {
-            throw new Exception('尾号不是4位数');
-            return false;
-        }
+        assert('strlen($endNum) == 4', '[Cipher::encryptPhoneTail]尾号不是4位数');
         $key    = Cipher::config('key_phone_end'); //获取配置密钥
         $table  = Cipher::_cipherTable($key);
         /*加密后内容查找密码表进行匹配*/
@@ -261,9 +258,10 @@ class Cipher
         $key   = substr($snum.$key, 0, 32);   //混淆密钥,每个人的密钥均不同
         $table = Cipher::_cipherTable($key);
         //拆成两部分进行解密
-        $midNum += $id;
-        $mid2 = intval(substr($midNum, 2, 4));
+        assert('$midNum<1000000 && $id > 0', '[Cipher::_encryptMid] unexcepted midNum');
+        $midNum = ($midNum + $id) % 1000000;
         //后4位加密
+        $mid2 = $midNum % 10000;
         $key  = openssl_encrypt($mid2, 'aes-256-ecb', $key, true);
         $mid2 = array_search($key, $table);
         if (false === $mid2) {
@@ -296,7 +294,7 @@ class Cipher
         $mid2 = sprintf('%04s', $mid2);
         //还原
         $num = substr_replace($midEncode, $mid2, 2);
-        $num -= $id;
+        $num = ($num - $id + 1000000) % 1000000;
         return $num;
     }
 
@@ -363,7 +361,7 @@ class Cipher
             for ($i = 0; $i < 10000; ++$i) {
                 $table[] = openssl_encrypt($i, 'aes-256-ecb', $key, true);
             }
-            sort($table);                           //根据加密后内容排序得到密码表
+            sort($table);//根据加密后内容排序得到密码表
             Kv::set($tableName, serialize($table)); //缓存密码表
         }
         return $table;
