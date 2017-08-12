@@ -35,7 +35,7 @@ class FileTest extends TestCase
     {
         $name=uniqid('test_set', true);
         static::$file->set($name, FileTest::TEST_STRING);
-        $filename=static::$dir.$name.'.php';
+        $filename=static::$dir.'.'.$name.'.php';
         $this->assertFileExists($filename);
         $this->assertFileMode($filename);
         $this->assertStringEqualsFile($filename,FileTest::PRE.FileTest::TEST_STRING);
@@ -58,7 +58,7 @@ class FileTest extends TestCase
     public function testDelete($name)
     {
         static::$file->delete($name);
-        $this->assertFileNotExists(static::$dir.$name.'.php');
+        $this->assertFileNotExists(static::$dir.'.'.$name.'.php');
         $this->assertFalse(static::$file->get($name));
     }
 
