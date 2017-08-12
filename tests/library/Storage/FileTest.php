@@ -9,7 +9,7 @@ use \Test\YafCase as TestCase;
  */
 class FileTest extends TestCase
 {
-    const PRE='<?php //';
+    const PRE='<?php die;//';
     const TEST_STRING='yyf file storage test';
     protected static $env;
     protected static $dir;
