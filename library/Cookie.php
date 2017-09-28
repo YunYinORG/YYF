@@ -163,7 +163,7 @@ class Cookie
      *
      * @return mixed 配置项
      */
-    private function config($name)
+    private static function config($name)
     {
         if (!$config = self::$_config) {
             $config = Config::get('cookie')->toArray();
