@@ -238,7 +238,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
 
         if (empty($data)) {
             //清理后无有效数据
-             return false;
+            return false;
         }
         $db     = $this->getDb('_write');
         $sqlite = 'sqlite' === $db->getAttribute(PDO::ATTR_DRIVER_NAME) &&
@@ -1551,6 +1551,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
                         $w[3] = $this->qouteField($w[3]);
                     }
                     //继续处理
+                    // no break
                 case 4:
                     $operator = &$w[2];
                     $value    = &$w[3];

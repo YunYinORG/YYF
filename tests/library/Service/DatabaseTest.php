@@ -1,6 +1,6 @@
 <?php
 /**
- * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
  *
  * @link https://github.com/YunYinORG/YYF/
  *
@@ -24,7 +24,7 @@ class DatabaseTest extends Testcase
     public static function setUpBeforeClass()
     {
         if (!isset(static::$db['mysql'])) {
-            $dsn      = getenv('MYSQL_DSN') ?:  'mysql:host=localhost;port=3306;dbname=yyf;charset=utf8';
+            $dsn      = getenv('MYSQL_DSN') ?: 'mysql:host=localhost;port=3306;dbname=yyf;charset=utf8';
             $account  = getenv('DB_USER') ?: 'root';
             $password = getenv('DB_PWD');
 
@@ -33,7 +33,7 @@ class DatabaseTest extends Testcase
             static::$db['mysql']->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         }
         if (!isset(static::$db['sqlite'])) {
-            $dsn = getenv('SQLITE_DSN')?: 'sqlite:'.APP_PATH.'/runtime/yyf.db';
+            $dsn = getenv('SQLITE_DSN') ?: 'sqlite:'.APP_PATH.'/runtime/yyf.db';
 
             static::$db['sqlite']=new Database($dsn);
             static::$db['sqlite']->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
@@ -43,7 +43,7 @@ class DatabaseTest extends Testcase
 
     public static function tearDownAfterClass()
     {
-        foreach (static::$db as $k=>&$db) {
+        foreach (static::$db as $k => &$db) {
             $db=null;
             unset(static::$db[$k]);
         }
@@ -197,7 +197,10 @@ class DatabaseTest extends Testcase
                 if ($db->exec('DELETE FROM`user`WHERE(`id`= ?)', array(1)) === false) {
                     $db->rollBack();
                 } else {
-                    $db->exec('INSERT INTO`user`(`name`,`account`)VALUES(:name,:account)', array('name'=>'New Future', 'account'=>'new_future'));
+                    $db->exec(
+                        'INSERT INTO`user`(`name`,`account`)VALUES(:name,:account)',
+                        array('name'=> 'New Future', 'account'=>'new_future')
+                    );
                     $db->commit();
                 }
             } catch (Exception $e) {

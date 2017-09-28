@@ -143,8 +143,10 @@ class Db
                 break;
             case 5://三参数最后一个为密码
                 $conf['options'] = func_get_arg(4);
+                // no break
             case 4://三参数最后一个为密码
                 $conf['password'] = func_get_arg(3);
+                // no break
             case 3://两参数第二个为账号
                 assert('is_string($config)', '[Db::set]多参数dsn链接设置必须是字符串');
                 $conf['username']  = func_get_arg(2);

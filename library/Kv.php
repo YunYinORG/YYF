@@ -72,8 +72,8 @@ class Kv
             }
             return array_combine($name, $handler->mget($name));
         }
-            //单个值获取
-            $result = $handler->get($name);
+        //单个值获取
+        $result = $handler->get($name);
         return (false === $result) ? $default : $result;
     }
 
@@ -130,27 +130,27 @@ class Kv
 
         switch (Kv::$type=Config::get('kv.type')) {
             case 'redis':    //redis 存储
-                  $config=Config::getSecret('redis');
-                  $config=$config->get('kv') ?: $config->get('_');
+                $config=Config::getSecret('redis');
+                $config=$config->get('kv') ?: $config->get('_');
 
-                  $handler=new \Redis();
-                  $handler->connect($config->get('host'), $config->get('port'));
-                  //密码验证
-                  ($value=$config->get('auth')) && $handler->auth($value);
-                  //限定数据库
-                  ($value=$config->get('db')) && $handler->select($value);
-               break;
+                $handler=new \Redis();
+                $handler->connect($config->get('host'), $config->get('port'));
+                //密码验证
+                ($value=$config->get('auth')) && $handler->auth($value);
+                //限定数据库
+                ($value=$config->get('db')) && $handler->select($value);
+                break;
 
             case 'file': //文件存储
-               $handler = new Storage\File(Config::get('runtime').'kv', false);
-               break;
+                $handler = new Storage\File(Config::get('runtime').'kv', false);
+                break;
 
             case 'kvdb':    //sae KVdb
                 $handler = new \SaeKV();
                 if (!$handler->init()) {
                     Logger::write('SAE KV cannot init'.$handler->errmsg(), 'ERROR');
                 }
-              break;
+                break;
 
             default:
                 throw new Exception('未定义方式'.Kv::$type);

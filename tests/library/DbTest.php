@@ -1,16 +1,26 @@
 <?php
+/**
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
+ *
+ * @link https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+
 namespace tests\library;
 
-use \Test\YafCase as TestCase;
 use \Db as Db;
 use \Orm as Orm;
+use \Test\YafCase as TestCase;
 
 class DbTest extends TestCase
 {
-
     /**
-    * @dataProvider configProvider
-    */
+     * @dataProvider configProvider
+     *
+     * @param mixed $config
+     */
     public function testConnect($config)
     {
         $connection = Db::connect($config);
@@ -19,8 +29,10 @@ class DbTest extends TestCase
     }
 
     /**
-    * @dataProvider configProvider
-    */
+     * @dataProvider configProvider
+     *
+     * @param mixed $config
+     */
     public function testSet($config)
     {
         $connection= Db::set('x', $config);
@@ -36,9 +48,11 @@ class DbTest extends TestCase
     }
 
     /**
-    * @dataProvider configProvider
-    * @depends testGet
-    */
+     * @dataProvider configProvider
+     * @depends testGet
+     *
+     * @param mixed $config
+     */
     public function testCurrent($config)
     {
         $connection =Db::connect($config);
@@ -46,18 +60,20 @@ class DbTest extends TestCase
         $this->assertSame($connection, Db::current());
     }
     /**
-    * @dataProvider configProvider
-    * @depends testConnect
-    */
+     * @dataProvider configProvider
+     * @depends testConnect
+     *
+     * @param mixed $config
+     */
     public function testQuery($config)
     {
         Db::set('_read', $config);
         $this->assertCount(2, Db::query('SELECT * FROM user'));
         $dataset = array(
             array(
-                'id'=>'1',
-                'account'=>'newfuture',
-                'name'=>'New Future',
+                'id'     => '1',
+                'account'=> 'newfuture',
+                'name'   => 'New Future',
             )
         );
         $user = Db::query('SELECT id,account,name FROM user WHERE id=?', array(1));
@@ -66,11 +82,13 @@ class DbTest extends TestCase
         $user = Db::query('SELECT id,account,name FROM user WHERE id=?', array(1), false);
         $this->assertEquals($dataset[0], $user);
     }
-    
+
     /**
-    * @dataProvider configProvider
-    * @depends testConnect
-    */
+     * @dataProvider configProvider
+     * @depends testConnect
+     *
+     * @param mixed $config
+     */
     public function testColumn($config)
     {
         Db::set('_read', $config);
@@ -82,19 +100,21 @@ class DbTest extends TestCase
     }
 
     /**
-    * @dataProvider configProvider
-    * @depends testQuery
-    */
+     * @dataProvider configProvider
+     * @depends testQuery
+     *
+     * @param mixed $config
+     */
     public function testExec($config)
     {
         Db::set('_read', $config);
         Db::set('_write', $config);
-        
+
         $data = array(
-            'id'=>3,
-            'account'=>'dbtester',
-            'name'=>'Db Test',
-            'created_at'=>date('Y-m-d h:i:s'),
+            'id'        => 3,
+            'account'   => 'dbtester',
+            'name'      => 'Db Test',
+            'created_at'=> date('Y-m-d h:i:s'),
         );
         $insert = 'INSERT INTO`user`(`id`,`name`,`account`,`created_at`)VALUES(:id,:name,:account,:created_at)';
         $this->assertSame(1, Db::exec($insert, $data));
@@ -102,11 +122,11 @@ class DbTest extends TestCase
         $user = Db::query('SELECT id,account,name,created_at FROM user WHERE id=?', array($data['id']), false);
         $this->assertEquals($data, $user);
 
-        $update = 'UPDATE`user`SET`name`= ? WHERE(`id`= ?)';
+        $update      = 'UPDATE`user`SET`name`= ? WHERE(`id`= ?)';
         $UPDATE_NAME = 'UPDATE_TEST DB';
         $this->assertSame(1, Db::execute($update, array($UPDATE_NAME, 3)));
         $data['name'] = $UPDATE_NAME;
-        $user = Db::query('SELECT id,account,name,created_at FROM user WHERE id=?', array($data['id']), false);
+        $user         = Db::query('SELECT id,account,name,created_at FROM user WHERE id=?', array($data['id']), false);
         $this->assertEquals($data, $user);
 
         $delete='DELETE FROM`user`WHERE(`id`= :id)';
@@ -115,49 +135,53 @@ class DbTest extends TestCase
     }
 
     /**
-    * @dataProvider tableProvider
-    */
+     * @dataProvider tableProvider
+     *
+     * @param mixed      $name
+     * @param mixed      $pk
+     * @param null|mixed $prefix
+     */
     public function testTable($name, $pk = 'id', $prefix = null)
     {
         $orm=call_user_func_array(array('Db', 'table'), func_get_args());
         $this->assertInstanceOf('Orm', $orm);
         $this->assertAttributeEquals($pk, '_pk', $orm);
-        if (func_num_args()>2) {
+        if (func_num_args() > 2) {
             $this->assertAttributeEquals($prefix, '_pre', $orm);
         }
     }
 
     /**
-    *测试数据库
-    */
+     *测试数据库
+     */
     public function configProvider()
     {
         return array(
             'default' => array('_'),
-            'test' => array('test'),
-            'mysql' => array(
+            'test'    => array('test'),
+            'mysql'   => array(
                 array(
-                    'dsn' => getenv('MYSQL_DSN') ?: 'mysql:host=localhost;port=3306;dbname=yyf;charset=utf8',
+                    'dsn'      => getenv('MYSQL_DSN') ?: 'mysql:host=localhost;port=3306;dbname=yyf;charset=utf8',
                     'username' => getenv('DB_USER') ?: 'root',
                     'password' => getenv('DB_PWD'),
                 ),
             ),
             'sqlite' => array(
                 array(
-                    'dsn' => getenv('SQLITE_DSN') ?: 'sqlite:'. APP_PATH.'/runtime/yyf.db',
+                    'dsn' => getenv('SQLITE_DSN') ?: 'sqlite:'.APP_PATH.'/runtime/yyf.db',
                 ),
             ),
         );
     }
 
     /**
-    *测试数据库
-    */
+     *测试数据库
+     */
     public function tableProvider()
     {
         return array(
-            'only name' =>array('user',),
-            'name with pk' => array('article','aid'),
+            'only name'           => array('user'),
+            'name with pk'        => array('article','aid'),
             'name pk with prefix' => array('user','uid','yyf_'),
         );
     }

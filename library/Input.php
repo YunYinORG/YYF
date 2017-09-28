@@ -122,6 +122,7 @@ class Input
                         return preg_match($regex, $export);
                     }
                 //继续往下走
+                // no break
                 default:
                     if (Config::get('debug')) {
                         throw new Exception('未知过滤方法'.$filter);
