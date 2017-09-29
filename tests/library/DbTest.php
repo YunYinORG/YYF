@@ -138,7 +138,7 @@ class DbTest extends TestCase
      * @dataProvider tableProvider
      *
      * @param mixed      $name
-     * @param mixed      $pk
+     * @param string      $pk
      * @param null|mixed $prefix
      */
     public function testTable($name, $pk = 'id', $prefix = null)
