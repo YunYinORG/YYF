@@ -61,7 +61,7 @@ install:
     fi;
   # allow yaf autoload
   - echo 'yaf.use_spl_autoload = 1' >> $PHP_CONF/php.ini
-  - wget https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v2.1.0/php-cs-fixer.phar -O ../php-cs-fixer
+  - wget https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v2.8.0/php-cs-fixer.phar -O ../php-cs-fixer
   - chmod +x ../php-cs-fixer
 
 # execute any number of scripts before the test run, custom env's are available as variables
