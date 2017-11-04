@@ -25,7 +25,7 @@ class AesTest extends TestCase
           'zh'   => array('测试字符串','5rWL6K-V5a2X56ym5Liy'),
           'char' => array('·39~！@#$%……&￥（#@*（+}{PL|>:AD>}WQE~"[]',
             'wrczOX7vvIFAIyQl4oCm4oCmJu-.pe-8iCNAKu-8iCt9e1BMfD46QUQ-fVdRRX4iW10_'),
-          'empty'=> array('',''),
+          'empty' => array('',''),
         );
     }
 
@@ -48,9 +48,9 @@ class AesTest extends TestCase
         return array(
             array('YYF Encrypt','s'),
             array('测试字符串','mysecretkey'),
-            'empty'   => array('',''),
-            'space'   => array('   hh  ','xxx'),
-            'emptykey'=> array('the key in empty',''),
+            'empty'    => array('',''),
+            'space'    => array('   hh  ','xxx'),
+            'emptykey' => array('the key in empty',''),
         );
     }
 

@@ -20,7 +20,7 @@ use \Logger as Log;
  */
 class Qiniu
 {
-    const QINIU_RS         = 'http://rs.qbox.me';
+    const QINIU_RS = 'http://rs.qbox.me';
 
     /**
      * 参数配置

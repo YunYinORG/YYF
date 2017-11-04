@@ -28,7 +28,7 @@ class Assertion
             if (version_compare(PHP_VERSION, '7.0.0', '>=')) { //for php7
                 //判断环境
                 if (-1 == ini_get('zend.assertions')) {
-                    $msg=<<<'EOF'
+                    $msg = <<<'EOF'
 调试环境，请开启php7的断言，以便更早发现问题！<br>
 (<u>在php.ini 中的设置 zend.assertions = 1 开启断言【推荐】</u>;
 或者在 conf/app.ini 中设置 assert.active = 0 关闭此警告【不推荐】。)<br>

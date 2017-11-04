@@ -18,17 +18,17 @@ use \Test\YafCase as TestCase;
  */
 class FileTest extends TestCase
 {
-    const PRE        ='<?php die;//';
-    const TEST_STRING='yyf file storage test';
+    const PRE         = '<?php die;//';
+    const TEST_STRING = 'yyf file storage test';
     protected static $env;
     protected static $dir;
     protected static $file;
 
     public static function setUpBeforeClass()
     {
-        static::$dir =APP_PATH.DIRECTORY_SEPARATOR.'runtime'.DIRECTORY_SEPARATOR.'tests'.DIRECTORY_SEPARATOR;
-        static::$file=new File(static::$dir);
-        static::$env = static::app()->environ();
+        static::$dir  = APP_PATH.DIRECTORY_SEPARATOR.'runtime'.DIRECTORY_SEPARATOR.'tests'.DIRECTORY_SEPARATOR;
+        static::$file = new File(static::$dir);
+        static::$env  = static::app()->environ();
     }
 
     public static function tearDownAfterClass()
@@ -43,14 +43,14 @@ class FileTest extends TestCase
      */
     public function testDirMode()
     {
-        $mode=$this->assertFileMode(static::$dir, 0777);
+        $mode = $this->assertFileMode(static::$dir, 0777);
     }
 
     public function testSet()
     {
-        $name=uniqid('test_set', true);
+        $name = uniqid('test_set', true);
         static::$file->set($name, FileTest::TEST_STRING);
-        $filename=static::$dir.'.'.$name.'.php';
+        $filename = static::$dir.'.'.$name.'.php';
         $this->assertFileExists($filename);
         $this->assertFileMode($filename);
         $this->assertStringEqualsFile($filename, FileTest::PRE.FileTest::TEST_STRING);
@@ -64,7 +64,7 @@ class FileTest extends TestCase
      */
     public function testGet($name)
     {
-        $str=static::$file->get($name);
+        $str = static::$file->get($name);
         $this->assertSame($str, FileTest::TEST_STRING);
         $this->assertFalse(static::$file->get(uniqid('_rand_', true)));
     }
@@ -88,7 +88,7 @@ class FileTest extends TestCase
      */
     public function testFlush()
     {
-        for ($i=0; $i < 10; ++$i) {
+        for ($i = 0; $i < 10; ++$i) {
             static::$file->set('test_'.uniqid(rand(1000, 10000)), rand());
         }
         static::$file->flush();

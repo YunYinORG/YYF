@@ -35,7 +35,7 @@ class DbTest extends TestCase
      */
     public function testSet($config)
     {
-        $connection= Db::set('x', $config);
+        $connection = Db::set('x', $config);
         $this->assertSame($connection, Db::get('x'));
         Db::set('xx', $connection);
         $this->assertSame($connection, Db::get('xx'));
@@ -43,7 +43,7 @@ class DbTest extends TestCase
 
     public function testGet()
     {
-        $connection= Db::current();
+        $connection = Db::current();
         $this->assertSame($connection, Db::get('xxxxx'));
     }
 
@@ -55,7 +55,7 @@ class DbTest extends TestCase
      */
     public function testCurrent($config)
     {
-        $connection =Db::connect($config);
+        $connection = Db::connect($config);
         Db::current($connection);
         $this->assertSame($connection, Db::current());
     }
@@ -71,9 +71,9 @@ class DbTest extends TestCase
         $this->assertCount(2, Db::query('SELECT * FROM user'));
         $dataset = array(
             array(
-                'id'     => '1',
-                'account'=> 'newfuture',
-                'name'   => 'New Future',
+                'id'      => '1',
+                'account' => 'newfuture',
+                'name'    => 'New Future',
             )
         );
         $user = Db::query('SELECT id,account,name FROM user WHERE id=?', array(1));
@@ -92,11 +92,11 @@ class DbTest extends TestCase
     public function testColumn($config)
     {
         Db::set('_read', $config);
-        $name= '测试';
+        $name = '测试';
         $this->assertSame($name, Db::column('SELECT name FROM user WHERE id=2'));
         $this->assertSame($name, Db::column('SELECT name FROM user WHERE id=?', array(2)));
-        $this->assertSame($name, Db::column('SELECT name FROM user WHERE id=:id', array('id'=>2)));
-        $this->assertSame($name, Db::column('SELECT name FROM user WHERE id=:id', array(':id'=>2)));
+        $this->assertSame($name, Db::column('SELECT name FROM user WHERE id=:id', array('id' => 2)));
+        $this->assertSame($name, Db::column('SELECT name FROM user WHERE id=:id', array(':id' => 2)));
     }
 
     /**
@@ -111,10 +111,10 @@ class DbTest extends TestCase
         Db::set('_write', $config);
 
         $data = array(
-            'id'        => 3,
-            'account'   => 'dbtester',
-            'name'      => 'Db Test',
-            'created_at'=> date('Y-m-d h:i:s'),
+            'id'         => 3,
+            'account'    => 'dbtester',
+            'name'       => 'Db Test',
+            'created_at' => date('Y-m-d h:i:s'),
         );
         $insert = 'INSERT INTO`user`(`id`,`name`,`account`,`created_at`)VALUES(:id,:name,:account,:created_at)';
         $this->assertSame(1, Db::exec($insert, $data));
@@ -129,8 +129,8 @@ class DbTest extends TestCase
         $user         = Db::query('SELECT id,account,name,created_at FROM user WHERE id=?', array($data['id']), false);
         $this->assertEquals($data, $user);
 
-        $delete='DELETE FROM`user`WHERE(`id`= :id)';
-        $this->assertSame(1, Db::exec($delete, array(':id'=>$data['id'])));
+        $delete = 'DELETE FROM`user`WHERE(`id`= :id)';
+        $this->assertSame(1, Db::exec($delete, array(':id' => $data['id'])));
         $this->assertEquals(2, Db::column('SELECT COUNT(*) FROM user'));
     }
 
@@ -138,12 +138,12 @@ class DbTest extends TestCase
      * @dataProvider tableProvider
      *
      * @param mixed      $name
-     * @param string      $pk
+     * @param string     $pk
      * @param null|mixed $prefix
      */
     public function testTable($name, $pk = 'id', $prefix = null)
     {
-        $orm=call_user_func_array(array('Db', 'table'), func_get_args());
+        $orm = call_user_func_array(array('Db', 'table'), func_get_args());
         $this->assertInstanceOf('Orm', $orm);
         $this->assertAttributeEquals($pk, '_pk', $orm);
         if (func_num_args() > 2) {

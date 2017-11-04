@@ -7,7 +7,7 @@
  * @license Apache2.0
  * @copyright 2015-2017 NewFuture@yunyin.org
  */
-// | FileName:  Encrypt.php
+
 // | 加密函数库 使用前需对数据格式进行检查防止异常
 // | 改用openssl 函数
 // ===================================================================
@@ -194,8 +194,8 @@ class Cipher
     public static function encryptPhoneTail($endNum)
     {
         assert('strlen($endNum) == 4', '[Cipher::encryptPhoneTail]尾号不是4位数');
-        $key    = Cipher::config('key_phone_end'); //获取配置密钥
-        $table  = Cipher::_cipherTable($key);
+        $key   = Cipher::config('key_phone_end'); //获取配置密钥
+        $table = Cipher::_cipherTable($key);
         /*加密后内容查找密码表进行匹配*/
         //对后四位进行AES加密
         $endNum     = intval($endNum);

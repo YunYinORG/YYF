@@ -149,8 +149,8 @@ class Db
                 // no break
             case 3://两参数第二个为账号
                 assert('is_string($config)', '[Db::set]多参数dsn链接设置必须是字符串');
-                $conf['username']  = func_get_arg(2);
-                $conf['dsn']       = $config;
+                $conf['username'] = func_get_arg(2);
+                $conf['dsn']      = $config;
                 break;
             default:
                 throw new Exception('无法解析参数，参数数目异常'.func_num_args());

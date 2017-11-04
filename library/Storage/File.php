@@ -24,9 +24,9 @@ use \Config as Config;
  */
 class File
 {
-    protected static $umask    = false;  //文件权限过滤
-    protected $_dir            = null;  //文件目录
-    protected $_serialized     = false; //是否序列化存取
+    protected static $umask = false;  //文件权限过滤
+    protected $_dir         = null;  //文件目录
+    protected $_serialized  = false; //是否序列化存取
 
     /**
      * @param string $dir        [存储目录]
@@ -36,7 +36,7 @@ class File
     {
         if (false === File::$umask) {
             umask(intval(Config::get('umask', 0077), 8));
-            File::$umask=true;
+            File::$umask = true;
         }
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
@@ -72,7 +72,7 @@ class File
      */
     public function mset(array $data, $expire = 0)
     {
-        $dir    =$this->_dir;
+        $dir    = $this->_dir;
         $result = true;
         if ($this->_serialized) {
             //序列化写入文件

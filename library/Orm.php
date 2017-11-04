@@ -243,7 +243,7 @@ class Orm implements \JsonSerializable, \ArrayAccess
         $db     = $this->getDb('_write');
         $sqlite = 'sqlite' === $db->getAttribute(PDO::ATTR_DRIVER_NAME) &&
                     version_compare('3.7.11', $db->getAttribute(PDO::ATTR_SERVER_VERSION), '>');
-        $sql    = $this->buildInsert($data, $sqlite);
+        $sql = $this->buildInsert($data, $sqlite);
         return $this->execute($sql);
     }
 

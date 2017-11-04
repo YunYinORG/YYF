@@ -26,14 +26,14 @@ class RsaTest extends TestCase
     public function strPairProvider()
     {
         return array(
-            array('str'=>'abcdefgh'),
-            array('str'=> '哈哈哈哈'),
-            array('str'=> 1234567),
-            array('str'=> ' 427038942yhias '),
-            array('str'=> 'a long string z9m=U@Aj~y7X#d6cIMx^k_SfT$51<E,B`osC{O"0n!WH.pb/}Q""Jw]a4RYrhgtGD-\ui(&N*ev;Kq>:Z)2|[l%3VF+PL8?'),
-            array('str'=> 'abce','pre'=>1),
-            array('str'=> 'sss','pre'=>'somekey'),
-            array('str'=> 'ddd','pre'=>1),
+            array('str' => 'abcdefgh'),
+            array('str' => '哈哈哈哈'),
+            array('str' => 1234567),
+            array('str' => ' 427038942yhias '),
+            array('str' => 'a long string z9m=U@Aj~y7X#d6cIMx^k_SfT$51<E,B`osC{O"0n!WH.pb/}Q""Jw]a4RYrhgtGD-\ui(&N*ev;Kq>:Z)2|[l%3VF+PL8?'),
+            array('str' => 'abce','pre' => 1),
+            array('str' => 'sss','pre' => 'somekey'),
+            array('str' => 'ddd','pre' => 1),
         );
     }
 
@@ -47,7 +47,7 @@ class RsaTest extends TestCase
      */
     public function testRSA($str, $prefix = '')
     {
-        $pe=Rsa::encrypt($str, $prefix); //加密
+        $pe = Rsa::encrypt($str, $prefix); //加密
         $this->assertNotEquals(false, $pe, 'encode:'.$prefix);
         $this->assertNotEquals($pe, $str);
         $data = Rsa::decrypt($pe, $prefix);//解密

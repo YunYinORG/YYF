@@ -34,12 +34,12 @@ class Tracer extends Plugin
     protected function __construct($type)
     {
         ob_start();
-        $this->output          =  explode(',', strtoupper($type));
+        $this->output          = explode(',', strtoupper($type));
         $this->time['request'] = isset($_SERVER['REQUEST_TIME_FLOAT']) ?
                             $_SERVER['REQUEST_TIME_FLOAT'] : $_SERVER['REQUEST_TIME'];
-        $this->time['start']   = YYF_INIT_TIME;
-        $this->mem['startm']   = YYF_INIT_MEM / 1024; //启动内存，包括调试插件占用
-        $this->mem['start']    = memory_get_usage() / 1024; //启动内存，包括调试插件占用
+        $this->time['start'] = YYF_INIT_TIME;
+        $this->mem['startm'] = YYF_INIT_MEM / 1024; //启动内存，包括调试插件占用
+        $this->mem['start']  = memory_get_usage() / 1024; //启动内存，包括调试插件占用
     }
 
     public function __destruct()
