@@ -1,6 +1,6 @@
 <?php
 /**
- * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
  *
  * @link https://github.com/YunYinORG/YYF/
  *
@@ -43,7 +43,7 @@ abstract class Model
     protected $fields = null; //字段过滤
     protected $dbname = null; //使用指定数据库
 
-    private $_orm   = null; //底层orm
+    private $_orm = null; //底层orm
 
     /**
      * 构造函数
@@ -52,8 +52,8 @@ abstract class Model
      */
     final public function __construct(array $data = null)
     {
-        if (!$name=&$this->name) {
-            $name=strtolower(preg_replace('/.(?=[A-Z])/', '$1_', substr(get_called_class(), 0, -5)));
+        if (!$name = &$this->name) {
+            $name = strtolower(preg_replace('/.(?=[A-Z])/', '$1_', substr(get_called_class(), 0, -5)));
         }
         $this->_orm = new Orm($name, $this->pk, $this->prefix);
 

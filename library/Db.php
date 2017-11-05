@@ -1,6 +1,6 @@
 <?php
 /**
- * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
  *
  * @link https://github.com/YunYinORG/YYF/
  *
@@ -143,12 +143,14 @@ class Db
                 break;
             case 5://三参数最后一个为密码
                 $conf['options'] = func_get_arg(4);
+                // no break
             case 4://三参数最后一个为密码
                 $conf['password'] = func_get_arg(3);
+                // no break
             case 3://两参数第二个为账号
                 assert('is_string($config)', '[Db::set]多参数dsn链接设置必须是字符串');
-                $conf['username']  = func_get_arg(2);
-                $conf['dsn']       = $config;
+                $conf['username'] = func_get_arg(2);
+                $conf['dsn']      = $config;
                 break;
             default:
                 throw new Exception('无法解析参数，参数数目异常'.func_num_args());

@@ -1,4 +1,13 @@
 <?php
+/**
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
+ *
+ * @link https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+
 namespace tests\library;
 
 use \Cache as Cache;
@@ -11,6 +20,10 @@ class CacheTest extends TestCase
         Cache::flush();
     }
 
+    public function setUp()
+    {
+        $_SERVER['REQUEST_TIME_FLOAT'] = microtime(true);
+    }
 
     //单组测试数据
     public function singleProvider()
@@ -39,13 +52,12 @@ class CacheTest extends TestCase
         );
     }
 
-    public function setUp()
-    {
-        $_SERVER['REQUEST_TIME_FLOAT'] = microtime(true);
-    }
-
     /**
      * @dataProvider singleProvider
+     *
+     * @param mixed $key
+     * @param mixed $value
+     * @param mixed $exp
      */
     public function testSet($key, $value, $exp = 0)
     {
@@ -54,6 +66,9 @@ class CacheTest extends TestCase
 
     /**
      * @dataProvider multiProvider
+     *
+     * @param mixed $data
+     * @param mixed $exp
      */
     public function testMSet($data, $exp = 0)
     {
@@ -63,6 +78,10 @@ class CacheTest extends TestCase
     /**
      * @dataProvider singleProvider
      * @depends testSet
+     *
+     * @param string $key
+     * @param mixed  $value
+     * @param int    $exp
      */
     public function testGet($key, $value, $exp = 0)
     {
@@ -72,6 +91,11 @@ class CacheTest extends TestCase
     /**
      * @dataProvider multiProvider
      * @depends testMSet
+     *
+     * @param array $key
+     * @param mixed $value
+     * @param mixed $data
+     * @param mixed $exp
      */
     public function testMultiGet($data, $exp = 0)
     {
@@ -79,13 +103,16 @@ class CacheTest extends TestCase
         $this->assertSame($data, Cache::get($keys));
     }
 
-
     /**
      * 测试过期失效
      *
      * @dataProvider singleProvider
      * @depends testGet
      * @depends testMultiGet
+     *
+     * @param string $key
+     * @param mixed  $value
+     * @param int    $exp
      */
     public function testExpire($key, $value, $exp = 0)
     {
@@ -108,6 +135,10 @@ class CacheTest extends TestCase
      * @dataProvider multiProvider
      * @depends testGet
      * @depends testMultiGet
+     *
+     * @param array $key
+     * @param int   $exp
+     * @param mixed $data
      */
     public function testMultiExpire($data, $exp = 0)
     {
@@ -128,6 +159,10 @@ class CacheTest extends TestCase
     /**
      * @dataProvider singleProvider
      * @depends testGet
+     *
+     * @param string $key
+     * @param mixed  $value
+     * @param int    $exp
      */
     public function testDel($key, $value, $exp = 0)
     {
@@ -138,10 +173,13 @@ class CacheTest extends TestCase
         $this->assertFalse(Cache::get($key));
     }
 
-
     /**
      * @dataProvider singleProvider
      * @depends testDel
+     *
+     * @param string $key
+     * @param mixed  $value
+     * @param int    $exp
      */
     public function testFlush($key, $value, $exp = 0)
     {

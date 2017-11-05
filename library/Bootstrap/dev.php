@@ -1,6 +1,6 @@
 <?php
 /**
- * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
  *
  * @link https://github.com/YunYinORG/YYF/
  *

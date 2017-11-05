@@ -1,6 +1,6 @@
 <?php
 /**
- * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
  *
  * @link https://github.com/YunYinORG/YYF/
  *
@@ -139,7 +139,7 @@ class Cookie
      */
     private static function encode($data)
     {
-        return Encrypt::aesEncode(json_encode($data), self::config('key'), true);
+        return Aes::encrypt(json_encode($data), self::config('key'), true);
     }
 
     /**
@@ -151,7 +151,7 @@ class Cookie
      */
     private static function decode($data)
     {
-        if ($data = Encrypt::aesDecode($data, self::config('key'), true)) {
+        if ($data = Aes::decrypt($data, self::config('key'), true)) {
             return @json_decode($data, true);
         }
     }
@@ -163,7 +163,7 @@ class Cookie
      *
      * @return mixed 配置项
      */
-    private function config($name)
+    private static function config($name)
     {
         if (!$config = self::$_config) {
             $config = Config::get('cookie')->toArray();

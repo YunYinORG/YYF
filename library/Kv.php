@@ -1,6 +1,6 @@
 <?php
 /**
- * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
  *
  * @link https://github.com/YunYinORG/YYF/
  *
@@ -33,9 +33,9 @@ class Kv
      * @param mixed  $value  [缓存值]
      * @param mixed  $expire [有效时间]
      */
-    public static function set($name, $value=null)
+    public static function set($name, $value = null)
     {
-        $handler=Kv::handler();
+        $handler = Kv::handler();
         if (is_array($name)) {
             //数组设置
             assert(func_num_args() === 1, '[Kv::set]数组同步设置时,只支持一个参数');
@@ -61,9 +61,9 @@ class Kv
      *
      * @return mixed [获取值]
      */
-    public static function get($name, $default=false)
+    public static function get($name, $default = false)
     {
-        $handler=Kv::handler();
+        $handler = Kv::handler();
         if (is_array($name)) {
             //数组获取
             assert('false===$default', '[Kv::get]数组获取时，不能设置默认值');
@@ -72,8 +72,8 @@ class Kv
             }
             return array_combine($name, $handler->mget($name));
         }
-            //单个值获取
-            $result = $handler->get($name);
+        //单个值获取
+        $result = $handler->get($name);
         return (false === $result) ? $default : $result;
     }
 
@@ -83,7 +83,7 @@ class Kv
      * @param string $name 键
      * @param int    $time 时间(redis有效)
      */
-    public static function del($name, $time=0)
+    public static function del($name, $time = 0)
     {
         return Kv::handler()->delete($name, $time);
     }
@@ -93,7 +93,7 @@ class Kv
      */
     public static function flush()
     {
-        $handler=Kv::handler();
+        $handler = Kv::handler();
         if ('redis' === Kv::$type) {
             return $handler->flushDB();
         } elseif ('kvdb' === Kv::$type) {
@@ -128,29 +128,29 @@ class Kv
             return $handler;
         }
 
-        switch (Kv::$type=Config::get('kv.type')) {
+        switch (Kv::$type = Config::get('kv.type')) {
             case 'redis':    //redis 存储
-                  $config=Config::getSecret('redis');
-                  $config=$config->get('kv') ?: $config->get('_');
+                $config = Config::getSecret('redis');
+                $config = $config->get('kv') ?: $config->get('_');
 
-                  $handler=new \Redis();
-                  $handler->connect($config->get('host'), $config->get('port'));
-                  //密码验证
-                  ($value=$config->get('auth')) && $handler->auth($value);
-                  //限定数据库
-                  ($value=$config->get('db')) && $handler->select($value);
-               break;
+                $handler = new \Redis();
+                $handler->connect($config->get('host'), $config->get('port'));
+                //密码验证
+                ($value = $config->get('auth')) && $handler->auth($value);
+                //限定数据库
+                ($value = $config->get('db')) && $handler->select($value);
+                break;
 
             case 'file': //文件存储
-               $handler = new Storage\File(Config::get('runtime').'kv', false);
-               break;
+                $handler = new Storage\File(Config::get('runtime').'kv', false);
+                break;
 
             case 'kvdb':    //sae KVdb
                 $handler = new \SaeKV();
                 if (!$handler->init()) {
                     Logger::write('SAE KV cannot init'.$handler->errmsg(), 'ERROR');
                 }
-              break;
+                break;
 
             default:
                 throw new Exception('未定义方式'.Kv::$type);

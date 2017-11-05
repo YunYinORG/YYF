@@ -1,4 +1,13 @@
 <?php
+/**
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
+ *
+ * @link https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+
 namespace tests\library;
 
 use \Kv as Kv;
@@ -9,17 +18,17 @@ use \Test\YafCase as TestCase;
  */
 class KvTest extends TestCase
 {
-    protected static $DATA=array(
-        '_test_key_s'=>'test_value',
-        '_test_key_n'=>123,
-        '_test_key_l'=>'ss',
-        '_test_key_null'=>null,
+    protected static $DATA = array(
+        '_test_key_s'    => 'test_value',
+        '_test_key_n'    => 123,
+        '_test_key_l'    => 'ss',
+        '_test_key_null' => null,
     );
 
-    protected static $mDATA=array(
-        '_test_kv2_s'=>'22test_value',
-        '_test_kv2_n'=>22123,
-        '_test_kv2_l'=>'222ss'
+    protected static $mDATA = array(
+        '_test_kv2_s' => '22test_value',
+        '_test_kv2_n' => 22123,
+        '_test_kv2_l' => '222ss'
     );
 
     public static function tearDownAfterClass()
@@ -41,8 +50,8 @@ class KvTest extends TestCase
     }
 
     /**
-    * @depends testSet
-    */
+     * @depends testSet
+     */
     public function testGet()
     {
         foreach (KvTest::$DATA as $key => &$value) {
@@ -53,30 +62,30 @@ class KvTest extends TestCase
     }
 
     /**
-    * @depends testSet
-    */
+     * @depends testSet
+     */
     public function testMget()
     {
         //mget
-        $data=static::$mDATA;
-        $keys=array_keys($data);
+        $data = static::$mDATA;
+        $keys = array_keys($data);
         $this->assertEquals($data, Kv::get($keys));
         //mget with
-        $key='_no.ttkv_key1_.'.rand();
-        $keys[] = $key;
+        $key        = '_no.ttkv_key1_.'.rand();
+        $keys[]     = $key;
         $data[$key] = false;
-        $key = '_no_testkv_key_'.rand();
-        $keys[] = $key;
+        $key        = '_no_testkv_key_'.rand();
+        $keys[]     = $key;
         $data[$key] = false;
         $this->assertEquals($data, Kv::get($keys));
     }
 
     /**
-    * @depends testSet
-    */
+     * @depends testSet
+     */
     public function testDel()
     {
-        $key=uniqid('_t_kv_d');
+        $key = uniqid('_t_kv_d');
         Kv::Handler()->set($key, 'value');
         $this->assertEquals(true, Kv::del($key));
         $this->assertFalse(Kv::get($key));
@@ -88,19 +97,19 @@ class KvTest extends TestCase
     }
 
     /**
-    * @depends testDel
-    */
+     * @depends testDel
+     */
     public function testFlush()
     {
         $this->assertNotFalse(Kv::flush());
     }
 
     /**
-    * @depends testFlush
-    */
+     * @depends testFlush
+     */
     public function testClear()
     {
-        $key=uniqid('_t_kv_');
+        $key = uniqid('_t_kv_');
         $this->assertEquals(true, Kv::set($key, 'test value'));
         $this->assertEquals(true, Kv::clear()->set($key.'new', 'newtest'));
         $this->assertFalse(Kv::get($key));

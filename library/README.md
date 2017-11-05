@@ -1,12 +1,15 @@
 YYF核心库
 ========
 
+详细说明参考文档 <https://yyf.newfuture.cc/>
+
+* Aes.php : 高级对称加密管理类(Aes)
 * Cache.php : 缓存管理类(Cache)
+* Cipher.php : 安全加密类(Cipher)* 
 * Config.php : 配置读取类(Config)
 * Cookie.php : 安全Cookie操作类(Cookie)
 * Db.php : 数据相关操作辅助封装(Db)
 * Debug.php :   调试类(Debug)
-* Encrypt.php : 安全加密类(Encrypt)
 * Input.php : 输入管理类(Input)
 * Kv.php : 键值对存储类(Kv)
 * Logger.php : 日志管理类(Logger)
@@ -18,7 +21,20 @@ YYF核心库
 * Rsa.php : Rsa 加解密类(Rsa)
 * Session.php : session操作管理(Session)
 * Validate.php : 格式验证(Validate)
+* Wecaht.php : 微信接口操作库(Wecaht)
+ 
+AES
+-----
+对称加密
+```php
+/*基础编码和加密*/
+Aes::encode($data, $key, $safe64 = false)#AES加密
+Aes::decode($data, $cipher, $safe64 = false)#AES解密
 
+Aes::base64Encode($str) #路径安全的Base64编码
+Aes::base64Decode($str) #安全base64解码
+
+```
 
 Cache
 ------
@@ -62,16 +78,11 @@ Encrypt
 -----
 加密库
 ```php
-/*基础编码和加密*/
-Encrypt::base64Encode($str) #路径安全的Base64编码
-Encrypt::base64Decode($str) #安全base64解码
-Encrypt::aesEncode($data, $key, $safe_view = false)#AES加密
-Encrypt::aesDecode($data, $key, $safe_view = false)#AES解密
 /*格式保留加密方法*/
-Encrypt::encryptEmail($email) #加密邮箱(密码从配置中读取)
-Encrypt::decryptEmail($email) #解密邮箱
-Encrypt::encryptPhone($phone,$salt,$offset) #手机号加密
-Encrypt::decryptPhone($phone,$salt,$offset) #手机号解密
+Cipher::encryptEmail($email) #加密邮箱(密码从配置中读取)
+Cipher::decryptEmail($email) #解密邮箱
+Cipher::encryptPhone($phone,$salt,$id) #手机号加密
+Cipher::decryptPhone($phone,$salt,$id) #手机号解密
 ```
 
 Input
@@ -96,10 +107,10 @@ Kv
 支持字符串
 SAE采用memcache
 ```php
-Cache::set($name, $str) #设置
-Cache::get($name)       #读取
-Cache::del($name)       #删除
-Cache::flush()          #清空
+Kv::set($name, $str) #设置
+Kv::get($name)       #读取
+Kv::del($name)       #删除
+Kv::flush()          #清空
 ```
 
 Logger
@@ -108,6 +119,7 @@ Logger
 $level 日志标签,配置中开启的则记录
 ```
 Logger::write($msg, $level = 'NOTICE')
+Logger::error($msg, $level = 'NOTICE')
 ```
 
 Mail
@@ -162,7 +174,7 @@ REST控制器核心基类
 Rsa
 -------
 Rsa 非对称加密库
-```
+```php
 Rsa::pubKey()   #获取公钥
 Rsa::encode($s) #加密
 Rsa::decode($s) #解密

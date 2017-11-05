@@ -1,4 +1,13 @@
 <?php
+/**
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
+ *
+ * @link https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+
 namespace tests\library;
 
 use \Orm as Orm;
@@ -6,7 +15,7 @@ use \Test\YafCase as TestCase;
 
 class OrmTest extends TestCase
 {
-    const USER_AMOUNT = 2 ;
+    const USER_AMOUNT = 2;
     protected $User;
 
     public function setUp()
@@ -17,11 +26,6 @@ class OrmTest extends TestCase
     public function tearDown()
     {
         unset($this->User);
-    }
-    
-    protected function User()
-    {
-        return $this->User->clear();
     }
 
     public function testSelect()
@@ -58,15 +62,17 @@ class OrmTest extends TestCase
     }
 
     //插入测试数据
-    public function InsertProvider()
+    public function insertProvider()
     {
         return array(
-                array( array(
+                array(
+                    array(
                     'id'      => 3,
                     'account' => 'tester',
                     'name'    => 'test '.substr(__CLASS__, -8),
                 )),
-                array( array(
+                array(
+                    array(
                     'id'      => 4,
                     'account' => 'new_tester',
                     'name'    => 'New Tester 4',
@@ -75,18 +81,22 @@ class OrmTest extends TestCase
     }
 
     /**
-     * @dataProvider InsertProvider
+     * @dataProvider insertProvider
+     *
+     * @param array $data
      */
     public function testInsert($data)
     {
-        $id = $this->User()->insert($data);
+        $id = $this->user()->insert($data);
         $this->assertEquals($data['id'], $id);
         return $id;
     }
 
     /**
-     * @dataProvider InsertProvider
+     * @dataProvider insertProvider
      * @depends testInsert
+     *
+     * @param mixed $data
      */
     public function testDelete($data)
     {
@@ -101,7 +111,9 @@ class OrmTest extends TestCase
     }
 
     /**
-     * @dataProvider InsertProvider
+     * @dataProvider insertProvider
+     *
+     * @param array $data
      */
     public function testAdd($data)
     {
@@ -110,24 +122,22 @@ class OrmTest extends TestCase
         }
 
         $this->assertInstanceOf('Orm', $this->User->add());
-        
+
         $this->assertEquals(1, $this->User->delete($data['id']));
     }
 
     public function testInsertAll()
     {
-        $data = $this->InsertProvider();
+        $data = $this->insertProvider();
         $data = array_column($data, 0);
         $this->assertEquals(count($data), $this->User->insertAll($data));
-             
+
         foreach ($data as $u) {
-            $this->assertEquals(1,
-             $this->User->where($u)->delete()
-            );
+            $this->assertEquals(1, $this->User->where($u)->delete());
         }
     }
 
-   //跟新测试数据
+    //跟新测试数据
     public function updateProvider()
     {
         return array(
@@ -148,6 +158,8 @@ class OrmTest extends TestCase
 
     /**
      * @dataProvider updateProvider
+     *
+     * @param mixed $con
      */
     public function testUpdate($con, array $data)
     {
@@ -155,21 +167,23 @@ class OrmTest extends TestCase
             $con = array('id' => $con);
         }
         $old_data = $this->User->where($con)->find()->get();
-        $this->assertEquals(1, $this->User()->where($con)->update($data));
+        $this->assertEquals(1, $this->user()->where($con)->update($data));
         foreach ($data as $key => $value) {
-            $this->assertSame($value, $this->User()->where($con)->get($key));
+            $this->assertSame($value, $this->user()->where($con)->get($key));
         }
-        $this->assertEquals(1, $this->User()->where($con)->update($old_data));
+        $this->assertEquals(1, $this->user()->where($con)->update($old_data));
     }
 
     /**
      * @dataProvider updateProvider
+     *
+     * @param mixed $id
      */
     public function testSave($id, array $data)
     {
         $old_data = $this->User->find($id)->get();
-        $this->assertInstanceOf('Orm', $this->User()->set($data)->save($id));
-        $user = $this->User()->where('id', $id);
+        $this->assertInstanceOf('Orm', $this->user()->set($data)->save($id));
+        $user = $this->user()->where('id', $id);
         foreach ($data as $key => $value) {
             $this->assertSame($value, $user->get($key));
         }
@@ -178,6 +192,8 @@ class OrmTest extends TestCase
 
     /**
      * @dataProvider updateProvider
+     *
+     * @param mixed $id
      */
     public function testPut($id, array $data)
     {
@@ -193,20 +209,22 @@ class OrmTest extends TestCase
 
     public function testIncrement()
     {
-        $id = 1;
-        $User = $this->User->field('id')->find($id);
+        $id     = 1;
+        $User   = $this->User->field('id')->find($id);
         $status = $User->get('status');
         $this->assertEquals(1, $User->increment('status'));
-        $this->assertEquals($status + 1, $this->User()->where('id', $id)->get('status'));
+        $this->assertEquals($status + 1, $this->user()->where('id', $id)->get('status'));
         return $id;
     }
 
     /**
      * @depends testIncrement
+     *
+     * @param mixed $id
      */
     public function testDecrement($id)
     {
-        $User = $this->User->where('id', $id);
+        $User   = $this->User->where('id', $id);
         $status = $User->get('status');
         $this->assertEquals(1, $User->decrement('status'), "id:$id");
         $this->assertEquals($status - 1, $User->get('status'), "id:$id");
@@ -248,5 +266,10 @@ class OrmTest extends TestCase
         $user = $this->User->limit(2, 1)->select('id');
         $this->assertCount(1, $user);
         $this->assertEquals(2, $user[0]['id']);
+    }
+
+    protected function user()
+    {
+        return $this->User->clear();
     }
 }

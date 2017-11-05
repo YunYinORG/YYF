@@ -1,6 +1,6 @@
 <?php
 /**
- * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
  *
  * @link https://github.com/YunYinORG/YYF/
  *
@@ -20,7 +20,7 @@ class Bootstrap extends Yaf_Bootstrap_Abstract
      */
     public function _initRoute(Yaf_Dispatcher $dispatcher)
     {
-        if ($routes=Config::get('routes')) {
+        if ($routes = Config::get('routes')) {
             $dispatcher->getRouter()->addConfig($routes);
         }
     }

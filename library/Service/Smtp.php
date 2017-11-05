@@ -1,6 +1,6 @@
 <?php
 /**
- * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
  *
  * @link https://github.com/YunYinORG/YYF/
  *
@@ -94,11 +94,11 @@ class Smtp
      *
      * @return $this
      */
-    public function setServer($host, $port, $secure=null)
+    public function setServer($host, $port, $secure = null)
     {
-        $this->host                  = $host;
-        $this->port                  = $port;
-        $this->secure                = $secure;
+        $this->host   = $host;
+        $this->port   = $port;
+        $this->secure = $secure;
         if (!$this->ehlo) {
             $this->ehlo = $host;
         }

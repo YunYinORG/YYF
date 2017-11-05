@@ -1,6 +1,6 @@
 <?php
 /**
- * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
  *
  * @link https://github.com/YunYinORG/YYF/
  *
@@ -122,6 +122,7 @@ class Input
                         return preg_match($regex, $export);
                     }
                 //继续往下走
+                // no break
                 default:
                     if (Config::get('debug')) {
                         throw new Exception('未知过滤方法'.$filter);

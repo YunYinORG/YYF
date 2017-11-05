@@ -1,4 +1,13 @@
 <?php
+/**
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
+ *
+ * @link https://github.com/YunYinORG/YYF/
+ *
+ * @license Apache2.0
+ * @copyright 2015-2017 NewFuture@yunyin.org
+ */
+
 namespace tests\library;
 
 use \Logger as Logger;
@@ -9,28 +18,27 @@ use \Test\YafCase as TestCase;
  */
 class LoggerTest extends TestCase
 {
-    protected static $LEVEL = array('EMERGENCY','ALERT','CRITICAL','ERROR','WARN','NOTICE','INFO','DEBUG','SQL','TRACER');
+    protected static $LEVEL     = array('EMERGENCY','ALERT','CRITICAL','ERROR','WARN','NOTICE','INFO','DEBUG','SQL','TRACER');
     protected static $bootstrap = false;
-    
+
     protected $message;
 
     protected static $env;
     protected static $type;
     protected static $allow;
-    
+
     public static function setUpBeforeClass()
     {
         static::$env = static::app()->environ();
 
-        $conf = static::app()->getConfig()->log;
+        $conf          = static::app()->getConfig()->log;
         static::$allow = explode(',', strtoupper($conf->allow));
-        static::$type = $conf->type;
+        static::$type  = $conf->type;
         if ('system' === $conf->type) {
             //拦截系统日志
             ini_set('error_log', static::getLogFile());
         }
     }
-
 
     public static function tearDownAfterClass()
     {
@@ -43,8 +51,8 @@ class LoggerTest extends TestCase
 
     public function setUp()
     {
-        $m = &$this->message;
-        $m = array();
+        $m                = &$this->message;
+        $m                = array();
         Logger::$listener = function (&$level, &$msg) use (&$m) {
             $m[] = array($level => $msg);
         };
@@ -56,31 +64,28 @@ class LoggerTest extends TestCase
 
     public function tearDown()
     {
-
         Logger::clear();
     }
-
 
     public function testListener()
     {
         $level = 'NOTICE';
-        $msg = 'test message';
+        $msg   = 'test message';
         Logger::write($msg, $level);
         $this->assertPop($level, $msg);
 
         $level = 'ssssa';
-        $msg = 'message';
+        $msg   = 'message';
         Logger::write($msg, $level);
         $this->assertPop($level, $msg);
     }
 
-
     public function testWrite()
     {
-        $level = static::$LEVEL;
+        $level   = static::$LEVEL;
         $level[] = uniqid('test');
-        $log1 = 'test logger lower';
-        $log2 = 'isaverylongloggerstringfortesting';
+        $log1    = 'test logger lower';
+        $log2    = 'isaverylongloggerstringfortesting';
         if ('file' === static::$type) {
             //文件存储形式
             foreach ($level as $l) {
@@ -88,7 +93,7 @@ class LoggerTest extends TestCase
                 if (in_array($l, static::$allow)) {
                     $this->assertNotFalse(Logger::write($l.$log1, strtolower($l)));
                     $this->assertNotFalse(Logger::write($l.$log2, $l));
-                    $pre = date('[d-M-Y H:i:s e] (').getenv('REQUEST_URI').') ' ;
+                    $pre     = date('[d-M-Y H:i:s e] (').getenv('REQUEST_URI').') ';
                     $message = $pre.$l.$log1.PHP_EOL.$pre.$l.$log2.PHP_EOL;
                     $this->assertStringEqualsFile($file, $message);
                     $this->assertFileMode($file);
@@ -124,11 +129,11 @@ class LoggerTest extends TestCase
      */
     public function testLog()
     {
-        $message = 'just test Message';
-        $templete = '{key}-{test}';
-        $context = array('key' => 'somevalue','test' => 'tstring','t' => 'sss');
+        $message         = 'just test Message';
+        $templete        = '{key}-{test}';
+        $context         = array('key' => 'somevalue','test' => 'tstring','t' => 'sss');
         $templete_string = 'somevalue-tstring';
-        $json = array('test','key','value');
+        $json            = array('test','key','value');
         foreach (static::$LEVEL as $l) {
             Logger::log($l, $message);
             Logger::log(strtolower($l), $templete, $context);
@@ -202,11 +207,11 @@ class LoggerTest extends TestCase
     protected static function getLogFile($key = null)
     {
         if ($key) {
-            return static::app()->getConfig()->runtime.'log/'. date('y-m-d-').strtoupper($key).'.log';
+            return static::app()->getConfig()->runtime.'log/'.date('y-m-d-').strtoupper($key).'.log';
         }
         return APP_PATH.'/runtime/logger_test_error_log.txt';
     }
-    
+
     protected function assertPop($level, $msg)
     {
         $message = array_pop($this->message);

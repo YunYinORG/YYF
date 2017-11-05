@@ -1,6 +1,6 @@
 <?php
 /**
- * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
  *
  * @link https://github.com/YunYinORG/YYF/
  *
@@ -20,7 +20,7 @@ use \Logger as Log;
  */
 class Qiniu
 {
-    const QINIU_RS         = 'http://rs.qbox.me';
+    const QINIU_RS = 'http://rs.qbox.me';
 
     /**
      * 参数配置

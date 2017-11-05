@@ -1,6 +1,6 @@
 <?php
 /**
- * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
  *
  * @link https://github.com/YunYinORG/YYF/
  *
@@ -24,9 +24,9 @@ use \Config as Config;
  */
 class File
 {
-    protected static $umask    = false;  //文件权限过滤
-    protected $_dir            = null;  //文件目录
-    protected $_serialized     = false; //是否序列化存取
+    protected static $umask = false;  //文件权限过滤
+    protected $_dir         = null;  //文件目录
+    protected $_serialized  = false; //是否序列化存取
 
     /**
      * @param string $dir        [存储目录]
@@ -36,7 +36,7 @@ class File
     {
         if (false === File::$umask) {
             umask(intval(Config::get('umask', 0077), 8));
-            File::$umask=true;
+            File::$umask = true;
         }
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
@@ -60,8 +60,8 @@ class File
             $value  = serialize(array($value, $expire));
         }
         assert('is_scalar($value)||is_null($value)', '保存的数据应该是基本类型');
-        $filename = $this->_dir.$name.'.php';
-        return file_put_contents($filename, '<?php //'.$value) > 0;
+        $filename = $this->_dir.'.'.$name.'.php';
+        return file_put_contents($filename, '<?php die;//'.$value) > 0;
     }
 
     /**
@@ -72,17 +72,17 @@ class File
      */
     public function mset(array $data, $expire = 0)
     {
-        $dir    =$this->_dir;
+        $dir    = $this->_dir;
         $result = true;
         if ($this->_serialized) {
             //序列化写入文件
             $expire = $expire > 0 ? $_SERVER['REQUEST_TIME'] + $expire : 0;
             foreach ($data as $key => &$value) {
-                $result = $result && file_put_contents($dir.$key.'.php', '<?php //'.serialize(array($value, $expire)));
+                $result = $result && file_put_contents($dir.'.'.$key.'.php', '<?php die;//'.serialize(array($value, $expire)));
             }
         } else {
             foreach ($data as $key => &$value) {
-                $result = $result && file_put_contents($dir.$key.'.php', '<?php //'.$value);
+                $result = $result && file_put_contents($dir.'.'.$key.'.php', '<?php die;//'.$value);
             }
         }
         return $result;
@@ -97,9 +97,9 @@ class File
      */
     public function get($name)
     {
-        $filename = $this->_dir.$name.'.php';
+        $filename = $this->_dir.'.'.$name.'.php';
         if (is_file($filename)) {
-            $content = substr(file_get_contents($filename), 8);
+            $content = substr(file_get_contents($filename), 12);
         } else {
             return false; /*不存在返回null*/
         }
@@ -140,7 +140,7 @@ class File
      */
     public function delete($name)
     {
-        $filename = $this->_dir.$name.'.php';
+        $filename = $this->_dir.'.'.$name.'.php';
         return is_file($filename) ? unlink($filename) : false;
     }
 

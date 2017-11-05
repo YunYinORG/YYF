@@ -1,6 +1,6 @@
 <?php
 /**
- * YYF - A simple, secure, and high performance PHP RESTful Framework.
+ * YYF - A simple, secure, and efficient PHP RESTful Framework.
  *
  * @link https://github.com/YunYinORG/YYF/
  *
@@ -45,14 +45,14 @@ class Logger
      *
      * @var array
      */
-    private static $_conf   = null;
+    private static $_conf = null;
 
     /**
      * 写入文件或者位置
      *
      * @var array
      */
-    private static $_files  = null;
+    private static $_files = null;
 
     /**
      * 写入日志
@@ -259,7 +259,7 @@ class Logger
         if ($context) {
             $replace = array();
             foreach ($context as $key => &$val) {
-                $replace['{'.$key.'}']=is_scalar($val) || method_exists($val, '__toString') ? $val : json_endcode($val, 256);
+                $replace['{'.$key.'}'] = is_scalar($val) || method_exists($val, '__toString') ? $val : json_endcode($val, 256);
             }
             $message = strtr($message, $replace);
         } elseif (!(is_scalar($message) || method_exists($message, '__toString'))) {
@@ -284,7 +284,7 @@ class Logger
             if (!isset($files['_dir'])) {
                 //日志目录
                 umask(intval(Config::get('umask', 0077), 8));
-                $logdir =isset(Logger::$_conf['path']) ? Logger::$_conf['path'] : Config::get('runtime').'log';
+                $logdir = isset(Logger::$_conf['path']) ? Logger::$_conf['path'] : Config::get('runtime').'log';
                 if (!is_dir($logdir)) {
                     mkdir($logdir, 0777, true);
                 }
